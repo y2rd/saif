@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MyStore</string>
+    <string name="title_activity_main">MyStore</string>
+    <string name="package_name">com.haider.mystore</string>
+    <string name="custom_url_scheme">com.haider.mystore</string>
+</resources>

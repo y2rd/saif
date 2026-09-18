@@ -1,0 +1,51 @@
+
+> my-store@0.0.0 build
+> vite build
+
+[36mvite v8.2.2 [32mbuilding client environment for production...[36m[39m
+transforming...
+✓ 34 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     1.06 kB │ gzip:   0.69 kB
+dist/assets/index-VkXfppsb.css    107.69 kB │ gzip:  17.25 kB
+dist/assets/index-lDtxEbvf.js   1,162.32 kB │ gzip: 307.04 kB
+
+[32m✓ built in 1.84s[39m
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+√ Copying web assets from dist to android\app\src\main\assets\public in 87.74ms
+√ Creating capacitor.config.json in android\app\src\main\assets in 7.05ms
+√ copy android in 184.01ms
+√ Updating Android plugins in 12.91ms
+√ update android in 261.68ms
+[info] Sync finished in 0.532s
+√ Copying web assets from dist to android\app\src\main\assets\public in 38.67ms
+√ Creating capacitor.config.json in android\app\src\main\assets in 1.23ms
+[info] Inlining sourcemaps
+√ copy android in 96.21ms
+√ Updating Android plugins in 10.33ms
+√ update android in 92.14ms
+[error] native-run failed with error
+        
+        1: undefined
+        
+        More details for this error may be available online: https://github.com/ionic-team/native-run/wiki/Android-Errors
+        
+🚀 بدء بناء وتثبيت التطبيق على الجوال المتصل (Capacitor)...
+================================================================
+📱 جاري التحقق من الأجهزة المتصلة...
+✅ تم العثور على جهاز متصل.
+
+📦 جاري تحديث ملفات الموقع (Build)...
+
+🔄 جاري نسخ الملفات إلى تطبيق الأندرويد...
+
+⚙️ جاري بناء تطبيق الأندرويد وتثبيته... (قد تستغرق دقائق في المرة الأولى)
+==================================================================================
+
+
+❌ حدث خطأ أثناء البناء. تأكد من إعدادات Android Studio.
