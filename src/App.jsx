@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import AdminDashboard from './AdminDashboard';
 import ProductDetailPage from './ProductDetailPage';
 import { App as CapApp } from '@capacitor/app';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { 
   subscribeToStoreData, 
   syncCustomerToCloud, 
@@ -54,6 +55,51 @@ function isProductRequiringInput(prod) {
   // التحقق من الحقول المخصصة الإجبارية الجديدة
   if (Array.isArray(prod.customFields) && prod.customFields.some(f => f.label?.trim() && f.required)) return true;
   return false;
+}
+
+// دالة إرسال إشعار فوري للنظام / الهاتف (تطبيق أندرويد + متصفح الويب)
+async function triggerDeviceNotification(title, body, id = Math.floor(Math.random() * 100000)) {
+  // 1. إشعار تطبيق أندرويد (Capacitor Native Local Notification)
+  try {
+    if (typeof LocalNotifications !== 'undefined') {
+      const perm = await LocalNotifications.checkPermissions();
+      if (perm.display !== 'granted') {
+        await LocalNotifications.requestPermissions();
+      }
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: Number(id) || Math.floor(Math.random() * 100000),
+            title: title || 'متجر حيدر',
+            body: body || '',
+            smallIcon: 'ic_launcher_round',
+            iconColor: '#004956',
+            sound: 'beep.wav'
+          }
+        ]
+      });
+    }
+  } catch (err) {
+    // تجاهل في المتصفح العادي إذا لم تكن بيئة كاباسيتور
+  }
+
+  // 2. إشعار المتصفح (Web Notification API)
+  try {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, {
+          body,
+          icon: '/favicon.svg'
+        });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification(title, { body, icon: '/favicon.svg' });
+          }
+        });
+      }
+    }
+  } catch (err) {}
 }
 
 export default function App() {
@@ -153,6 +199,18 @@ export default function App() {
 
   // حالة إظهار/إخفاء قائمة الدعم الفني السريع
   const [isSupportMenuOpen, setIsSupportMenuOpen] = useState(false);
+
+  // حالة البانر العائم للإشعار داخل التطبيق (In-App Notification Banner)
+  const [inAppBanner, setInAppBanner] = useState(null);
+  const lastSeenNotifsCountRef = useRef(null);
+
+  const showNotificationBanner = (title, message, type = 'info') => {
+    setInAppBanner({ title, message, type, id: Date.now() });
+    triggerDeviceNotification(title, message);
+    setTimeout(() => {
+      setInAppBanner(prev => (prev && prev.title === title ? null : prev));
+    }, 4500);
+  };
 
   useEffect(() => {
     if (isAuthModalOpen || isAdminAuthModalOpen) {
@@ -964,6 +1022,16 @@ export default function App() {
         matched.points !== currentUser.points ||
         JSON.stringify(matched.notifications || []) !== JSON.stringify(currentUser.notifications || [])
       )) {
+        // إذا وصل إشعار جديد في قائمة إشعارات العميل، أطلق إشعار النظام والبانر المباشر فوراً
+        const newNotifs = Array.isArray(matched.notifications) ? matched.notifications : [];
+        const oldNotifs = Array.isArray(currentUser.notifications) ? currentUser.notifications : [];
+        if (newNotifs.length > oldNotifs.length) {
+          const latest = newNotifs[0];
+          if (latest) {
+            showNotificationBanner(latest.title || 'إشعار جديد', latest.message || '', latest.type || 'wallet');
+          }
+        }
+
         const merged = { ...currentUser, ...matched };
         setCurrentUser(merged);
         try {
@@ -5961,6 +6029,41 @@ export default function App() {
             <i className={`fa-solid ${isSupportMenuOpen ? 'fa-xmark' : 'fa-headset'} text-lg`}></i>
           </button>
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* بانر الإشعار العائم التفاعلي داخل التطبيق (In-App Notification Banner) */}
+      {/* ========================================================= */}
+      {inAppBanner && typeof document !== 'undefined' && createPortal(
+        <div 
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            setProfileTab('notifications');
+            setIsAuthModalOpen(false);
+            setViewMode('store');
+            setInAppBanner(null);
+          }}
+          className="fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-10000 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-emerald-200 p-3.5 flex items-start gap-3 cursor-pointer animate-in slide-in-from-top-4 duration-300 select-none hover:shadow-emerald-100"
+          dir="rtl"
+        >
+          <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 text-base shadow-sm">
+            <i className="fa-solid fa-bell animate-bounce"></i>
+          </div>
+          <div className="flex-1 min-w-0 pr-0.5">
+            <div className="flex items-center justify-between gap-1">
+              <h5 className="font-bold text-xs text-gray-900 truncate">{inAppBanner.title}</h5>
+              <button 
+                type="button" 
+                onClick={(e) => { e.stopPropagation(); setInAppBanner(null); }}
+                className="text-gray-400 hover:text-gray-600 text-xs p-1"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-600 line-clamp-2 mt-0.5 leading-relaxed">{inAppBanner.message}</p>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
