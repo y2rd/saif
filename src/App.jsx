@@ -148,7 +148,6 @@ export default function App() {
   // حالات كود التحقق OTP وقاعدة البيانات
   const [authStep, setAuthStep] = useState('credentials'); // 'credentials' أو 'otp'
   const [authOtp, setAuthOtp] = useState('');
-  const [authGeneratedOtp, setAuthGeneratedOtp] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const [otpResendCountdown, setOtpResendCountdown] = useState(0);

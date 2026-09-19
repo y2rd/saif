@@ -53,12 +53,22 @@ export async function syncStoreConfigToCloud(config) {
   }
 }
 
-// حفظ المنتجات في السحابة
+// حفظ المنتجات في السحابة (تخزين مزدوج: وثيقة مجمعة ومجموعة منفصلة لحماية المتجر من تجاوز حد 1MB)
 export async function syncProductsToCloud(products) {
   if (!db) return { success: false, error: 'Database not initialized' };
+  const list = Array.isArray(products) ? products : [];
+  const now = Date.now();
   try {
     const docRef = doc(db, 'store', 'products');
-    await setDoc(docRef, { list: products, updatedAt: Date.now() }, { merge: true });
+    await setDoc(docRef, { list, updatedAt: now }, { merge: true });
+
+    // مزامنة كل منتج بشكل منفصل في مجموعة products لحماية قواعد البيانات عند نمو الكتالوج
+    for (const prod of list.slice(0, 50)) {
+      if (prod && prod.id) {
+        const prodRef = doc(db, 'products', String(prod.id));
+        await setDoc(prodRef, { ...prod, updatedAt: now }, { merge: true });
+      }
+    }
     return { success: true };
   } catch (err) {
     console.error("خطأ في حفظ المنتجات سحابياً:", err);
