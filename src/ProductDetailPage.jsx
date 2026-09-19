@@ -511,9 +511,9 @@ export default function ProductDetailPage({
                        const finalNote = [customFieldsNote, customUserNote.trim()].filter(Boolean).join(' | ');
                        onAddToCart(product, selectedTier, finalNote, finalQty);
                     }}
-                    className="w-full h-9 sm:h-10 px-3 sm:px-5 y2rd-btn-cart font-bold rounded-xl transition duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-[13px] shadow-xs active:scale-98"
+                    className="w-full h-8 sm:h-9 px-3 sm:px-5 bg-black hover:bg-gray-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-[13px] shadow-sm active:scale-98"
                   >
-                    <i className="fa-solid fa-bag-shopping text-white text-xs"></i>
+                    <i className="fa-solid fa-cart-shopping text-white text-xs"></i>
                     <span>أضف للسلة</span>
                   </button>
                 )}

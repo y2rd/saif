@@ -533,134 +533,75 @@ h1, h2, h3, h4, h5, h6,
 /* بطاقات مميزات المتجر: راديوس 2px وتقصير العرض                            */
 /* ========================================================================= */
 .store-feature-card {
-  border-radius: 12px !important;
+  border-radius: 2px !important;
 }
 
 /* ========================================================================= */
-/* ثيم وتصميم متجر y2rd.com (Salla Modern Theme - Theme Raed)                */
+/* تأثيرات وظلال المتجر الناعمة والضبابية بدلاً من الحدود الحادة             */
 /* ========================================================================= */
-:root {
-  --color-primary: #050f2c;
-  --color-primary-dark: #000006;
-  --color-primary-light: #2b3552;
-  --color-primary-reverse: #d1dbf8;
-}
-
 .header-soft-blur {
-  background-color: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-  border-bottom: 1px solid rgba(5, 15, 44, 0.06) !important;
-  box-shadow: 0 4px 20px -2px rgba(5, 15, 44, 0.04), 0 2px 6px -1px rgba(5, 15, 44, 0.02) !important;
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
 }
 
 .topbar-soft-blur {
-  background-color: #050f2c !important;
-  color: #ffffff !important;
-}
-
-.topbar-soft-blur button {
-  background-color: rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-}
-
-.topbar-soft-blur button span {
-  color: #ffffff !important;
+  background-color: rgba(249, 250, 251, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
 }
 
 .search-soft-blur {
-  background-color: #f1f5f9 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-  transition: all 0.25s ease !important;
+  background-color: #f3f4f6 !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.2s ease !important;
 }
 
 .search-soft-blur:focus-within, .search-soft-blur:focus {
   background-color: #ffffff !important;
-  border-color: #050f2c !important;
-  box-shadow: 0 4px 14px rgba(5, 15, 44, 0.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
 }
 
 .btn-soft-blur {
   background-color: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
   transition: all 0.2s ease !important;
 }
 
 .btn-soft-blur:hover {
-  background-color: #f8fafc !important;
-  border-color: #050f2c !important;
-  box-shadow: 0 3px 10px rgba(5, 15, 44, 0.08) !important;
+  background-color: #f9fafb !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* كرت المنتج المطابق لـ y2rd ومنصة سلة */
+/* ========================================================================= */
+/* شكل كروت المنتجات الاحترافية الحديثة (Salla Card Style)                   */
+/* ========================================================================= */
 .s-product-card-entry {
   background-color: #ffffff !important;
   border: 1px solid #f1f5f9 !important;
   border-radius: 16px !important;
-  box-shadow: 0 2px 8px -2px rgba(5, 15, 44, 0.04), 0 1px 4px -1px rgba(5, 15, 44, 0.02) !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04), 0 1px 4px -1px rgba(0, 0, 0, 0.02) !important;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .s-product-card-entry:hover {
   transform: translateY(-3px) !important;
-  border-color: rgba(5, 15, 44, 0.12) !important;
-  box-shadow: 0 14px 28px -6px rgba(5, 15, 44, 0.09), 0 6px 12px -3px rgba(5, 15, 44, 0.04) !important;
-}
-
-/* زر السلة الاحترافي بستايل y2rd */
-.y2rd-btn-cart {
-  background-color: #050f2c !important;
-  color: #ffffff !important;
-  border: 1px solid #050f2c !important;
-  transition: all 0.2s ease !important;
-}
-
-.y2rd-btn-cart:hover {
-  background-color: #2b3552 !important;
-  border-color: #2b3552 !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(5, 15, 44, 0.2) !important;
-}
-
-.y2rd-btn-cart i, .y2rd-btn-cart span {
-  color: #ffffff !important;
-}
-
-/* شارة الخصم مثل سلة وy2rd */
-.s-badge-discount {
-  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.3) !important;
-}
-
-/* ترويسة الأقسام بنمط y2rd */
-.y2rd-section-header {
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 12px;
-  margin-bottom: 20px;
-}
-
-.y2rd-section-title {
-  color: #050f2c !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.01em;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.09), 0 6px 12px -3px rgba(0, 0, 0, 0.04) !important;
 }
 
 .card-soft-blur {
   border: 1px solid #f1f5f9 !important;
   border-radius: 16px !important;
-  box-shadow: 0 2px 8px -2px rgba(5, 15, 44, 0.04), 0 1px 4px -1px rgba(5, 15, 44, 0.02) !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04), 0 1px 4px -1px rgba(0, 0, 0, 0.02) !important;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .card-soft-blur:hover {
   transform: translateY(-2px) !important;
-  border-color: rgba(5, 15, 44, 0.12) !important;
-  box-shadow: 0 12px 24px -5px rgba(5, 15, 44, 0.08), 0 4px 10px -2px rgba(5, 15, 44, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03) !important;
 }
 
 
