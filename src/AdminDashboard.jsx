@@ -52,8 +52,10 @@ export default function AdminDashboard({
       activeSectionMountedRef.current = true;
       return; // تجاهل أول تشغيل (mount)
     }
-    if (activeSection) {
-      setActiveTab(activeSection);
+    // activeSection يمكن أن يكون: string مباشر أو { tab, ts } لضمان التفعيل دائماً
+    const tab = activeSection && typeof activeSection === 'object' ? activeSection.tab : activeSection;
+    if (tab) {
+      setActiveTab(tab);
       setMobileMenuOpen(false);
     }
   }, [activeSection]);
