@@ -6515,10 +6515,11 @@ service cloud.firestore {
               )}
 
               {/* شبكة أسماء الخطوط فقط كـ Grid مدمج وصغير */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5">
                 {[
                   { id: 'DIN Next LT Arabic', name: 'DIN Next LT' },
                   { id: 'Tajawal', name: 'Tajawal' },
+                  { id: 'IBM Plex Sans Arabic', name: 'IBM Plex (رقيق)' },
                   { id: 'Cairo', name: 'Cairo' },
                   { id: 'Almarai', name: 'Almarai' },
                   { id: 'Alexandria', name: 'Alexandria' }
