@@ -606,8 +606,8 @@ export default function App() {
   const [userReviewName, setUserReviewName] = useState('');
   const [userReviewComment, setUserReviewComment] = useState('');
 
-  // حالات الدفع
-  const [paymentMethod, setPaymentMethod] = useState('binance');
+  // حالات الدفع (المحفظة كخيار افتراضي أولي)
+  const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [paymentTxProof, setPaymentTxProof] = useState('');
   const [paymentTxId, setPaymentTxId] = useState('');
   const [copySuccessKey, setCopySuccessKey] = useState('');
@@ -4668,9 +4668,20 @@ export default function App() {
                         handleConfirmOrderWithProof(paymentMethod);
                       }
                     }}
-                    className="w-full py-3 bg-[#004956] text-white font-medium rounded-xl shadow-xs transition cursor-pointer"
+                    className={`w-full py-3 text-white font-medium rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 ${
+                      paymentMethod === 'wallet'
+                        ? 'bg-emerald-700 hover:bg-emerald-800'
+                        : 'bg-[#004956] hover:bg-[#00343D]'
+                    }`}
                   >
-                    تأكيد وإرسال الطلب
+                    {paymentMethod === 'wallet' ? (
+                      <>
+                        <i className="fa-solid fa-wallet text-xs"></i>
+                        <span>تأكيد ودفع من المحفظة (${totalCartPriceUsd.toFixed(2)})</span>
+                      </>
+                    ) : (
+                      <span>تأكيد وإرسال الطلب</span>
+                    )}
                   </button>
                 </div>
               )}
