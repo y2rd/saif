@@ -381,10 +381,40 @@ html, body {
 }
 
 /* ========================================================================= */
-/* خط وتبويبات لوحة التحكم ومحتواها: خلفية بيضاء، خط 14px، بدون حدود */
+/* خط وتبويبات لوحة التحكم ومحتواها: خلفية بيضاء، خط رفيع وأنيق، بدون حدود */
 /* ========================================================================= */
 .admin-dashboard-container {
   background-color: #FFFFFF !important;
+  font-weight: 300 !important;
+}
+
+/* جعل الخط رفيعاً وخفيفاً في كل مكان داخل لوحة التحكم */
+.admin-dashboard-container,
+.admin-dashboard-container * {
+  font-weight: 400 !important;
+}
+
+/* العناوين والأزرار البارزة تظل بخط متوسط ناعم دون أن تكون سميكة */
+.admin-dashboard-container h1,
+.admin-dashboard-container h2,
+.admin-dashboard-container h3,
+.admin-dashboard-container h4,
+.admin-dashboard-container .font-bold,
+.admin-dashboard-container .font-extrabold,
+.admin-dashboard-container .font-black {
+  font-weight: 500 !important;
+}
+
+/* النصوص العادية والوصف والمدخلات بخط رفيع جداً وواضح */
+.admin-dashboard-container p,
+.admin-dashboard-container span:not(.font-bold):not(.font-extrabold),
+.admin-dashboard-container label,
+.admin-dashboard-container input,
+.admin-dashboard-container select,
+.admin-dashboard-container textarea,
+.admin-dashboard-container td,
+.admin-dashboard-container th {
+  font-weight: 300 !important;
 }
 
 .admin-nav-tab-btn {
@@ -396,7 +426,7 @@ html, body {
 }
 
 .admin-nav-tab-btn[data-active="true"] {
-  font-weight: 700 !important;
+  font-weight: 500 !important;
   background-color: #FFFFFF !important;
   color: #111827 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
@@ -404,7 +434,7 @@ html, body {
 
 .admin-nav-tab-btn[data-active="false"], 
 .admin-nav-tab-btn:not([data-active="true"]) {
-  font-weight: 400 !important;
+  font-weight: 300 !important;
   background-color: transparent !important;
   color: #4B5563 !important;
 }
