@@ -386,16 +386,20 @@ html, body {
 /* ========================================================================= */
 .admin-dashboard-container {
   background-color: #FFFFFF !important;
+  font-family: var(--font-main);
+}
+
+/* تنسيق خطوط نصوص لوحة التحكم دون المساس بأيقونات Font Awesome */
+.admin-dashboard-container p,
+.admin-dashboard-container label,
+.admin-dashboard-container input,
+.admin-dashboard-container select,
+.admin-dashboard-container textarea,
+.admin-dashboard-container td,
+.admin-dashboard-container th {
   font-weight: 300 !important;
 }
 
-/* جعل الخط رفيعاً وخفيفاً في كل مكان داخل لوحة التحكم مع الحفاظ التام على أوزان خطوط الأيقونات */
-.admin-dashboard-container,
-.admin-dashboard-container *:not(i):not([class*="fa-"]) {
-  font-weight: 400 !important;
-}
-
-/* العناوين والأزرار البارزة تظل بخط متوسط ناعم دون أن تكون سميكة */
 .admin-dashboard-container h1,
 .admin-dashboard-container h2,
 .admin-dashboard-container h3,
@@ -406,16 +410,35 @@ html, body {
   font-weight: 500 !important;
 }
 
-/* النصوص العادية والوصف والمدخلات بخط رفيع جداً وواضح */
-.admin-dashboard-container p,
-.admin-dashboard-container span:not(.font-bold):not(.font-extrabold),
-.admin-dashboard-container label,
-.admin-dashboard-container input,
-.admin-dashboard-container select,
-.admin-dashboard-container textarea,
-.admin-dashboard-container td,
-.admin-dashboard-container th {
-  font-weight: 300 !important;
+/* حماية صريحة لأيقونات Font Awesome داخل لوحة التحكم لضمان عملها 100% */
+.admin-dashboard-container i.fa-solid,
+.admin-dashboard-container i.fas,
+.admin-dashboard-container .fa-solid,
+.admin-dashboard-container .fas {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  font-style: normal !important;
+  display: inline-block !important;
+}
+
+.admin-dashboard-container i.fa-regular,
+.admin-dashboard-container i.far,
+.admin-dashboard-container .fa-regular,
+.admin-dashboard-container .far {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  display: inline-block !important;
+}
+
+.admin-dashboard-container i.fa-brands,
+.admin-dashboard-container i.fab,
+.admin-dashboard-container .fa-brands,
+.admin-dashboard-container .fab {
+  font-family: "Font Awesome 6 Brands" !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  display: inline-block !important;
 }
 
 .admin-nav-tab-btn {
