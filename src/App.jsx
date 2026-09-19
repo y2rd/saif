@@ -15,6 +15,7 @@ import {
   sendTelegramNotification,
   getCustomerByIdentifier,
   loginWithFirebaseAuth,
+  registerWithFirebaseAuth,
   saveOtpToCloud,
   verifyOtpFromCloud,
   sendOtpEmailNotification
@@ -431,6 +432,18 @@ export default function App() {
         joinedAt: new Date().toISOString(),
         verified: true
       };
+
+      // إذا كان التسجيل بالبريد الإلكتروني، ننشئ الحساب رسمياً في Firebase Auth مع إرسال إيميل Google
+      if (authMethod === 'email' && fullContact.includes('@')) {
+        try {
+          const fbRes = await registerWithFirebaseAuth(fullContact, authPassword.trim(), authName.trim());
+          if (fbRes.success && fbRes.user?.uid) {
+            newCustomer.uid = fbRes.user.uid;
+          }
+        } catch (e) {
+          console.warn("تسجيل Firebase Auth المباشر:", e);
+        }
+      }
 
       // حفظ العميل الجديد في قاعدة البيانات السحابية والمحلية
       await syncCustomerToCloud(newCustomer);

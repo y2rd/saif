@@ -11,7 +11,10 @@ import {
 } from 'firebase/firestore';
 import { 
   getAuth, 
-  signInWithEmailAndPassword 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -373,6 +376,61 @@ export async function loginWithFirebaseAuth(emailOrIdentifier, password) {
     return null;
   }
   return null;
+}
+
+// إنشاء حساب رسمي في Firebase Authentication مع إرسال إيميل تأكيد حقيقي ومجاني 100% من Google
+export async function registerWithFirebaseAuth(email, password, name = '') {
+  if (!auth || !email || !password) return { success: false, message: 'بيانات غير مكتملة' };
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
+    const user = cred.user;
+
+    // إرسال إيميل التحقق الرسمي من خوادم Google مجاناً
+    if (user) {
+      await sendEmailVerification(user);
+    }
+
+    const custId = email.trim().replace(/[^a-zA-Z0-9]/g, '_');
+    const docRef = doc(db, 'customers', custId);
+    const newCust = {
+      id: custId,
+      uid: user.uid,
+      name: name.trim() || email.split('@')[0],
+      email: email.trim(),
+      identifier: email.trim(),
+      role: 'customer',
+      balance: 0,
+      tier: 'عادي',
+      status: 'نشط',
+      verified: false,
+      joinedAt: new Date().toISOString(),
+      lastLoginAt: Date.now()
+    };
+    await setDoc(docRef, newCust, { merge: true });
+
+    return { success: true, user: newCust };
+  } catch (err) {
+    console.warn("خطأ في تسجيل حساب Firebase Auth:", err);
+    let msg = 'تعذر إنشاء الحساب';
+    if (err.code === 'auth/email-already-in-use') msg = 'هذا البريد الإلكتروني مسجل بالفعل!';
+    else if (err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة، يرجى كتابة 6 أحرف على الأقل';
+    else if (err.code === 'auth/invalid-email') msg = 'صيغة البريد الإلكتروني غير صحيحة';
+    return { success: false, message: msg, error: err };
+  }
+}
+
+// إعادة إرسال رابط التحقق السحابي عبر Google
+export async function resendFirebaseVerificationEmail(user) {
+  if (!auth || !user) return { success: false, message: 'المستخدم غير متوفر' };
+  try {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+      return { success: true };
+    }
+    return { success: false, message: 'لم يتم العثور على جلسة للمستخدم' };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
 }
 
 // حفظ كود التحقق OTP في قاعدة البيانات السحابية مع وقت انتهاء الصلاحية (10 دقائق)
