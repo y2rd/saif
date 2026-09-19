@@ -2431,204 +2431,6 @@ export default function AdminDashboard({
         ))}
       </div>
 
-            {/* ========================================================= */}
-        {/* قسم النسخ الاحتياطي واستعادة البيانات بالكامل */}
-        {/* ========================================================= */}
-        {activeTab === 'cloud-backup' && (
-          <div className="max-w-4xl mx-auto space-y-5">
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-bold text-gray-950 flex items-center gap-2">
-                  <span>💾</span>
-                  <span>النسخ الاحتياطي واستعادة البيانات بالكامل</span>
-                </h2>
-                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-                  <i className="fa-solid fa-shield-check text-emerald-600"></i>
-                  <span>حماية كاملة</span>
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-2.5 leading-relaxed font-medium">
-                يمكنك تنزيل نسخة احتياطية كاملة لبيانات المتجر (المنتجات الأقسام الكوبونات العملاء الطلبات الإعدادات) في ملف واحد واستعادتها بضغطة زر.
-              </p>
-
-              {/* بطاقات تلخيص محتويات النسخة الاحتياطية */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mt-4 pt-4 border-t border-gray-100 text-center">
-                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
-                  <i className="fa-solid fa-boxes-stacked text-[#004956] text-sm block mb-1"></i>
-                  <span className="text-[11px] font-bold text-gray-800 block">المنتجات</span>
-                  <span className="text-[10px] text-gray-500 font-medium">({products.length})</span>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
-                  <i className="fa-solid fa-folder-tree text-[#004956] text-sm block mb-1"></i>
-                  <span className="text-[11px] font-bold text-gray-800 block">الأقسام</span>
-                  <span className="text-[10px] text-gray-500 font-medium">({categories.length})</span>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
-                  <i className="fa-solid fa-tags text-[#004956] text-sm block mb-1"></i>
-                  <span className="text-[11px] font-bold text-gray-800 block">الكوبونات</span>
-                  <span className="text-[10px] text-gray-500 font-medium">({coupons?.length || 0})</span>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
-                  <i className="fa-solid fa-users text-[#004956] text-sm block mb-1"></i>
-                  <span className="text-[11px] font-bold text-gray-800 block">العملاء</span>
-                  <span className="text-[10px] text-gray-500 font-medium">({customers?.length || 0})</span>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
-                  <i className="fa-solid fa-bag-shopping text-[#004956] text-sm block mb-1"></i>
-                  <span className="text-[11px] font-bold text-gray-800 block">الطلبات</span>
-                  <span className="text-[10px] text-gray-500 font-medium">({orders?.length || 0})</span>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
-                  <i className="fa-solid fa-sliders text-[#004956] text-sm block mb-1"></i>
-                  <span className="text-[11px] font-bold text-gray-800 block">الإعدادات</span>
-                  <span className="text-[10px] text-gray-500 font-medium">(كاملة)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* تنبيه وشرح سبب ظهور المنتجات الافتراضية */}
-            <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl space-y-2">
-              <div className="flex items-center gap-2 text-sky-950 font-bold text-xs">
-                <i className="fa-solid fa-circle-info text-sky-600 text-sm"></i>
-                <span>لماذا تظهر منتجات افتراضية عند رفع المتجر على استضافة جديدة؟</span>
-              </div>
-              <p className="text-xs text-sky-900 leading-relaxed font-normal">
-                المنتجات والأقسام التي تعدلها حالياً على جهازك محفوظة في <strong>الذاكرة المحلية لمتصفحك (localStorage)</strong>. عندما يزور شخص ما رابط المتجر المرفوع لأول مرة، يكون متصفحه فارغاً فيقوم المتجر بعرض البيانات الافتراضية ما لم يتم جلبها من السحابة أو استيرادها. اختر أحد الحلول السريعة أدناه:
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              {/* الحل 1: تصدير واستيراد ملف JSON (أسهل وأسرع حل بدون إعدادات) */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3.5 shadow-2xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">1</span>
-                    <h3 className="text-xs font-bold text-gray-900">💾 تنزيل واستعادة النسخة الاحتياطية (ملف JSON)</h3>
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                    اضغط زر "تنزيل نسخة احتياطية كاملة" لحفظ كافة بيانات متجرك (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات) في ملف واحد واستعادتها بضغطة زر.
-                  </p>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={handleExportFullBackup}
-                    className="w-full py-2.5 px-3 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
-                  >
-                    <i className="fa-solid fa-download text-xs"></i>
-                    <span>تنزيل نسخة احتياطية كاملة للبيانات</span>
-                  </button>
-
-                  <label className="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-                    <i className="fa-solid fa-upload text-xs text-emerald-700"></i>
-                    <span>استعادة البيانات من ملف النسخة الاحتياطية</span>
-                    <input
-                      type="file"
-                      accept=".json,application/json"
-                      className="hidden"
-                      onChange={handleImportFullBackup}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              {/* الحل 2: المزامنة السحابية المباشرة (Firebase Firestore) */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3.5 shadow-2xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">2</span>
-                    <h3 className="text-xs font-bold text-gray-900">المزامنة السحابية المباشرة (Firebase Firestore)</h3>
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                    رفع البيانات إلى السحابة فوراً لتكون مركزية وتظهر تلقائياً لأي زائر يدخل المتجر من أي هاتف أو كمبيوتر في العالم بدون الحاجة لاستيراد يدوي.
-                  </p>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={handleForceCloudSync}
-                    className="w-full py-2.5 px-3 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
-                  >
-                    <i className={`fa-solid ${cloudSyncStatus === 'syncing' ? 'fa-spinner fa-spin' : 'fa-cloud-arrow-up'} text-xs`}></i>
-                    <span>رفع ومزامنة كافة البيانات مع السحابة الآن</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyStoreJSON}
-                    className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    title="نسخ كود JSON بالكامل"
-                  >
-                    <i className="fa-regular fa-copy text-xs"></i>
-                    <span>نسخ كود المنتجات والأقسام (لجعله افتراضياً بالكود)</span>
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
-            {/* دليل وتأكيد قواعد فايربيس الآمنة (Firebase Firestore Rules) */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-shield-halved text-[#004956] text-sm"></i>
-                  <h3 className="text-xs font-bold text-gray-900">قواعد الحماية في Firebase (Firestore Security Rules)</h3>
-                </div>
-                <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                  محمية ومُوصى بها
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 leading-relaxed font-normal">
-                انسخ هذه القواعد وضعها في <strong>Firebase Console &gt; Firestore Database &gt; Rules</strong> لحماية بيانات متجرك وحسابات العملاء من التعديل أو الاختراق:
-              </p>
-              <div className="relative bg-gray-900 text-emerald-400 p-3 rounded-xl font-mono text-[11px] overflow-x-auto text-left" dir="ltr">
-                <pre>{`rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // منتجات وأقسام وإعدادات المتجر: قراءة عامة وكتابة موثوقة
-    match /store/{document=**} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /settings/{document=**} {
-      allow read: if true;
-      allow write: if true;
-    }
-    // الطلبات وطلبات الشحن: إضافة للعميل ومراجعة للإدارة
-    match /orders/{orderId} {
-      allow read, write: if true;
-    }
-    match /topups/{topupId} {
-      allow read, write: if true;
-    }
-    // بيانات العملاء ورموز التحقق
-    match /customers/{custId} {
-      allow read, write: if true;
-    }
-    match /otps/{otpId} {
-      allow read, write: if true;
-    }
-  }
-}`}</pre>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const rules = `rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /store/{document=**} { allow read: if true; allow write: if true; }\n    match /settings/{document=**} { allow read: if true; allow write: if true; }\n    match /orders/{orderId} { allow read, write: if true; }\n    match /topups/{topupId} { allow read, write: if true; }\n    match /customers/{custId} { allow read, write: if true; }\n    match /otps/{otpId} { allow read, write: if true; }\n  }\n}`;
-                    navigator.clipboard.writeText(rules);
-                    showToast('تم نسخ كود قواعد فايربيس المحمية إلى الحافظة!');
-                  }}
-                  className="absolute top-2 right-2 px-2 py-1 bg-white/20 hover:bg-white/30 text-white rounded text-[10px] font-sans transition cursor-pointer"
-                >
-                  نسخ القواعد
-                </button>
-              </div>
-            </div>
-
-          </div>
-        )}
       {/* خلفية معتمة (Backdrop) عند فتح القائمة على الجوال */}
       {mobileMenuOpen && (
         <div
@@ -9558,6 +9360,205 @@ service cloud.firestore {
               <i className={`fa-solid ${isSavingGlobalSettings ? 'fa-spinner fa-spin' : 'fa-check'} text-xs`}></i>
               <span>{isSavingGlobalSettings ? 'جاري حفظ المميزات...' : 'حفظ إعدادات المميزات'}</span>
             </button>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* قسم النسخ الاحتياطي واستعادة البيانات بالكامل */}
+        {/* ========================================================= */}
+        {activeTab === 'cloud-backup' && (
+          <div className="max-w-4xl mx-auto space-y-5" dir="rtl">
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-bold text-gray-950 flex items-center gap-2">
+                  <span>💾</span>
+                  <span>النسخ الاحتياطي واستعادة البيانات بالكامل</span>
+                </h2>
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                  <i className="fa-solid fa-shield-check text-emerald-600"></i>
+                  <span>حماية كاملة</span>
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2.5 leading-relaxed font-medium">
+                يمكنك تنزيل نسخة احتياطية كاملة لبيانات المتجر (المنتجات الأقسام الكوبونات العملاء الطلبات الإعدادات) في ملف واحد واستعادتها بضغطة زر.
+              </p>
+
+              {/* بطاقات تلخيص محتويات النسخة الاحتياطية */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mt-4 pt-4 border-t border-gray-100 text-center">
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-boxes-stacked text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">المنتجات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({products.length})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-folder-tree text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الأقسام</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({categories.length})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-tags text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الكوبونات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({coupons?.length || 0})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-users text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">العملاء</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({customers?.length || 0})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-bag-shopping text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الطلبات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({orders?.length || 0})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-sliders text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الإعدادات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">(كاملة)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* تنبيه وشرح سبب ظهور المنتجات الافتراضية */}
+            <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl space-y-2">
+              <div className="flex items-center gap-2 text-sky-950 font-bold text-xs">
+                <i className="fa-solid fa-circle-info text-sky-600 text-sm"></i>
+                <span>لماذا تظهر منتجات افتراضية عند رفع المتجر على استضافة جديدة؟</span>
+              </div>
+              <p className="text-xs text-sky-900 leading-relaxed font-normal">
+                المنتجات والأقسام التي تعدلها حالياً على جهازك محفوظة في <strong>الذاكرة المحلية لمتصفحك (localStorage)</strong>. عندما يزور شخص ما رابط المتجر المرفوع لأول مرة، يكون متصفحه فارغاً فيقوم المتجر بعرض البيانات الافتراضية ما لم يتم جلبها من السحابة أو استيرادها. اختر أحد الحلول السريعة أدناه:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* الحل 1: تصدير واستيراد ملف JSON (أسهل وأسرع حل بدون إعدادات) */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3.5 shadow-2xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">1</span>
+                    <h3 className="text-xs font-bold text-gray-900">💾 تنزيل واستعادة النسخة الاحتياطية (ملف JSON)</h3>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                    اضغط زر "تنزيل نسخة احتياطية كاملة" لحفظ كافة بيانات متجرك (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات) في ملف واحد واستعادتها بضغطة زر.
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={handleExportFullBackup}
+                    className="w-full py-2.5 px-3 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
+                  >
+                    <i className="fa-solid fa-download text-xs"></i>
+                    <span>تنزيل نسخة احتياطية كاملة للبيانات</span>
+                  </button>
+
+                  <label className="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                    <i className="fa-solid fa-upload text-xs text-emerald-700"></i>
+                    <span>استعادة البيانات من ملف النسخة الاحتياطية</span>
+                    <input
+                      type="file"
+                      accept=".json,application/json"
+                      className="hidden"
+                      onChange={handleImportFullBackup}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* الحل 2: المزامنة السحابية المباشرة (Firebase Firestore) */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3.5 shadow-2xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">2</span>
+                    <h3 className="text-xs font-bold text-gray-900">المزامنة السحابية المباشرة (Firebase Firestore)</h3>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                    رفع البيانات إلى السحابة فوراً لتكون مركزية وتظهر تلقائياً لأي زائر يدخل المتجر من أي هاتف أو كمبيوتر في العالم بدون الحاجة لاستيراد يدوي.
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={handleForceCloudSync}
+                    className="w-full py-2.5 px-3 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
+                  >
+                    <i className={`fa-solid ${cloudSyncStatus === 'syncing' ? 'fa-spinner fa-spin' : 'fa-cloud-arrow-up'} text-xs`}></i>
+                    <span>رفع ومزامنة كافة البيانات مع السحابة الآن</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyStoreJSON}
+                    className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    title="نسخ كود JSON بالكامل"
+                  >
+                    <i className="fa-regular fa-copy text-xs"></i>
+                    <span>نسخ كود المنتجات والأقسام (لجعله افتراضياً بالكود)</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* دليل وتأكيد قواعد فايربيس الآمنة (Firebase Firestore Rules) */}
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-shield-halved text-[#004956] text-sm"></i>
+                  <h3 className="text-xs font-bold text-gray-900">قواعد الحماية في Firebase (Firestore Security Rules)</h3>
+                </div>
+                <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                  محمية ومُوصى بها
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed font-normal">
+                انسخ هذه القواعد وضعها في <strong>Firebase Console &gt; Firestore Database &gt; Rules</strong> لحماية بيانات متجرك وحسابات العملاء من التعديل أو الاختراق:
+              </p>
+              <div className="relative bg-gray-900 text-emerald-400 p-3 rounded-xl font-mono text-[11px] overflow-x-auto text-left" dir="ltr">
+                <pre>{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // منتجات وأقسام وإعدادات المتجر: قراءة عامة وكتابة موثوقة
+    match /store/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    // الطلبات وطلبات الشحن: إضافة للعميل ومراجعة للإدارة
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+    match /topups/{topupId} {
+      allow read, write: if true;
+    }
+    // بيانات العملاء ورموز التحقق
+    match /customers/{custId} {
+      allow read, write: if true;
+    }
+    match /otps/{otpId} {
+      allow read, write: if true;
+    }
+  }
+}`}</pre>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const rules = `rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /store/{document=**} { allow read: if true; allow write: if true; }\n    match /settings/{document=**} { allow read: if true; allow write: if true; }\n    match /orders/{orderId} { allow read, write: if true; }\n    match /topups/{topupId} { allow read, write: if true; }\n    match /customers/{custId} { allow read, write: if true; }\n    match /otps/{otpId} { allow read, write: if true; }\n  }\n}`;
+                    navigator.clipboard.writeText(rules);
+                    showToast('تم نسخ كود قواعد فايربيس المحمية إلى الحافظة!');
+                  }}
+                  className="absolute top-2 right-2 px-2 py-1 bg-white/20 hover:bg-white/30 text-white rounded text-[10px] font-sans transition cursor-pointer"
+                >
+                  نسخ القواعد
+                </button>
+              </div>
+            </div>
+
           </div>
         )}
       </main>
