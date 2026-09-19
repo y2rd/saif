@@ -656,12 +656,32 @@ export default function App() {
             i => i && !['sq-1', 'sq-2', 'sq-3', 'sq-4'].includes(i.id)
           );
         }
+        // تنظيف أي عناصر واجهة تجريبية مكررة لم يضعها المستخدم
+        if (Array.isArray(parsed?.homeLayout)) {
+          parsed.homeLayout = parsed.homeLayout.filter(sec => {
+            if (!sec || !sec.id) return true;
+            return !['sec-moving-1', 'sec-moving-2', 'sec-moving-3', 'sec-moving-4', 'sec-moving-5', 'sec-moving-6', 'sec-wide-1', 'sec-wide-2', 'sec-wide-3', 'sec-wide-4'].includes(sec.id);
+          });
+          if (parsed.homeLayout.length === 0) {
+            parsed.homeLayout = [
+              { id: 'sec-products-grid', type: 'productsGrid', title: 'منتجات المتجر', enabled: true },
+              { id: 'sec-items-list', type: 'itemsList', title: 'الأقسام والتصنيفات', enabled: true },
+              { id: 'sec-store-features', type: 'storeFeatures', title: 'مميزات المتجر', enabled: true }
+            ];
+          }
+        }
+        if (parsed?.bannerDesc && parsed.bannerDesc.includes('تصفح أفضل البطاقات')) {
+          parsed.bannerDesc = '';
+        }
+        if (parsed?.bannerTitle && parsed.bannerTitle.includes('أهلاً بك في المتجر الرسمي')) {
+          parsed.bannerTitle = '';
+        }
         return parsed;
       }
     } catch {}
     return {
     name: 'متجر حيدر هاي داي',
-    subTitle: 'كل ما تحتاجه لمزرعتك في Hay Day بأفضل الأسعار وأسرع تسليم',
+    subTitle: '',
     logoText: 'ح',
     logoUrl: '', // صورة الشعار المرفوعة
     primaryColor: '#004956',
@@ -685,14 +705,13 @@ export default function App() {
     okxUid: '5928172948',
     okxUsdtAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
     okxQrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-    announcement: '⚡ تسليم فوري لجميع الطلبات الرقمية والاشتراكات على مدار 24 ساعة',
+    announcement: '⚡ تسليم فوري لجميع الطلبات على مدار 24 ساعة',
     announcementMode: 'marquee', // 'static' أو 'marquee'
     announcements: [
-      { id: 1, text: '⚡ تسليم فوري لجميع الأكواد والمنتجات الرقمية والاشتراكات على مدار 24 ساعة', bgColor: '#00343D', textColor: '#FFFFFF', isMarquee: true, direction: 'ar', speed: 20 },
-      { id: 2, text: '🎉 استخدم كود الخصم WELCOME10 للحصول على تخفيض 10% على كافة المشتريات!', bgColor: '#111827', textColor: '#FDE047', isMarquee: false, direction: 'ar', speed: 20 }
+      { id: 1, text: '⚡ تسليم فوري لجميع الأكواد والمنتجات الرقمية والاشتراكات على مدار 24 ساعة', bgColor: '#00343D', textColor: '#FFFFFF', isMarquee: true, direction: 'ar', speed: 20 }
     ],
-    bannerTitle: 'أهلاً بك في المتجر الرسمي',
-    bannerDesc: 'تصفح أفضل البطاقات والمنتجات الرقمية بأعلى جودة وضمان مباشر.',
+    bannerTitle: '',
+    bannerDesc: '',
     footerCopyright: 'جميع الحقوق محفوظة للمتجر © 2026',
     itemsPerRow: 3,
     // إعدادات مميزات المنتج السريعة (تسليم فوري، ضمان أصلي، دعم متواصل)
@@ -713,8 +732,8 @@ export default function App() {
           id: 'feat-2',
           enabled: true,
           title: 'ضمان أصلي',
-          subtitle: 'مباشر 100%',
-          icon: 'fa-solid fa-shield-halved',
+          subtitle: '100% مضمون',
+          icon: 'fa-solid fa-shield-check',
           customIconUrl: ''
         },
         {
@@ -733,22 +752,11 @@ export default function App() {
       spendUsdPerPoint: 10, // كم دولار ينفق العميل ليحصل على نقطة واحدة (مثال: كل $10 = 1 نقطة)
       pointsPerUsd: 10 // كم نقطة تسوى $1 دولار عند الاستبدال (مثال: كل 10 نقاط = $1 دولار)
     },
-    // عناصر الصفحة الرئيسية بنمط منصة سلة الرسمي (مطابق للصورة: منتجات متحركة، بانر عريض، منتجات متحركة...)
+    // عناصر الصفحة الرئيسية الفعلية والنظيفة
     homeLayout: [
-      { id: 'sec-moving-1', type: 'movingProducts', title: 'أحدث المنتجات', enabled: true },
-      { id: 'sec-wide-1', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-      { id: 'sec-moving-2', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-      { id: 'sec-wide-2', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-      { id: 'sec-moving-3', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-      { id: 'sec-wide-3', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-      { id: 'sec-moving-4', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-      { id: 'sec-wide-4', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-      { id: 'sec-moving-5', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-      { id: 'sec-moving-6', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-      { id: 'sec-products-grid', type: 'productsGrid', title: 'منتجات ثابتة', enabled: true },
-      { id: 'sec-store-features', type: 'storeFeatures', title: 'مميزات المتجر', enabled: true },
-      { id: 'sec-customer-reviews', type: 'customerReviews', title: 'آراء العملاء', enabled: true },
-      { id: 'sec-items-list', type: 'itemsList', title: 'قائمة عناصر', enabled: true }
+      { id: 'sec-products-grid', type: 'productsGrid', title: 'منتجات المتجر', enabled: true },
+      { id: 'sec-items-list', type: 'itemsList', title: 'الأقسام والتصنيفات', enabled: true },
+      { id: 'sec-store-features', type: 'storeFeatures', title: 'مميزات المتجر', enabled: true }
     ],
     homeSections: {
       // 1. بانر متحرك / سلايدر
@@ -5947,18 +5955,6 @@ export default function App() {
         <div className="fixed bottom-5 left-5 z-999 flex flex-col items-start gap-2 select-none" dir="ltr">
           {isSupportMenuOpen && (
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 space-y-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200 text-right" dir="rtl">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowOrderTrackingModal(true);
-                  setIsSupportMenuOpen(false);
-                }}
-                className="w-full px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-xl flex items-center gap-2 transition cursor-pointer"
-              >
-                <i className="fa-solid fa-truck-fast text-teal-600"></i>
-                <span>تتبع حالة طلبك</span>
-              </button>
-
               {storeConfig.whatsapp && (
                 <a
                   href={`https://wa.me/${storeConfig.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('مرحباً، أحتاج مساعدة بخصوص المتجر')}`}

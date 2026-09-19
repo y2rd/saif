@@ -6380,20 +6380,9 @@ export default function AdminDashboard({
 
                     <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
                       {(storeConfig.homeLayout || [
-                        { id: 'sec-moving-1', type: 'movingProducts', title: 'أحدث المنتجات', enabled: true },
-                        { id: 'sec-wide-1', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-                        { id: 'sec-moving-2', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-                        { id: 'sec-wide-2', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-                        { id: 'sec-moving-3', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-                        { id: 'sec-wide-3', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-                        { id: 'sec-moving-4', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-                        { id: 'sec-wide-4', type: 'wideBanner', title: 'بانر عريض', enabled: true },
-                        { id: 'sec-moving-5', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-                        { id: 'sec-moving-6', type: 'movingProducts', title: 'منتجات متحركة', enabled: true },
-                        { id: 'sec-products-grid', type: 'productsGrid', title: 'منتجات ثابتة', enabled: true },
-                        { id: 'sec-store-features', type: 'storeFeatures', title: 'مميزات المتجر', enabled: true },
-                        { id: 'sec-customer-reviews', type: 'customerReviews', title: 'آراء العملاء', enabled: true },
-                        { id: 'sec-items-list', type: 'itemsList', title: 'قائمة عناصر', enabled: true }
+                        { id: 'sec-products-grid', type: 'productsGrid', title: 'منتجات المتجر', enabled: true },
+                        { id: 'sec-items-list', type: 'itemsList', title: 'الأقسام والتصنيفات', enabled: true },
+                        { id: 'sec-store-features', type: 'storeFeatures', title: 'مميزات المتجر', enabled: true }
                       ]).map((secItem, idx, arr) => {
                         const iconMap = {
                           movingProducts: 'fa-box-archive text-gray-700',
@@ -6786,12 +6775,8 @@ export default function AdminDashboard({
                     {/* 4. عرض عناصر ومكونات الصفحة الرئيسية الحقيقية مع إمكانية الترتيب الحي */}
                     <div className="p-2 space-y-3 max-h-[430px] overflow-y-auto font-normal">
                       {(Array.isArray(storeConfig.homeLayout) ? storeConfig.homeLayout : [
-                        { id: 'sec-banner-slider', type: 'bannerSlider', enabled: true },
-                        { id: 'sec-items-list', type: 'itemsList', enabled: true },
-                        { id: 'sec-square-images', type: 'squareImages', enabled: true },
-                        { id: 'sec-moving-products', type: 'movingProducts', enabled: true },
-                        { id: 'sec-wide-banner', type: 'wideBanner', enabled: true },
                         { id: 'sec-products-grid', type: 'productsGrid', enabled: true },
+                        { id: 'sec-items-list', type: 'itemsList', enabled: true },
                         { id: 'sec-store-features', type: 'storeFeatures', enabled: true }
                       ]).map((sec, sIdx, sArr) => {
                         if (sec.enabled === false) return null;
