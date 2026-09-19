@@ -6420,75 +6420,16 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
-                {/* 2. نصوص البانر الترحيبي والفوتر */}
-                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-4 shadow-2xs">
-                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2.5">
-                    <i className="fa-solid fa-rectangle-ad text-black text-sm"></i>
-                    <h3 className="text-xs font-bold text-gray-900">2. نصوص البانر الترحيبي والفوتر</h3>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1">عنوان البانر الترحيبي</label>
-                      <input
-                        type="text"
-                        value={storeConfig.bannerTitle || ''}
-                        onChange={(e) => setStoreConfig(prev => ({ ...prev, bannerTitle: e.target.value }))}
-                        className="w-full p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-black focus:bg-white"
-                        placeholder="أهلاً بك في المتجر الرسمي"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1">وصف البانر الترحيبي</label>
-                      <input
-                        type="text"
-                        value={storeConfig.bannerDesc || ''}
-                        onChange={(e) => setStoreConfig(prev => ({ ...prev, bannerDesc: e.target.value }))}
-                        className="w-full p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black focus:bg-white"
-                        placeholder="تصفح أفضل البطاقات والمنتجات الرقمية بأعلى جودة وضمان مباشر."
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[11px] font-bold text-gray-700">حقوق الملكية في الفوتر</label>
-                        <span className="text-[10px] text-gray-400">تظهر في أسفل كل صفحات المتجر</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={storeConfig.footerCopyright || ''}
-                          onChange={(e) => {
-                            const newText = e.target.value;
-                            setStoreConfig(prev => {
-                              const updated = { ...prev, footerCopyright: newText };
-                              try {
-                                localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                                localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                syncStoreConfigToCloud(updated);
-                              } catch {}
-                              return updated;
-                            });
-                          }}
-                          className="flex-1 p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black focus:bg-white transition"
-                          placeholder="جميع الحقوق محفوظة للمتجر © 2026"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2.1 إدارة الصفحات التعريفية وروابط الفوتر (إنشاء صفحة جديدة، تحريرها، وتحديد رابطها) */}
+                {/* 2. الفوتر (حقوق الملكية والصفحات التعريفية وروابط الفوتر) */}
                 <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-4 shadow-2xs">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs">
-                        <i className="fa-solid fa-file-lines"></i>
+                        <i className="fa-solid fa-shoe-prints"></i>
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-gray-900">صفحات وروابط الفوتر المخصصة</h3>
-                        <p className="text-[10px] text-gray-400">أنشئ صفحات تعريفية مثل سياسة الخصوصية والشروط مع رابط مخصص وتعديل فوري</p>
+                        <h3 className="text-xs font-bold text-gray-900">2. الفوتر</h3>
+                        <p className="text-[10px] text-gray-400">حقوق الملكية والصفحات التعريفية وروابط أسفل المتجر</p>
                       </div>
                     </div>
                     <button
@@ -6508,6 +6449,32 @@ export default function AdminDashboard({
                       <i className="fa-solid fa-plus text-[11px]"></i>
                       <span>إنشاء صفحة جديدة</span>
                     </button>
+                  </div>
+
+                  {/* حقل حقوق الملكية في الفوتر */}
+                  <div className="p-3 bg-gray-50/70 rounded-xl border border-gray-100 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-bold text-gray-700">حقوق الملكية في الفوتر</label>
+                      <span className="text-[10px] text-gray-400">تظهر في أسفل كل صفحات المتجر</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={storeConfig.footerCopyright || ''}
+                      onChange={(e) => {
+                        const newText = e.target.value;
+                        setStoreConfig(prev => {
+                          const updated = { ...prev, footerCopyright: newText };
+                          try {
+                            localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                            syncStoreConfigToCloud(updated);
+                          } catch {}
+                          return updated;
+                        });
+                      }}
+                      className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black transition"
+                      placeholder="جميع الحقوق محفوظة للمتجر © 2026"
+                    />
                   </div>
 
                   {/* قائمة الصفحات الحالية */}
