@@ -6571,7 +6571,7 @@ export default function AdminDashboard({
                         <i className="fa-solid fa-shapes"></i>
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-gray-900">3. عناصر الصفحة الرئيسية (بنظام سلة)</h3>
+                        <h3 className="text-xs font-bold text-gray-900">3. عناصر الصفحة الرئيسية</h3>
                         <p className="text-[10px] text-gray-400">تحكم في تشغيل وتخصيص وإضافة كل عنصر في الواجهة الرئيسية للمتجر</p>
                       </div>
                     </div>
@@ -6587,12 +6587,12 @@ export default function AdminDashboard({
                     </div>
                   </div>
 
-                  {/* قائمة عناصر وترتيب واجهة المتجر المطابقة لنمط سلة الرسمي بالصورة المرجعية */}
+                  {/* قائمة عناصر وترتيب واجهة المتجر */}
                   <div className="bg-gray-50/70 p-3.5 rounded-xl border border-gray-200/90 space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-list-ol text-gray-500 text-xs"></i>
-                        <span className="text-xs font-bold text-gray-800">ترتيب عناصر الصفحة الرئيسية (نمط سلة)</span>
+                        <span className="text-xs font-bold text-gray-800">ترتيب عناصر الصفحة الرئيسية</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
