@@ -265,7 +265,6 @@ export default function App() {
   const triggerSendOtp = async (contactIdentifier) => {
     // إنشاء كود تحقق عشوائي مكون من 4 أرقام
     const generatedCode = String(Math.floor(1000 + Math.random() * 9000));
-    setAuthGeneratedOtp(generatedCode);
     setOtpResendCountdown(60); // 60 ثانية لإعادة الإرسال
     
     // حفظ الكود في قاعدة بيانات Firestore
@@ -411,12 +410,12 @@ export default function App() {
     setAuthLoading(true);
 
     try {
-      // التحقق من السحابة والمحلي
+      // التحقق الصارم من كود التحقق من قاعدة البيانات
       const cloudCheck = await verifyOtpFromCloud(fullContact, authOtp.trim());
-      const isValid = cloudCheck.success || authOtp.trim() === authGeneratedOtp;
+      const isValid = cloudCheck && cloudCheck.success;
 
       if (!isValid) {
-        setAuthError(cloudCheck.message || 'كود التحقق غير صحيح، يرجى التأكد وإعادة المحاولة');
+        setAuthError(cloudCheck?.message || 'كود التحقق غير صحيح أو انتهت صلاحيته، يرجى إعادة المحاولة');
         setAuthLoading(false);
         return;
       }
@@ -495,9 +494,16 @@ export default function App() {
 
   const handleAdminAuthSubmit = (e) => {
     e.preventDefault();
-    const configuredPin = storeConfig?.adminPin ? String(storeConfig.adminPin).trim() : 'haider2026';
-    if (adminPinInput.trim() === configuredPin) {
+    const configuredPin = storeConfig?.adminPin ? String(storeConfig.adminPin).trim() : '';
+    const inputPin = adminPinInput.trim();
+
+    // يجب تعيين رمز إدارة في الإعدادات أو استخدام الرمز الخاص
+    const isValidPin = (configuredPin && inputPin === configuredPin) || (!configuredPin && inputPin === 'haider2026');
+
+    if (isValidPin) {
       setIsAdminAuthModalOpen(false);
+      setAdminPinInput('');
+      setAdminAuthError('');
       // ترقية جلسة الدخول الحالية لتشمل صلاحية الإدارة
       const adminUser = currentUser ? { ...currentUser, role: 'admin' } : {
         name: 'حيدر (المدير)',
@@ -2066,7 +2072,7 @@ export default function App() {
       return;
     }
     const pointsPerUsd = Math.max(1, parseFloat(loyaltyCfg.pointsPerUsd) || 10);
-    const pts = parseInt(currentUser.points || 0);
+    const pts = Math.max(0, parseInt(currentUser.points || 0) || 0);
     if (pts < pointsPerUsd) {
       alert(`الحد الأدنى لاستبدال النقاط هو ${pointsPerUsd} نقطة (تساوي $1 دولار).`);
       return;
@@ -2074,9 +2080,11 @@ export default function App() {
 
     const pointsToConvert = Math.floor(pts / pointsPerUsd) * pointsPerUsd;
     const usdToAdd = parseFloat((pointsToConvert / pointsPerUsd).toFixed(2));
-    const currentBal = parseFloat(currentUser.balance || 0);
+    if (isNaN(usdToAdd) || usdToAdd <= 0) return;
+
+    const currentBal = Math.max(0, parseFloat(currentUser.balance || 0) || 0);
     const newBal = parseFloat((currentBal + usdToAdd).toFixed(2));
-    const remainingPts = pts - pointsToConvert;
+    const remainingPts = Math.max(0, pts - pointsToConvert);
 
     const newTx = {
       id: `tx_${Date.now()}`,
@@ -2189,14 +2197,19 @@ export default function App() {
         setIsAuthModalOpen(true);
         return;
       }
-      const currentBal = parseFloat(currentUser.balance || 0);
-      if (currentBal < totalCartPriceUsd) {
-        alert(`رصيدك الحالي ($${currentBal.toFixed(2)}) غير كافٍ لإتمام هذا الطلب ($${totalCartPriceUsd.toFixed(2)}). يرجى شحن المحفظة أولاً أو اختيار وسيلة دفع أخرى.`);
+
+      // التحقق الصارم من الرصيد عبر سجل العميل الفعلي المعتمد في المتجر وليس فقط الذاكرة المحلية
+      const verifiedCustomer = customers.find(c => c.id === currentUser.id || c.identifier === currentUser.identifier);
+      const verifiedBal = verifiedCustomer ? parseFloat(verifiedCustomer.balance || 0) : parseFloat(currentUser.balance || 0);
+      const currentBal = Math.min(parseFloat(currentUser.balance || 0), verifiedBal);
+
+      if (isNaN(currentBal) || currentBal < totalCartPriceUsd) {
+        alert(`رصيدك المعتمد الحالي ($${(isNaN(currentBal) ? 0 : currentBal).toFixed(2)}) غير كافٍ لإتمام هذا الطلب ($${totalCartPriceUsd.toFixed(2)}). يرجى شحن المحفظة أولاً أو اختيار وسيلة دفع أخرى.`);
         return;
       }
 
       // الخصم الفوري من المحفظة
-      const newBal = parseFloat((currentBal - totalCartPriceUsd).toFixed(2));
+      const newBal = parseFloat(Math.max(0, currentBal - totalCartPriceUsd).toFixed(2));
       const orderCost = totalCartPriceUsd;
       const newOrderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
