@@ -224,7 +224,7 @@ export default function ProductDetailPage({
                 )}
 
                 {/* 1. عنوان المنتج بخط مريح وواضح وأرق ومحاذاة يمين */}
-                <h1 className="text-sm sm:text-base lg:text-lg leading-snug font-semibold mb-1.5 text-black text-right w-full">
+                <h1 className="text-[16px] sm:text-base lg:text-lg leading-snug font-semibold mb-1.5 text-black text-right w-full">
                   {product.title}
                 </h1>
 
