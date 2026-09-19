@@ -1075,11 +1075,6 @@ export default function App() {
         receivedConfig = true;
         checkSyncDone();
         if (cloudConfig && typeof cloudConfig === 'object') {
-          const localConfigTime = parseInt(localStorage.getItem('haider_store_config_updatedAt') || '0', 10);
-          const cloudTime = typeof cloudUpdatedAt === 'number' ? cloudUpdatedAt : 0;
-          if (localConfigTime > cloudTime) {
-            return;
-          }
           const sanitizedConfig = { ...cloudConfig };
           if (sanitizedConfig.homeSections?.productsGrid?.buttonText) {
             const bt = sanitizedConfig.homeSections.productsGrid.buttonText;
