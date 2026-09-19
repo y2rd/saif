@@ -3450,104 +3450,129 @@ export default function App() {
                 )}
 
                 {/* 5. تبويب الإشعارات */}
-                {profileTab === 'notifications' && (
-                  <div className="space-y-3 animate-field-switch">
-                    {currentUser.notifications && currentUser.notifications.length > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between pb-1">
-                          <span className="text-xs text-gray-500 font-bold">
-                            {currentUser.notifications.filter(n => !n.read).length} إشعارات جديدة
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updatedNotifs = (currentUser.notifications || []).map(n => ({ ...n, read: true }));
-                              const updatedUser = { ...currentUser, notifications: updatedNotifs };
-                              setCurrentUser(updatedUser);
-                              setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
-                              try {
-                                localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
-                              } catch (e) {}
-                              syncCustomerToCloud(updatedUser);
-                            }}
-                            className="text-[11px] text-[#004956] hover:underline font-bold cursor-pointer"
-                          >
-                            تحديد الكل كمقروء ✓
-                          </button>
-                        </div>
-                        <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
-                          {currentUser.notifications.map((notif, idx) => {
-                            const isAdminTopup = notif.type === 'admin-topup';
-                            return (
-                              <div
-                                key={notif.id || idx}
-                                className={`p-3 rounded-2xl border transition text-xs space-y-1.5 ${
-                                  isAdminTopup
-                                    ? notif.read 
-                                      ? 'bg-rose-50/50 border-rose-200 text-rose-950' 
-                                      : 'bg-[#7F1D1D]/10 border-[#7F1D1D]/40 text-gray-950 shadow-xs ring-1 ring-[#7F1D1D]/30'
-                                    : notif.read 
-                                      ? 'bg-gray-50/70 border-gray-100 text-gray-700' 
-                                      : 'bg-emerald-50/50 border-emerald-200 text-gray-900 shadow-2xs'
-                                }`}
+                {profileTab === 'notifications' && (() => {
+                  // دمج الإشعارات الفعلية مع طلبات الشحن المعلقة (للمدير فقط) في عرض موحد
+                  const userNotifs = currentUser.notifications || [];
+                  // تحويل طلبات الشحن المعلقة إلى عناصر إشعارات للعرض (للمدير فقط وإذا لم تكن موجودة في الإشعارات الفعلية)
+                  const existingTopupIds = new Set(userNotifs.filter(n => n.topupId).map(n => n.topupId));
+                  const topupVirtualNotifs = isManager
+                    ? (topupRequests || [])
+                        .filter(t => t.status === 'معلق' && !existingTopupIds.has(t.id))
+                        .map(t => ({
+                          id: `virtual-topup-${t.id}`,
+                          type: 'admin-topup',
+                          topupId: t.id,
+                          title: 'طلب شحن محفظة جديد 💳',
+                          message: `قام العميل ${t.customerName} بطلب شحن رصيد بقيمة $${t.amount} (${t.method}). يرجى مراجعة إشعار التحويل واعتماده.`,
+                          date: t.date || new Date().toISOString(),
+                          read: false,
+                          _virtual: true
+                        }))
+                    : [];
+                  const allNotifs = [...topupVirtualNotifs, ...userNotifs];
+                  const unreadCount = allNotifs.filter(n => !n.read).length;
+
+                  return (
+                    <div className="space-y-3 animate-field-switch">
+                      {allNotifs.length > 0 ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between pb-1">
+                            <span className="text-xs text-gray-500 font-bold">
+                              {unreadCount} إشعارات جديدة
+                            </span>
+                            {userNotifs.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedNotifs = userNotifs.map(n => ({ ...n, read: true }));
+                                  const updatedUser = { ...currentUser, notifications: updatedNotifs };
+                                  setCurrentUser(updatedUser);
+                                  setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
+                                  try {
+                                    localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
+                                  } catch (e) {}
+                                  syncCustomerToCloud(updatedUser);
+                                }}
+                                className="text-[11px] text-[#004956] hover:underline font-bold cursor-pointer"
                               >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 font-bold">
-                                    {isAdminTopup ? (
-                                      <span className="w-6 h-6 rounded-full bg-[#7F1D1D] text-white flex items-center justify-center text-[11px] shadow-2xs shrink-0">
-                                        💳
+                                تحديد الكل كمقروء ✓
+                              </button>
+                            )}
+                          </div>
+                          <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
+                            {allNotifs.map((notif, idx) => {
+                              const isAdminTopup = notif.type === 'admin-topup';
+                              return (
+                                <div
+                                  key={notif.id || idx}
+                                  className={`p-3 rounded-2xl border transition text-xs space-y-1.5 ${
+                                    isAdminTopup
+                                      ? notif.read 
+                                        ? 'bg-rose-50/50 border-rose-200 text-rose-950' 
+                                        : 'bg-[#7F1D1D]/10 border-[#7F1D1D]/40 text-gray-950 shadow-xs ring-1 ring-[#7F1D1D]/30'
+                                      : notif.read 
+                                        ? 'bg-gray-50/70 border-gray-100 text-gray-700' 
+                                        : 'bg-emerald-50/50 border-emerald-200 text-gray-900 shadow-2xs'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 font-bold">
+                                      {isAdminTopup ? (
+                                        <span className="w-6 h-6 rounded-full bg-[#7F1D1D] text-white flex items-center justify-center text-[11px] shadow-2xs shrink-0">
+                                          💳
+                                        </span>
+                                      ) : (
+                                        <span className="text-sm">
+                                          {notif.type === 'wallet' ? '💰' : notif.type === 'order' ? '📦' : notif.type === 'promo' ? '🔥' : '🔔'}
+                                        </span>
+                                      )}
+                                      <span className={isAdminTopup ? 'text-[#7F1D1D] font-extrabold text-[12px]' : ''}>
+                                        {notif.title}
                                       </span>
-                                    ) : (
-                                      <span className="text-sm">
-                                        {notif.type === 'wallet' ? '💰' : notif.type === 'order' ? '📦' : notif.type === 'promo' ? '🔥' : '🔔'}
-                                      </span>
-                                    )}
-                                    <span className={isAdminTopup ? 'text-[#7F1D1D] font-extrabold text-[12px]' : ''}>
-                                      {notif.title}
+                                      {!notif.read && (
+                                        <span className={`text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse ${isAdminTopup ? 'bg-[#7F1D1D]' : 'bg-emerald-600'}`}>
+                                          جديد
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] text-gray-400 font-mono">
+                                      {notif.date ? new Date(notif.date).toLocaleDateString('ar-IQ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                                     </span>
-                                    {isAdminTopup && !notif.read && (
-                                      <span className="bg-[#7F1D1D] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
-                                        جديد
-                                      </span>
-                                    )}
                                   </div>
-                                  <span className="text-[10px] text-gray-400 font-mono">
-                                    {notif.date ? new Date(notif.date).toLocaleDateString('ar-IQ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
-                                  </span>
+                                  <p className="text-[11px] text-gray-700 leading-relaxed pr-8">{notif.message}</p>
+                                  {isAdminTopup && isManager && (
+                                    <div className="pr-8 pt-1 flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          closeAuthModal();
+                                          setViewMode('admin');
+                                          setAdminSection('payments');
+                                        }}
+                                        className="px-3 py-1 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-bold text-[10px] rounded-lg shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                      >
+                                        <i className="fa-solid fa-credit-card text-[9px]"></i>
+                                        <span>مراجعة واعتماد الطلب في لوحة الإدارة</span>
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                                <p className="text-[11px] text-gray-700 leading-relaxed pr-8">{notif.message}</p>
-                                {isAdminTopup && isManager && (
-                                  <div className="pr-8 pt-1 flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        closeAuthModal();
-                                        setViewMode('admin');
-                                        setAdminSection('payments');
-                                      }}
-                                      className="px-3 py-1 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-bold text-[10px] rounded-lg shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
-                                    >
-                                      <i className="fa-solid fa-credit-card text-[9px]"></i>
-                                      <span>مراجعة واعتماد الطلب في لوحة الإدارة</span>
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-200/80 text-center space-y-2">
-                        <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto text-gray-400">
-                          <i className="fa-regular fa-bell text-base text-gray-400"></i>
+                      ) : (
+                        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-200/80 text-center space-y-2">
+                          <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto text-gray-400">
+                            <i className="fa-regular fa-bell text-base text-gray-400"></i>
+                          </div>
+                          <p className="text-xs text-gray-600 font-semibold">لا توجد إشعارات جديدة</p>
+                          <p className="text-[10px] text-gray-400">ستصلك هنا كافة التنبيهات حول حالة طلباتك ورصيدك والعروض</p>
                         </div>
-                        <p className="text-xs text-gray-600 font-semibold">لا توجد إشعارات جديدة</p>
-                        <p className="text-[10px] text-gray-400">ستصلك هنا كافة التنبيهات حول حالة طلباتك ورصيدك والعروض</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* 6. تبويب طلبات بانتظار الدفع */}
                 {profileTab === 'pending_payment' && (
