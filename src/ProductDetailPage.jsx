@@ -423,13 +423,13 @@ export default function ProductDetailPage({
               </div>
 
               {/* 5. شريط الشراء: عداد الكمية بكامل العرض فوق زر الإضافة للسلة */}
-              <div className="pt-2 border-t border-gray-100 flex flex-col gap-2 mt-1">
+              <div className="pt-2 border-t border-gray-100 flex flex-col gap-1.5 mt-1">
                 {/* عداد الكمية فوق الزر بكامل العرض وبنفس طوله مع إمكانية الكتابة اليدوية المباشرة */}
-                <div className="w-full flex items-center justify-between border border-gray-200 rounded-lg overflow-hidden bg-white shadow-2xs h-8 sm:h-9 px-1">
+                <div className="w-full flex items-center justify-between border border-gray-200 rounded-md overflow-hidden bg-white shadow-2xs h-7 sm:h-7.5 px-1">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(minQty, (parseInt(quantity) || minQty) - 1))}
-                    className="w-8 sm:w-10 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-sm sm:text-base transition rounded"
+                    className="w-7 sm:w-8 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-xs sm:text-sm transition rounded"
                     title="تقليل الكمية"
                   >
                     -
@@ -451,13 +451,13 @@ export default function ProductDetailPage({
                     onBlur={() => {
                       if (!quantity || quantity < minQty) setQuantity(minQty);
                     }}
-                    className="text-center font-bold text-xs sm:text-sm text-black font-english-num w-20 py-1 outline-none bg-transparent"
+                    className="text-center font-bold text-xs text-black font-english-num w-16 py-0.5 outline-none bg-transparent"
                     placeholder={String(minQty)}
                   />
                   <button
                     type="button"
                     onClick={() => setQuantity((parseInt(quantity) || minQty) + 1)}
-                    className="w-8 sm:w-10 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-sm sm:text-base transition rounded"
+                    className="w-7 sm:w-8 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-xs sm:text-sm transition rounded"
                     title="زيادة الكمية"
                   >
                     +
@@ -469,9 +469,9 @@ export default function ProductDetailPage({
                   <button
                     type="button"
                     disabled
-                    className="w-full h-8 sm:h-9 px-3 sm:px-5 bg-gray-200 text-gray-500 font-bold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed text-xs sm:text-[13px]"
+                    className="w-full h-6.5 sm:h-7 px-3 bg-gray-200 text-gray-500 font-bold rounded-md flex items-center justify-center gap-1.5 cursor-not-allowed text-[10px] sm:text-[11px]"
                   >
-                    <i className="fa-solid fa-ban text-xs text-red-500"></i>
+                    <i className="fa-solid fa-ban text-[10px] text-red-500"></i>
                     <span>نفذت الكمية حالياً</span>
                   </button>
                 ) : (
@@ -511,9 +511,9 @@ export default function ProductDetailPage({
                        const finalNote = [customFieldsNote, customUserNote.trim()].filter(Boolean).join(' | ');
                        onAddToCart(product, selectedTier, finalNote, finalQty);
                     }}
-                    className="w-full h-7 sm:h-8 px-3 bg-black hover:bg-gray-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs shadow-sm active:scale-98"
+                    className="w-full h-6.5 sm:h-7 px-3 bg-black hover:bg-gray-800 text-white font-bold rounded-md transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-[10px] sm:text-[11px] shadow-2xs active:scale-98"
                   >
-                    <i className="fa-solid fa-cart-shopping text-white text-[11px]"></i>
+                    <i className="fa-solid fa-cart-shopping text-white text-[10px]"></i>
                     <span>أضف للسلة</span>
                   </button>
                 )}
