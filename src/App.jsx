@@ -5079,25 +5079,6 @@ export default function App() {
 
                 return (
                   <div key={section.id} className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100/80">
-                    {/* رأس القسم بتصميم أنيق ومودرن */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-5 sm:mb-6">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#004956] to-[#007489] text-white flex items-center justify-center shadow-xs shadow-[#004956]/20">
-                          <i className="fa-solid fa-sparkles text-xs"></i>
-                        </div>
-                        <div>
-                          <h3 className="text-sm sm:text-base font-semibold text-gray-900 tracking-tight">
-                            {sfData.title || storeConfig.homeSections?.storeFeatures?.title || 'لماذا تختار متجرنا؟'}
-                          </h3>
-                          <p className="text-[10px] sm:text-xs text-gray-400 font-light">تجربة تسوق رقمية استثنائية وموثوقة</p>
-                        </div>
-                      </div>
-                      <div className="hidden sm:flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50/80 px-2.5 py-1 rounded-full border border-emerald-200/50">
-                        <i className="fa-solid fa-circle-check text-[10px]"></i>
-                        <span>خدمة موثوقة ومضمونة</span>
-                      </div>
-                    </div>
-
                     {/* بطاقات المميزات: عصرية، خفيفة، متوافقة 100% مع الجوال والشاشات الكبيرة */}
                     <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg mx-auto">
                       {activeFeatures.map((feat, fIndex) => (
