@@ -124,9 +124,10 @@ async function triggerDeviceNotification(title, body, id = Math.floor(Math.rando
 }
 
 export default function App() {
-  const [viewMode, setViewMode] = useState('store'); // 'store' أو 'admin' أو 'product-detail' أو 'category' أو 'custom-page'
+  const [viewMode, setViewMode] = useState('store'); // 'store' أو 'admin' أو 'product-detail' أو 'category' أو 'custom-page' أو 'section-view'
   const [activeProductForPage, setActiveProductForPage] = useState(null);
   const [activeCustomPage, setActiveCustomPage] = useState(null); // الصفحة التعريفية المفتوحة للقراءة
+  const [activeSectionForPage, setActiveSectionForPage] = useState(null); // العنصر المفتوح لعرض كافة منتجاته في صفحة مستقلة
   const [adminSection, setAdminSection] = useState(null); // التوجه المباشر لتاب محدد عند الفتح (null = لا توجيه)
 
   // العملة والمعروض: 'USD' أو 'IQD'، ولغة المتجر: 'ar' أو 'en'
@@ -1443,6 +1444,8 @@ export default function App() {
       targetHash = `#/category/${encodeURIComponent(selectedCat)}`;
     } else if (viewMode === 'custom-page' && activeCustomPage) {
       targetHash = `#/p/${encodeURIComponent(activeCustomPage.slug || activeCustomPage.id)}`;
+    } else if (viewMode === 'section-view' && activeSectionForPage) {
+      targetHash = `#/section/${encodeURIComponent(activeSectionForPage.title || activeSectionForPage.id)}`;
     } else {
       targetHash = '#/';
     }
@@ -1456,13 +1459,14 @@ export default function App() {
         isUpdatingHashRef.current = false;
       }, 80);
     }
-  }, [viewMode, activeProductForPage, activeCustomPage, selectedCat, adminSection]);
+  }, [viewMode, activeProductForPage, activeCustomPage, activeSectionForPage, selectedCat, adminSection]);
 
   // دالة موحدة للرجوع للمتجر الرئيسي
   const handleNavigateToStore = () => {
     setViewMode('store');
     setActiveProductForPage(null);
     setActiveCustomPage(null);
+    setActiveSectionForPage(null);
     setSelectedCat('الكل');
     window.location.hash = '#/';
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1471,6 +1475,7 @@ export default function App() {
   // المراجع لتتبع الحالة الحالية بدقة وفورية داخل مستمع زر / إيماءة الرجوع في الأندرويد
   const navStateRef = useRef({
     viewMode,
+    activeSectionForPage,
     isCartOpen,
     isCategoryDrawerOpen,
     isAuthModalOpen,
@@ -1560,6 +1565,12 @@ export default function App() {
 
       // 10. إذا كان المستخدم في صفحة تصنيف محدد
       if (state.viewMode === 'category') {
+        handleNavigateToStore();
+        return;
+      }
+
+      // 10.1 إذا كان المستخدم في صفحة استعراض العنصر المستقلة
+      if (state.viewMode === 'section-view') {
         handleNavigateToStore();
         return;
       }
@@ -5175,20 +5186,23 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* جهة اليسار: أزرار الأسهم الدائرية وزر "عرض الكل" قابل للنقر بالكامل */}
+                      {/* جهة اليسار: أزرار الأسهم الدائرية وزر "عرض الكل" لفتح صفحة مخصصة بكافة منتجات العنصر */}
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => {
-                            if (sourceType === 'category' && selectedCat && selectedCat !== 'الكل') {
-                              handleCategoryClick(selectedCat);
-                            } else if (productsSectionRef.current) {
-                              smoothScrollToElement(productsSectionRef.current, 600);
-                            } else {
-                              window.scrollTo({ top: 500, behavior: 'smooth' });
-                            }
+                            setActiveSectionForPage({
+                              id: section.id,
+                              title: movingTitle && movingTitle.trim() ? movingTitle : 'المنتجات',
+                              subtitle: movingSubtitle,
+                              badge: movingBadge,
+                              products: displayProducts
+                            });
+                            setViewMode('section-view');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
                           }}
                           className="text-xs font-normal text-gray-600 hover:text-black hover:underline px-1 py-0.5 rounded cursor-pointer transition active:scale-95 flex items-center gap-1"
+                          title="عرض كافة منتجات هذا العنصر في صفحة مستقلة"
                         >
                           <span>عرض الكل</span>
                           <i className="fa-solid fa-arrow-left text-[9px] text-gray-400"></i>
@@ -5828,6 +5842,251 @@ export default function App() {
                                   <span>إضافة للسلة</span>
                                 </button>
                               )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </main>
+          </div>
+        );
+      })()}
+
+      {/* ========================================================= */}
+      {/* 3.1 صفحة مخصصة ومستقلة بالكامل لعرض منتجات العنصر (Section View Page) */}
+      {/* ========================================================= */}
+      {viewMode === 'section-view' && activeSectionForPage && (() => {
+        const rawSectionProducts = Array.isArray(activeSectionForPage.products) ? activeSectionForPage.products : [];
+        const sectionProducts = rawSectionProducts
+          .map(sp => products.find(p => p.id === sp.id) || sp)
+          .filter(p => !isProductOutOfStock(p))
+          .filter(p => {
+            if (!searchQuery.trim()) return true;
+            const q = searchQuery.toLowerCase().trim();
+            return p.title.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q));
+          });
+
+        return (
+          <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#F9FAFB] pb-16 animate-page-view" dir="rtl">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
+              {/* شريط التنقل والترويسة */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-200/80 bg-white p-4 rounded-2xl border shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleNavigateToStore}
+                    className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xs transition cursor-pointer active:scale-95"
+                    title="الرجوع للمتجر"
+                  >
+                    <i className="fa-solid fa-arrow-right"></i>
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-4 bg-[#004956] rounded-full"></span>
+                      <h2 className="text-sm sm:text-base font-semibold text-gray-900">
+                        {activeSectionForPage.title}
+                      </h2>
+                      {activeSectionForPage.badge && (
+                        <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">
+                          {activeSectionForPage.badge}
+                        </span>
+                      )}
+                    </div>
+                    {activeSectionForPage.subtitle ? (
+                      <p className="text-xs text-gray-400 mt-0.5 mr-3.5">
+                        {activeSectionForPage.subtitle}
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-gray-400 mt-0.5 mr-3.5">
+                        كافة المنتجات المندرجة تحت هذا العنصر
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mr-auto sm:mr-0">
+                  <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                    {sectionProducts.length} منتج
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleNavigateToStore}
+                    className="text-xs font-medium text-[#004956] hover:underline cursor-pointer"
+                  >
+                    الرئيسية
+                  </button>
+                </div>
+              </div>
+
+              {sectionProducts.length === 0 ? (
+                <div className="text-center py-20 px-4 bg-white rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 text-2xl">
+                    <i className="fa-solid fa-box-open"></i>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800">لا توجد منتجات متوفرة في هذا العنصر حالياً</h3>
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                    يمكنك العودة للصفحة الرئيسية وتصفح باقي عروض وأقسام المتجر.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleNavigateToStore}
+                    className="mt-2 px-4 py-2 bg-[#004956] text-white text-xs font-bold rounded-xl hover:bg-[#00343D] transition shadow-xs cursor-pointer"
+                  >
+                    العودة للمتجر
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+                  {sectionProducts.map((item) => {
+                    const isInWishlist = wishlist.includes(item.id);
+                    const hasDiscount = item.oldPrice && item.oldPrice > item.price;
+                    const avgRating = calculateAverageRating(item.reviews);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="s-product-card-entry bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+                        onClick={() => {
+                          setActiveProductForPage(item);
+                          setViewMode('product-detail');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      >
+                        <div>
+                          {/* 1. حاوية صورة المنتج مغطية من الأعلى بارتفاع عامودي مدمج وأنيق */}
+                          <div className="relative pt-[70%] sm:pt-[72%] bg-white overflow-hidden">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.title}
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy"
+                            />
+
+                            {/* شارة الترويج والعروض المؤقتة ملتصقة تماماً بالحافة اليمنى */}
+                            <div className="absolute top-2.5 right-0 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+                              {item.flashSaleEnabled && item.flashSaleEndsAt && new Date(item.flashSaleEndsAt).getTime() > Date.now() && (
+                                <span className="bg-gradient-to-r from-red-600 to-rose-500 text-white text-[8.5px] sm:text-[9.5px] font-bold pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none shadow-sm tracking-wide flex items-center gap-1 animate-pulse">
+                                  <i className="fa-solid fa-bolt text-yellow-300 text-[9px]"></i>
+                                  <span>عرض مؤقت 🔥</span>
+                                </span>
+                              )}
+                              {item.badge && (
+                                <span className="bg-[#5C1420] text-white text-[8.5px] sm:text-[9.5px] font-bold pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none shadow-sm tracking-wide flex items-center gap-1">
+                                  <span>{item.badge}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            {/* زر الإعجاب / المفضلة الدائري أعلى اليسار */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleWishlist(item.id);
+                              }}
+                              title={isInWishlist ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+                              aria-label="Add to wishlist"
+                              className={`absolute top-2.5 left-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center transition-all duration-200 z-10 cursor-pointer shadow-2xs ${
+                                isInWishlist 
+                                  ? 'bg-red-50 border-red-200 text-red-500 scale-110' 
+                                  : 'bg-white/90 backdrop-blur-xs border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'
+                              }`}
+                            >
+                              <i className={`fa-heart text-xs sm:text-sm ${isInWishlist ? 'fa-solid text-red-500' : 'fa-regular'}`}></i>
+                            </button>
+                          </div>
+
+                          {/* 2. محتوى البطاقة: العنوان */}
+                          <div className="p-2 sm:p-2.5 pb-0.5 text-right w-full">
+                            <h3
+                              className="text-[10.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                              title={item.title}
+                            >
+                              {item.title}
+                            </h3>
+                          </div>
+                        </div>
+
+                        {/* 3. أسفل البطاقة: السعر وبمحاذاته التقييم مباشرة */}
+                        <div className="p-3 sm:p-4 pt-1.5 sm:pt-2">
+                          <div className="flex items-center justify-between gap-2 mb-2.5">
+                            <div className="flex items-baseline gap-1">
+                              {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
+                                <div className="flex items-center text-right">
+                                  <span className="text-[9.5px] sm:text-[10.5px] font-semibold text-teal-900 tracking-tight">
+                                    مبادلة
+                                  </span>
+                                </div>
+                              ) : (
+                                <>
+                                  <span 
+                                    className={`text-[9.5px] sm:text-[10.5px] font-bold font-price tracking-tight ${
+                                      hasDiscount ? 'text-red-700' : 'text-black'
+                                    }`}
+                                  >
+                                    {formatPrice(item.price, activeCurrency)}
+                                  </span>
+                                  {hasDiscount && (
+                                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price">
+                                      {formatPrice(item.oldPrice, activeCurrency)}
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {avgRating > 0 && (
+                              <div className="flex items-center gap-1 text-[10px] text-amber-500">
+                                <i className="fa-solid fa-star text-[9px]"></i>
+                                <span className="font-bold text-gray-700 text-[10px] font-mono leading-none">{avgRating}</span>
+                                <span className="text-[9px] text-gray-400 font-mono leading-none">({item.reviews.length})</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* زر إضافة للسلة بنمط منصة سلة */}
+                          {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveProductForPage(item);
+                                setViewMode('product-detail');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                            >
+                              <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
+                              <span>طلب المبادلة</span>
+                            </button>
+                          ) : isProductRequiringInput(item) ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveProductForPage(item);
+                                setViewMode('product-detail');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                            >
+                              <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-[9px]"></i>
+                              <span>تحديد البيانات</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(item, null, '', 1);
+                              }}
+                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                            >
+                              <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[9px]"></i>
+                              <span>إضافة للسلة</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
