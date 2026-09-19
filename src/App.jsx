@@ -5116,11 +5116,6 @@ export default function App() {
                             {/* خلفية تدرج خفيفة عصرية */}
                             <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500`}></div>
 
-                            {/* شارة صغيرة رقيقة في الزاوية العلوية للشاشات الكبيرة */}
-                            <span className="hidden sm:inline-block absolute top-2.5 left-2.5 text-[9px] font-black text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-md border border-gray-100">
-                              {styleTheme.badge}
-                            </span>
-
                             {/* أيقونة الميزة المودرن */}
                             <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${styleTheme.iconBg} border flex items-center justify-center text-sm sm:text-lg mb-2 sm:mb-3 shadow-2xs group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
                               {feat.customIconUrl ? (
