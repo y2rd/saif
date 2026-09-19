@@ -1192,6 +1192,100 @@ export default function App() {
     };
   }, []);
 
+  // =========================================================================
+  // نظام التوجيه بالروابط (Hash Routing System): روابط حية قابلة للمشاركة لكل صفحة
+  // =========================================================================
+  const isUpdatingHashRef = useRef(false);
+
+  // 1. قراءة الهاش عند تحميل المتصفح أو الضغط على زر الرجوع/التقدم
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (isUpdatingHashRef.current) return;
+      const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
+      if (!rawHash) {
+        setViewMode('store');
+        setSelectedCat('الكل');
+        setActiveProductForPage(null);
+        setActiveCustomPage(null);
+        return;
+      }
+
+      const parts = rawHash.split('/');
+      const routeType = parts[0];
+      const param = decodeURIComponent(parts.slice(1).join('/'));
+
+      if (routeType === 'admin') {
+        setViewMode('admin');
+        if (param) setAdminSection(param);
+        return;
+      }
+
+      if (routeType === 'product' && param) {
+        const found = products.find(p => String(p.id) === String(param) || String(p.slug || '') === String(param));
+        if (found) {
+          setActiveProductForPage(found);
+          setViewMode('product-detail');
+          return;
+        }
+      }
+
+      if (routeType === 'category' && param) {
+        setSelectedCat(param);
+        setViewMode(param === 'الكل' ? 'store' : 'category');
+        return;
+      }
+
+      if ((routeType === 'p' || routeType === 'page') && param) {
+        const pages = Array.isArray(storeConfig?.customPages) ? storeConfig.customPages : [];
+        const foundPage = pages.find(p => String(p.id) === String(param) || String(p.slug || '') === String(param) || String(p.title || '') === String(param));
+        if (foundPage) {
+          setActiveCustomPage(foundPage);
+          setViewMode('custom-page');
+          return;
+        }
+      }
+
+      // إذا لم يتطابق، العودة للمتجر الرئيسي
+      setViewMode('store');
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    // قراءة أولية للهاش بعد تهيئة المنتجات والإعدادات
+    handleHashChange();
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [products, storeConfig]);
+
+  // 2. تحديث رابط الهاش في المتصفح تلقائياً عند أي تنقل في المتجر
+  useEffect(() => {
+    let targetHash = '';
+    if (viewMode === 'admin') {
+      targetHash = `#/admin${adminSection ? `/${adminSection}` : ''}`;
+    } else if (viewMode === 'product-detail' && activeProductForPage) {
+      targetHash = `#/product/${activeProductForPage.id}`;
+    } else if (viewMode === 'category' && selectedCat && selectedCat !== 'الكل') {
+      targetHash = `#/category/${encodeURIComponent(selectedCat)}`;
+    } else if (viewMode === 'custom-page' && activeCustomPage) {
+      targetHash = `#/p/${encodeURIComponent(activeCustomPage.slug || activeCustomPage.id)}`;
+    } else {
+      targetHash = '#/';
+    }
+
+    if (window.location.hash !== targetHash) {
+      isUpdatingHashRef.current = true;
+      try {
+        window.history.replaceState(null, '', targetHash);
+      } catch (e) {
+        window.location.hash = targetHash;
+      }
+      setTimeout(() => {
+        isUpdatingHashRef.current = false;
+      }, 50);
+    }
+  }, [viewMode, activeProductForPage, activeCustomPage, selectedCat, adminSection]);
+
   // المراجع لتتبع الحالة الحالية بدقة وفورية داخل مستمع زر / إيماءة الرجوع في الأندرويد
   const navStateRef = useRef({
     viewMode,
