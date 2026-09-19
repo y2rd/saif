@@ -8929,13 +8929,12 @@ export default function AdminDashboard({
                         key={feat.id || fIdx}
                         className="relative overflow-hidden p-2.5 sm:p-4 rounded-2xl bg-white border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center text-center"
                       >
-                        <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-xl pointer-events-none`}></div>
-
-                        <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl ${styleTheme.iconBg} border flex items-center justify-center text-sm sm:text-base mb-2 shadow-2xs`}>
+                        {/* أيقونة دائرية سوداء */}
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm sm:text-base mb-2 shadow-sm">
                           {feat.customIconUrl ? (
-                            <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+                            <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain brightness-0 invert" />
                           ) : (
-                            <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                            <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white`}></i>
                           )}
                         </div>
 

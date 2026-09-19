@@ -5113,15 +5113,12 @@ export default function App() {
                             key={feat.id || fIndex}
                             className="relative overflow-hidden p-2.5 sm:p-5 rounded-2xl bg-white border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center text-center group"
                           >
-                            {/* خلفية تدرج خفيفة عصرية */}
-                            <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500`}></div>
-
-                            {/* أيقونة الميزة المودرن */}
-                            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${styleTheme.iconBg} border flex items-center justify-center text-sm sm:text-lg mb-2 sm:mb-3 shadow-2xs group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                            {/* أيقونة الميزة المودرن الدائرية السوداء */}
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black text-white flex items-center justify-center text-base sm:text-lg mb-2 sm:mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300">
                               {feat.customIconUrl ? (
-                                <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+                                <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain brightness-0 invert" />
                               ) : (
-                                <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                                <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-sm sm:text-base`}></i>
                               )}
                             </div>
 

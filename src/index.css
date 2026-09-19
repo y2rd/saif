@@ -26,7 +26,7 @@ html, body {
 
 body {
   font-family: 'Tajawal', sans-serif;
-  color: #111827;
+  color: #000000;
   background-color: #F9FAFB;
 }
 
@@ -479,4 +479,15 @@ html, body {
 
 .cart-badge-pop {
   animation: badgePop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+/* ========================================================================= */
+/* إجبار لون خط النصوص والعناوين على الأسود في أنحاء الموقع                   */
+/* ========================================================================= */
+body, 
+h1, h2, h3, h4, h5, h6, 
+.text-gray-900, 
+.text-gray-800, 
+.text-gray-700 {
+  color: #000000 !important;
 }

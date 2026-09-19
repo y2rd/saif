@@ -521,12 +521,11 @@ export default function ProductDetailPage({
                             key={feat.id || fIndex}
                             className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
                           >
-                            <div className={`absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-lg pointer-events-none`}></div>
-                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${styleTheme.iconBg} border flex items-center justify-center text-xs mb-1.5 shadow-2xs`}>
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs mb-1.5 shadow-sm">
                               {feat.customIconUrl ? (
-                                <img src={feat.customIconUrl} alt="" className="w-4 h-4 object-contain" />
+                                <img src={feat.customIconUrl} alt="" className="w-4 h-4 object-contain brightness-0 invert" />
                               ) : (
-                                <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                                <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[11px]`}></i>
                               )}
                             </div>
                             <h4 className="font-medium text-gray-900 text-[10px] sm:text-[11px] tracking-tight truncate w-full">
