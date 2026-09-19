@@ -5078,38 +5078,68 @@ export default function App() {
                 if (activeFeatures.length === 0) return null;
 
                 return (
-                  <div key={section.id} className="mt-10 pt-8 border-t border-gray-100">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="w-1.5 h-5 bg-[#004956] rounded-full"></span>
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                        {sfData.title || storeConfig.homeSections?.storeFeatures?.title || 'لماذا تختار متجرنا؟'}
-                      </h3>
+                  <div key={section.id} className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100/80">
+                    {/* رأس القسم بتصميم أنيق ومودرن */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-5 sm:mb-6">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#004956] to-[#007489] text-white flex items-center justify-center shadow-xs shadow-[#004956]/20">
+                          <i className="fa-solid fa-sparkles text-xs"></i>
+                        </div>
+                        <div>
+                          <h3 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight">
+                            {sfData.title || storeConfig.homeSections?.storeFeatures?.title || 'لماذا تختار متجرنا؟'}
+                          </h3>
+                          <p className="text-[10px] sm:text-xs text-gray-400 font-medium">تجربة تسوق رقمية استثنائية وموثوقة</p>
+                        </div>
+                      </div>
+                      <div className="hidden sm:flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50/80 px-2.5 py-1 rounded-full border border-emerald-200/50">
+                        <i className="fa-solid fa-circle-check text-[10px]"></i>
+                        <span>خدمة موثوقة ومضمونة</span>
+                      </div>
                     </div>
 
-                    {/* بطاقات المميزات في صف واحد بالكامل بدون سحب مع التناسب التلقائي والتوسيط التام */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
-                      {activeFeatures.map((feat) => (
-                        <div
-                          key={feat.id}
-                          className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#F9FAFB] border border-gray-200/80 shadow-2xs hover:shadow-md hover:border-emerald-200 transition-all duration-300 flex flex-col items-center justify-center text-center gap-1.5 sm:gap-2 group"
-                        >
-                          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-white border border-gray-100 text-gray-900 flex items-center justify-center text-sm sm:text-lg shrink-0 group-hover:scale-105 transition shadow-2xs">
-                            {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
-                            ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black`}></i>
-                            )}
-                          </div>
-                          <div className="min-w-0 w-full text-center">
-                            <h4 className="font-bold text-gray-900 text-[11px] sm:text-sm truncate text-center">
+                    {/* بطاقات المميزات: عصرية، خفيفة، متوافقة 100% مع الجوال والشاشات الكبيرة */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                      {activeFeatures.map((feat, fIndex) => {
+                        const gradients = [
+                          { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60', badge: 'فوري' },
+                          { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60', badge: 'أصلي' },
+                          { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60', badge: '24/7' }
+                        ];
+                        const styleTheme = gradients[fIndex % gradients.length];
+
+                        return (
+                          <div
+                            key={feat.id || fIndex}
+                            className="relative overflow-hidden p-2.5 sm:p-5 rounded-2xl bg-white border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center text-center group"
+                          >
+                            {/* خلفية تدرج خفيفة عصرية */}
+                            <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500`}></div>
+
+                            {/* شارة صغيرة رقيقة في الزاوية العلوية للشاشات الكبيرة */}
+                            <span className="hidden sm:inline-block absolute top-2.5 left-2.5 text-[9px] font-black text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-md border border-gray-100">
+                              {styleTheme.badge}
+                            </span>
+
+                            {/* أيقونة الميزة المودرن */}
+                            <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${styleTheme.iconBg} border flex items-center justify-center text-sm sm:text-lg mb-2 sm:mb-3 shadow-2xs group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                              {feat.customIconUrl ? (
+                                <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+                              ) : (
+                                <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                              )}
+                            </div>
+
+                            {/* نصوص الميزة */}
+                            <h4 className="font-extrabold text-gray-900 text-[11.5px] sm:text-sm tracking-tight truncate w-full group-hover:text-[#004956] transition-colors">
                               {feat.title}
                             </h4>
-                            <p className="text-[9px] sm:text-xs text-gray-500 mt-0.5 leading-tight truncate text-center">
+                            <p className="text-[9.5px] sm:text-xs text-gray-400 font-medium mt-0.5 sm:mt-1 leading-snug line-clamp-2 w-full">
                               {feat.subtitle}
                             </p>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );

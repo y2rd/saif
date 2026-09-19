@@ -7157,21 +7157,34 @@ export default function AdminDashboard({
                               );
                             })()}
 
-                            {/* 7. مميزات المتجر الحقيقية */}
+                            {/* 7. مميزات المتجر الحقيقية بتصميم حديث */}
                             {sec.type === 'storeFeatures' && (() => {
                               const activeFeatures = (storeConfig.productFeatures?.items || [
                                 { id: 'f1', title: 'تسليم فوري', icon: 'fa-solid fa-bolt' },
                                 { id: 'f2', title: 'ضمان أصلي', icon: 'fa-solid fa-shield-halved' },
                                 { id: 'f3', title: 'دعم متواصل', icon: 'fa-solid fa-comments' }
                               ]).filter(f => f.enabled !== false).slice(0, 3);
+                              const colors = [
+                                'bg-amber-50 text-amber-600 border-amber-200/60',
+                                'bg-emerald-50 text-emerald-600 border-emerald-200/60',
+                                'bg-blue-50 text-blue-600 border-blue-200/60'
+                              ];
                               return (
-                                <div className="space-y-1 pt-1">
-                                  <span className="text-[8.5px] font-bold text-gray-900 block">مميزات المتجر</span>
+                                <div className="space-y-1.5 pt-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[8.5px] font-extrabold text-gray-900 flex items-center gap-1">
+                                      <span className="w-1 h-2.5 bg-[#004956] rounded-full"></span>
+                                      <span>لماذا متجرنا؟</span>
+                                    </span>
+                                    <span className="text-[7px] text-emerald-600 font-bold">خدمة موثوقة</span>
+                                  </div>
                                   <div className="grid grid-cols-3 gap-1">
                                     {activeFeatures.map((feat, fIdx) => (
-                                      <div key={feat.id || fIdx} className="p-1 rounded-lg bg-[#F9FAFB] border border-gray-200/80 text-center">
-                                        <i className={`${feat.icon || 'fa-solid fa-bolt'} text-[8px] text-gray-900 mb-0.5 block`}></i>
-                                        <span className="text-[6.5px] font-bold text-gray-800 block truncate">{feat.title}</span>
+                                      <div key={feat.id || fIdx} className="p-1 rounded-xl bg-white border border-gray-100 shadow-2xs text-center flex flex-col items-center">
+                                        <div className={`w-5 h-5 rounded-lg ${colors[fIdx % colors.length]} border flex items-center justify-center text-[8px] mb-1`}>
+                                          <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                                        </div>
+                                        <span className="text-[7px] font-extrabold text-gray-800 block truncate w-full">{feat.title}</span>
                                       </div>
                                     ))}
                                   </div>
