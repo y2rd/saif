@@ -103,8 +103,9 @@ async function triggerDeviceNotification(title, body, id = Math.floor(Math.rando
 }
 
 export default function App() {
-  const [viewMode, setViewMode] = useState('store'); // 'store' أو 'admin' أو 'product-detail' أو 'category'
+  const [viewMode, setViewMode] = useState('store'); // 'store' أو 'admin' أو 'product-detail' أو 'category' أو 'custom-page'
   const [activeProductForPage, setActiveProductForPage] = useState(null);
+  const [activeCustomPage, setActiveCustomPage] = useState(null); // الصفحة التعريفية المفتوحة للقراءة
   const [adminSection, setAdminSection] = useState('settings'); // التوجه المباشر للإعدادات لتجربة رفع الباركود
 
   // العملة والمعروض: 'USD' أو 'IQD'، ولغة المتجر: 'ar' أو 'en'
@@ -676,6 +677,24 @@ export default function App() {
         if (parsed?.bannerTitle && parsed.bannerTitle.includes('أهلاً بك في المتجر الرسمي')) {
           parsed.bannerTitle = '';
         }
+        if (!Array.isArray(parsed?.customPages)) {
+          parsed.customPages = [
+            {
+              id: 'page-privacy',
+              title: 'سياسة الخصوصية',
+              slug: 'privacy-policy',
+              content: 'نحن نلتزم بحماية خصوصية جميع زوار وعملاء متجرنا. لا نشارك بياناتكم الشخصية مع أي طرف ثالث، ونستخدم البيانات فقط لتنفيذ وإتمام طلباتكم بأمان وموثوقية وسرعة.',
+              showInFooter: true
+            },
+            {
+              id: 'page-terms',
+              title: 'الشروط والأحكام',
+              slug: 'terms',
+              content: 'جميع المنتجات والخدمات المقدمة مضمونة 100%. يرجى التأكد من صحة البيانات المدخلة عند تنفيذ الطلب لضمان سرعة التسليم الفوري.',
+              showInFooter: true
+            }
+          ];
+        }
         return parsed;
       }
     } catch {}
@@ -713,6 +732,22 @@ export default function App() {
     bannerTitle: '',
     bannerDesc: '',
     footerCopyright: 'جميع الحقوق محفوظة للمتجر © 2026',
+    customPages: [
+      {
+        id: 'page-privacy',
+        title: 'سياسة الخصوصية',
+        slug: 'privacy-policy',
+        content: 'نحن نلتزم بحماية خصوصية جميع زوار وعملاء متجرنا. لا نشارك بياناتكم الشخصية مع أي طرف ثالث، ونستخدم البيانات فقط لتنفيذ وإتمام طلباتكم بأمان وموثوقية وسرعة.',
+        showInFooter: true
+      },
+      {
+        id: 'page-terms',
+        title: 'الشروط والأحكام',
+        slug: 'terms',
+        content: 'جميع المنتجات والخدمات المقدمة مضمونة 100%. يرجى التأكد من صحة البيانات المدخلة عند تنفيذ الطلب لضمان سرعة التسليم الفوري.',
+        showInFooter: true
+      }
+    ],
     itemsPerRow: 3,
     // إعدادات مميزات المنتج السريعة (تسليم فوري، ضمان أصلي، دعم متواصل)
     productFeatures: {
@@ -2542,7 +2577,7 @@ export default function App() {
                     {storeConfig.name}
                   </span>
                   {storeConfig.subTitle && (
-                    <span className="hidden sm:inline text-[9px] text-gray-400 font-normal leading-tight truncate max-w-[180px]">
+                    <span className="text-[9.5px] sm:text-[10px] text-gray-400 font-normal leading-tight truncate max-w-[140px] sm:max-w-[220px]">
                       {storeConfig.subTitle}
                     </span>
                   )}
@@ -5381,13 +5416,85 @@ export default function App() {
         );
       })()}
 
+      {/* ========================================================= */}
+      {/* 5. عرض محتوى الصفحة التعريفية المخصصة (Custom Page View) */}
+      {/* ========================================================= */}
+      {viewMode === 'custom-page' && activeCustomPage && (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 animate-in fade-in zoom-in-95 duration-150 font-normal" dir="rtl">
+          {/* زر الرجوع للمتجر */}
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode('store');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 shadow-2xs mb-6 cursor-pointer transition active:scale-95"
+          >
+            <i className="fa-solid fa-arrow-right text-xs"></i>
+            <span>العودة إلى المتجر</span>
+          </button>
+
+          {/* محتوى الصفحة بتصميم نظيف وراقي */}
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-10 space-y-6">
+            <div className="border-b border-gray-100 pb-5">
+              <span className="text-[11px] font-bold text-[#004956] bg-teal-50 border border-teal-200/60 px-2.5 py-1 rounded-lg inline-block mb-2">
+                صفحة تعريفية
+              </span>
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
+                {activeCustomPage.title}
+              </h1>
+            </div>
+
+            <div className="text-gray-700 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+              {activeCustomPage.content || 'لا يوجد محتوى مكتوب في هذه الصفحة حالياً.'}
+            </div>
+
+            <div className="pt-6 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+              <span>{storeConfig.name || 'المتجر'}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('store');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="text-[#004956] font-bold hover:underline cursor-pointer"
+              >
+                تصفح المنتجات ←
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* الفوتر الأسود الاحترافي */}
-      <footer className="bg-black text-white border-t border-neutral-800 mt-16 py-5 sm:py-6" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* يمين الفوتر (في RTL): نص الحقوق */}
-          <p className="text-xs sm:text-sm text-gray-400 order-2 sm:order-1 text-center sm:text-right">
-            {storeConfig.footerCopyright || 'جميع الحقوق محفوظة للمتجر © 2026'}
-          </p>
+      <footer className="bg-black text-white border-t border-neutral-800 mt-16 py-6 sm:py-7" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-4">
+          {/* روابط الصفحات التعريفية في الفوتر */}
+          {Array.isArray(storeConfig.customPages) && storeConfig.customPages.filter(p => p.showInFooter !== false).length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-b border-neutral-800/80 pb-4 text-xs font-medium text-gray-300">
+              {storeConfig.customPages.filter(p => p.showInFooter !== false).map((page) => (
+                <button
+                  key={page.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveCustomPage(page);
+                    setViewMode('custom-page');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-white transition hover:underline cursor-pointer py-1"
+                  title={page.title}
+                >
+                  {page.title}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* يمين الفوتر (في RTL): نص الحقوق المباشر والمتزامن */}
+            <p className="text-xs sm:text-sm text-gray-400 order-2 sm:order-1 text-center sm:text-right">
+              {storeConfig.footerCopyright || 'جميع الحقوق محفوظة للمتجر © 2026'}
+            </p>
 
           {/* يسار الفوتر (في RTL): أيقونات وسائل الدفع الحقيقية مفرغة بدون خلفيات بيضاء وبأحجام متناسقة ومتساوية */}
           <div className="flex items-center flex-wrap justify-center gap-1 sm:gap-1.5 order-1 sm:order-2">
@@ -5453,7 +5560,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
 
       {/* رسالة صغيرة وأنيقة بالخط الأسود تظهر في نص الشاشة من الأسفل فقط مع دخول وخروج فائق السلاسة */}
       {cartToastMessage && (

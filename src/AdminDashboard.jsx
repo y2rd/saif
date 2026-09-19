@@ -588,6 +588,16 @@ export default function AdminDashboard({
   const [editingLayoutSection, setEditingLayoutSection] = useState(null); // العنصر المفتوح للتحرير الكامل والتخصيص
   const [newSectionCustomTitle, setNewSectionCustomTitle] = useState(''); // الاسم المخصص للعنصر الجديد قبل إضافته
 
+  // حالات إدارة الصفحات التعريفية وروابط الفوتر (Custom Footer Pages)
+  const [editingCustomPage, setEditingCustomPage] = useState(null);
+  const [showAddCustomPageModal, setShowAddCustomPageModal] = useState(false);
+  const [customPageForm, setCustomPageForm] = useState({
+    title: '',
+    slug: '',
+    content: '',
+    showInFooter: true
+  });
+
   const totalStockCount = useMemo(() => {
     return products.reduce((sum, p) => sum + (parseInt(p.stock) || 0), 0);
   }, [products]);
@@ -6441,15 +6451,148 @@ export default function AdminDashboard({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1">حقوق الملكية في الفوتر</label>
-                      <input
-                        type="text"
-                        value={storeConfig.footerCopyright || ''}
-                        onChange={(e) => setStoreConfig(prev => ({ ...prev, footerCopyright: e.target.value }))}
-                        className="w-full p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black focus:bg-white"
-                        placeholder="جميع الحقوق محفوظة للمتجر © 2026"
-                      />
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-bold text-gray-700">حقوق الملكية في الفوتر</label>
+                        <span className="text-[10px] text-gray-400">تظهر في أسفل كل صفحات المتجر</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={storeConfig.footerCopyright || ''}
+                          onChange={(e) => {
+                            const newText = e.target.value;
+                            setStoreConfig(prev => {
+                              const updated = { ...prev, footerCopyright: newText };
+                              try {
+                                localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                                localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                syncStoreConfigToCloud(updated);
+                              } catch {}
+                              return updated;
+                            });
+                          }}
+                          className="flex-1 p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black focus:bg-white transition"
+                          placeholder="جميع الحقوق محفوظة للمتجر © 2026"
+                        />
+                      </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* 2.1 إدارة الصفحات التعريفية وروابط الفوتر (إنشاء صفحة جديدة، تحريرها، وتحديد رابطها) */}
+                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-4 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs">
+                        <i className="fa-solid fa-file-lines"></i>
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-bold text-gray-900">صفحات وروابط الفوتر المخصصة</h3>
+                        <p className="text-[10px] text-gray-400">أنشئ صفحات تعريفية مثل سياسة الخصوصية والشروط مع رابط مخصص وتعديل فوري</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCustomPage(null);
+                        setCustomPageForm({
+                          title: '',
+                          slug: '',
+                          content: '',
+                          showInFooter: true
+                        });
+                        setShowAddCustomPageModal(true);
+                      }}
+                      className="w-fit px-3 py-1.5 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition active:scale-95"
+                    >
+                      <i className="fa-solid fa-plus text-[11px]"></i>
+                      <span>إنشاء صفحة جديدة</span>
+                    </button>
+                  </div>
+
+                  {/* قائمة الصفحات الحالية */}
+                  <div className="space-y-2">
+                    {(!storeConfig.customPages || storeConfig.customPages.length === 0) ? (
+                      <div className="p-4 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200 text-xs text-gray-400">
+                        لا توجد صفحات مخصصة حالياً. انقر على "إنشاء صفحة جديدة" لإضافة أول صفحة لفوتر المتجر.
+                      </div>
+                    ) : (
+                      storeConfig.customPages.map((page) => (
+                        <div
+                          key={page.id}
+                          className="p-3 bg-gray-50/80 hover:bg-white rounded-xl border border-gray-200 flex items-center justify-between gap-3 transition"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-100/70 text-emerald-800 flex items-center justify-center text-xs shrink-0">
+                              <i className="fa-solid fa-link"></i>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-xs text-gray-900 truncate">{page.title}</span>
+                                <span className="text-[10px] text-gray-400 font-mono dir-ltr">/{page.slug || page.id}</span>
+                                {page.showInFooter !== false ? (
+                                  <span className="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold border border-emerald-200">
+                                    معروض في الفوتر
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
+                                    مخفي
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-gray-400 truncate max-w-md">
+                                {page.content ? page.content.substring(0, 70) + '...' : 'بدون محتوى نصي'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            {/* زر التعديل */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCustomPage(page);
+                                setCustomPageForm({
+                                  title: page.title || '',
+                                  slug: page.slug || '',
+                                  content: page.content || '',
+                                  showInFooter: page.showInFooter !== false
+                                });
+                                setShowAddCustomPageModal(true);
+                              }}
+                              className="w-7 h-7 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg flex items-center justify-center text-xs cursor-pointer shadow-2xs transition"
+                              title="تعديل محتوى ورابط الصفحة"
+                            >
+                              <i className="fa-solid fa-pen text-[10px]"></i>
+                            </button>
+
+                            {/* زر الحذف */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`هل أنت متأكد من حذف صفحة "${page.title}"؟`)) {
+                                  setStoreConfig(prev => {
+                                    const updatedPages = (prev.customPages || []).filter(p => p.id !== page.id);
+                                    const updated = { ...prev, customPages: updatedPages };
+                                    try {
+                                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                      syncStoreConfigToCloud(updated);
+                                    } catch {}
+                                    return updated;
+                                  });
+                                  showToast('✅ تم حذف الصفحة بنجاح');
+                                }
+                              }}
+                              className="w-7 h-7 bg-white hover:bg-red-50 text-red-500 border border-gray-200 hover:border-red-200 rounded-lg flex items-center justify-center text-xs cursor-pointer shadow-2xs transition"
+                              title="حذف الصفحة"
+                            >
+                              <i className="fa-solid fa-trash text-[10px]"></i>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -10166,6 +10309,154 @@ export default function AdminDashboard({
                 className="px-6 py-2 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs transition"
               >
                 إغلاق النافذة
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================== */}
+      {/* نافذة إضافة / تعديل صفحة تعريفية ورابط في الفوتر                            */}
+      {/* ======================================================================== */}
+      {showAddCustomPageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-normal" dir="rtl">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-sm">
+                  <i className="fa-solid fa-file-circle-plus"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-gray-900">
+                    {editingCustomPage ? 'تعديل الصفحة التعريفية' : 'إنشاء صفحة تعريفية جديدة'}
+                  </h3>
+                  <p className="text-[10px] text-gray-400">سيتم حفظ الصفحة ومزامنة رابطها في فوتر المتجر مباشرة</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddCustomPageModal(false);
+                  setEditingCustomPage(null);
+                }}
+                className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center cursor-pointer transition text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">عنوان الصفحة (يظهر في رابط الفوتر)</label>
+                <input
+                  type="text"
+                  value={customPageForm.title}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCustomPageForm(prev => ({
+                      ...prev,
+                      title: val,
+                      slug: prev.slug ? prev.slug : val.trim().toLowerCase().replace(/[\s\W-]+/g, '-')
+                    }));
+                  }}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-black focus:bg-white"
+                  placeholder="مثلاً: سياسة الخصوصية والاستخدام، الشروط والأحكام..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">اسم الرابط (Slug بالإنجليزية أو العربية)</label>
+                <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 focus-within:border-black focus-within:bg-white">
+                  <span className="text-gray-400 text-xs font-mono select-none">/page/</span>
+                  <input
+                    type="text"
+                    value={customPageForm.slug}
+                    onChange={(e) => setCustomPageForm(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[\s-]+/g, '-') }))}
+                    className="w-full p-2 bg-transparent text-xs text-gray-900 outline-none font-mono"
+                    placeholder="privacy-policy"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">يستخدم لتمييز رابط الصفحة في المتصفح</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">محتوى الصفحة الكامل</label>
+                <textarea
+                  rows={8}
+                  value={customPageForm.content}
+                  onChange={(e) => setCustomPageForm(prev => ({ ...prev, content: e.target.value }))}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 outline-none focus:border-black focus:bg-white leading-relaxed resize-y"
+                  placeholder="اكتب تفاصيل وشروط وسياسة هذه الصفحة هنا بالتفصيل ليقرأها زوار وعملاء متجرك..."
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="chkShowInFooter"
+                  checked={customPageForm.showInFooter}
+                  onChange={(e) => setCustomPageForm(prev => ({ ...prev, showInFooter: e.target.checked }))}
+                  className="w-4 h-4 text-[#004956] rounded border-gray-300 cursor-pointer"
+                />
+                <label htmlFor="chkShowInFooter" className="text-xs font-bold text-gray-700 cursor-pointer">
+                  إظهار رابط هذه الصفحة في فوتر المتجر
+                </label>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddCustomPageModal(false);
+                  setEditingCustomPage(null);
+                }}
+                className="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold cursor-pointer transition"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!customPageForm.title.trim()) {
+                    alert('يرجى كتابة عنوان الصفحة');
+                    return;
+                  }
+                  const pageSlug = (customPageForm.slug.trim() || customPageForm.title.trim().toLowerCase().replace(/[\s\W-]+/g, '-'));
+                  const pageId = editingCustomPage ? editingCustomPage.id : `page-${Date.now()}`;
+                  const newPageObj = {
+                    id: pageId,
+                    title: customPageForm.title.trim(),
+                    slug: pageSlug,
+                    content: customPageForm.content.trim(),
+                    showInFooter: customPageForm.showInFooter
+                  };
+
+                  setStoreConfig(prev => {
+                    const existingPages = Array.isArray(prev.customPages) ? [...prev.customPages] : [];
+                    let updatedPages;
+                    if (editingCustomPage) {
+                      updatedPages = existingPages.map(p => p.id === editingCustomPage.id ? newPageObj : p);
+                    } else {
+                      updatedPages = [...existingPages, newPageObj];
+                    }
+                    const updated = { ...prev, customPages: updatedPages };
+                    try {
+                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                      syncStoreConfigToCloud(updated);
+                    } catch {}
+                    return updated;
+                  });
+
+                  setShowAddCustomPageModal(false);
+                  setEditingCustomPage(null);
+                  showToast(editingCustomPage ? '✅ تم تحديث الصفحة بنجاح!' : '✅ تم إنشاء الصفحة وإضافتها للفوتر!');
+                }}
+                className="px-5 py-2 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs transition active:scale-95 flex items-center gap-1.5"
+              >
+                <i className="fa-solid fa-check text-xs"></i>
+                <span>{editingCustomPage ? 'حفظ التعديلات' : 'إنشاء الصفحة'}</span>
               </button>
             </div>
           </div>
