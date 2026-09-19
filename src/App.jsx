@@ -786,9 +786,9 @@ export default function App() {
     subTitle: '',
     logoText: 'ح',
     logoUrl: '', // صورة الشعار المرفوعة
-    primaryColor: '#004956',
-    accentColor: '#76e5d0',
-    bannerBgColor: '#00343D',
+    primaryColor: '#050f2c',
+    accentColor: '#2b3552',
+    bannerBgColor: '#050f2c',
     fontFamily: 'Tajawal',
     usdToIqdRate: 1500,
     whatsapp: '966500000000',
@@ -5470,10 +5470,10 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-2 sm:py-2.5 rounded-xl y2rd-btn-cart active:scale-98 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs group/btn"
                                 >
-                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-xs"></i>
-                                  <span>{buttonText || 'إضافة للسلة'}</span>
+                                  <i className="fa-solid fa-bag-shopping text-xs"></i>
+                                  <span>{buttonText}</span>
                                 </button>
                               )}
                             </div>
@@ -5771,9 +5771,9 @@ export default function App() {
                                 e.stopPropagation();
                                 handleAddToCart(item, null, '', 1);
                               }}
-                              className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-2 sm:py-2.5 rounded-xl y2rd-btn-cart active:scale-98 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs group/btn"
                             >
-                              <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-xs"></i>
+                              <i className="fa-solid fa-bag-shopping text-xs"></i>
                               <span>إضافة للسلة</span>
                             </button>
                           )}
@@ -6713,7 +6713,7 @@ function AutoMovingProductsCarousel({
                     e.stopPropagation();
                     handleAddToCart(p, null, '', 1);
                   }}
-                  className="w-full py-2 rounded-xl border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-2 rounded-xl y2rd-btn-cart active:scale-98 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
                   <i className="fa-solid fa-bag-shopping text-xs"></i>
                   <span>أضف إلى السلة</span>
