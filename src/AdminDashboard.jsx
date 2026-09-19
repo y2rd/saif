@@ -2015,7 +2015,7 @@ export default function AdminDashboard({
           { id: 'categories', label: 'الأقسام', icon: 'fa-folder-tree' },
           { id: 'customers', label: 'العملاء', icon: 'fa-users' },
           { id: 'coupons', label: 'الكوبونات', icon: 'fa-tags' },
-          { id: 'store-design', label: 'تصميم المتجر', icon: 'fa-brush', badge: 'جديد' },
+          { id: 'store-design', label: 'تصميم المتجر', icon: 'fa-paintbrush', badge: 'جديد' },
           { id: 'announcements', label: 'الإعلانات', icon: 'fa-bullhorn' },
           { id: 'fonts', label: 'المظهر', icon: 'fa-palette' },
           { id: 'features', label: 'المميزات السريعة', icon: 'fa-bolt' },
@@ -2337,6 +2337,21 @@ export default function AdminDashboard({
                 التخصيص والإعدادات
               </div>
               <div className="space-y-1">
+                <button
+                  onClick={() => { setActiveTab('store-design'); setMobileMenuOpen(false); }}
+                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                    activeTab === 'store-design' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <i className={`fa-solid fa-paintbrush text-sm ${activeTab === 'store-design' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                    <span>تصميم المتجر</span>
+                  </div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                    جديد
+                  </span>
+                </button>
+
                 <button
                   onClick={() => { setActiveTab('announcements'); setMobileMenuOpen(false); }}
                   className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
