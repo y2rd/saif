@@ -4826,7 +4826,7 @@ export default function App() {
       {/* ========================================================= */}
       {viewMode === 'store' && (
         <div key="store-view-container" className="animate-page-view">
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal space-y-6">
+          <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal space-y-6">
             {Array.isArray(storeConfig.homeLayout) && storeConfig.homeLayout.filter(s => s.enabled !== false).length === 0 ? (
               <div className="text-center py-20 px-4 bg-[#F9FAFB] rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-[#004956] text-2xl">
@@ -5603,7 +5603,7 @@ export default function App() {
         return (
           <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#F9FAFB] pb-16 animate-page-view" dir="rtl">
             {/* محتوى صفحة القسم: المنتجات فقط */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {categoryProducts.length === 0 ? (
                 <div className="text-center py-20 px-4 bg-white rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
                   <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 text-2xl">
