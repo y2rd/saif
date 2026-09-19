@@ -225,6 +225,33 @@ export default function App() {
   const [inAppBanner, setInAppBanner] = useState(null);
   const lastSeenNotifsCountRef = useRef(null);
 
+  // نافذة الحوار المنبثقة النظيفة والأنيقة في وسط الشاشة (Clean Center Modal)
+  const [modalDialog, setModalDialog] = useState(null);
+
+  const showAppModal = ({ title, message, type = 'success', confirmText = 'حسناً', onConfirm, onCancel, showCancel = false, cancelText = 'إلغاء' }) => {
+    setModalDialog({
+      title,
+      message,
+      type,
+      confirmText,
+      onConfirm,
+      onCancel,
+      showCancel,
+      cancelText
+    });
+  };
+
+  // الاستماع لأي أحداث تنبيه من المكونات الفرعية لفتح النافذة الأنيقة
+  useEffect(() => {
+    const handleCustomAppModal = (e) => {
+      if (e.detail) {
+        showAppModal(e.detail);
+      }
+    };
+    window.addEventListener('app-show-modal', handleCustomAppModal);
+    return () => window.removeEventListener('app-show-modal', handleCustomAppModal);
+  }, []);
+
   const showNotificationBanner = (title, message, type = 'info') => {
     setInAppBanner({ title, message, type, id: Date.now() });
     triggerDeviceNotification(title, message);
@@ -5385,9 +5412,9 @@ export default function App() {
                               </div>
 
                               {/* 2. محتوى البطاقة: العنوان مع مسافات مقلصة ومضبوطة */}
-                              <div className="p-2 sm:p-2.5 pb-0.5 text-right">
+                              <div className="p-2 sm:p-2.5 pb-0.5 text-right w-full">
                                 <h3
-                                  className="text-[10.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
+                                  className="text-[10.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                                   title={item.title}
                                 >
                                   {item.title}
@@ -5686,9 +5713,9 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-2 sm:p-2.5 pb-0.5 text-right">
+                          <div className="p-2 sm:p-2.5 pb-0.5 text-right w-full">
                             <h3
-                              className="text-[10.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
+                              className="text-[10.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                               title={item.title}
                             >
                               {item.title}
@@ -6517,6 +6544,85 @@ export default function App() {
               </button>
             </div>
             <p className="text-[11px] text-gray-600 line-clamp-2 mt-0.5 leading-relaxed">{inAppBanner.message}</p>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ========================================================= */}
+      {/* نافذة التنبيه والتأكيد الأنيقة النظيفة في وسط الشاشة (Clean Center Modal) */}
+      {/* ========================================================= */}
+      {modalDialog && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs select-none animate-in fade-in duration-200"
+          dir="rtl"
+          onClick={() => {
+            if (modalDialog.onCancel) modalDialog.onCancel();
+            setModalDialog(null);
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full text-center shadow-2xl border border-gray-100 flex flex-col items-center animate-in zoom-in-95 duration-200"
+          >
+            {/* أيقونة الحالة الدائرية */}
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 text-2xl shadow-xs ${
+              modalDialog.type === 'error'
+                ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                : modalDialog.type === 'warning'
+                ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                : modalDialog.type === 'info'
+                ? 'bg-sky-50 text-sky-600 border border-sky-100'
+                : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+            }`}>
+              {modalDialog.type === 'error' ? (
+                <i className="fa-solid fa-circle-exclamation"></i>
+              ) : modalDialog.type === 'warning' ? (
+                <i className="fa-solid fa-triangle-exclamation"></i>
+              ) : modalDialog.type === 'info' ? (
+                <i className="fa-solid fa-circle-info"></i>
+              ) : (
+                <i className="fa-solid fa-circle-check"></i>
+              )}
+            </div>
+
+            {/* العنوان */}
+            {modalDialog.title && (
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1.5 leading-snug">
+                {modalDialog.title}
+              </h3>
+            )}
+
+            {/* نص الرسالة الأنيق والمختصر */}
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6 font-normal whitespace-pre-line">
+              {modalDialog.message}
+            </p>
+
+            {/* أزرار الإجراء */}
+            <div className={`w-full flex items-center gap-2.5 ${modalDialog.showCancel ? 'grid grid-cols-2' : ''}`}>
+              {modalDialog.showCancel && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (modalDialog.onCancel) modalDialog.onCancel();
+                    setModalDialog(null);
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs transition cursor-pointer active:scale-98"
+                >
+                  {modalDialog.cancelText || 'إلغاء'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (modalDialog.onConfirm) modalDialog.onConfirm();
+                  setModalDialog(null);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs transition shadow-sm cursor-pointer active:scale-98"
+              >
+                {modalDialog.confirmText || 'حسناً'}
+              </button>
+            </div>
           </div>
         </div>,
         document.body
