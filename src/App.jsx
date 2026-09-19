@@ -645,6 +645,17 @@ export default function App() {
             parsed.homeSections.productsGrid.buttonText = 'إضافة للسلة';
           }
         }
+        // تنظيف أي سلايدات أو صور مربعة تجريبية قديمة لم يضعها المستخدم
+        if (parsed?.homeSections?.bannerSlider?.slides) {
+          parsed.homeSections.bannerSlider.slides = parsed.homeSections.bannerSlider.slides.filter(
+            s => s && s.id !== 'slide-1' && s.id !== 'slide-2' && !s.title?.includes('لمزرعتك في Hay Day')
+          );
+        }
+        if (parsed?.homeSections?.squareImages?.items) {
+          parsed.homeSections.squareImages.items = parsed.homeSections.squareImages.items.filter(
+            i => i && !['sq-1', 'sq-2', 'sq-3', 'sq-4'].includes(i.id)
+          );
+        }
         return parsed;
       }
     } catch {}
@@ -742,63 +753,17 @@ export default function App() {
     homeSections: {
       // 1. بانر متحرك / سلايدر
       bannerSlider: {
-        enabled: true,
+        enabled: false,
         title: 'بانرات العروض المتحركة',
         autoplay: true,
         borderRadius: '2px',
-        slides: [
-          {
-            id: 'slide-1',
-            title: 'عروض حصرية لمزرعتك في Hay Day',
-            subtitle: 'خصومات تصل إلى 30% على الصكوك ومواد التوسعة',
-            buttonText: 'تسوق الآن',
-            imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&auto=format&fit=crop&q=80',
-            linkCat: 'الكل'
-          },
-          {
-            id: 'slide-2',
-            title: 'تسليم فوري ومباشر 24/7',
-            subtitle: 'أعلى سرعة تنفيذ وضمان ذهبي لجميع الشحنات',
-            buttonText: 'تصفح البطاقات',
-            imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&auto=format&fit=crop&q=80',
-            linkCat: 'بطاقات شحن رقمية'
-          }
-        ]
+        slides: []
       },
       // 2. صور مربعة
       squareImages: {
-        enabled: true,
+        enabled: false,
         title: 'تسوق حسب الفئات المميزة',
-        items: [
-          {
-            id: 'sq-1',
-            title: 'مواد التوسعة',
-            subtitle: 'صكوك، شهادات، مسامير',
-            imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=500&auto=format&fit=crop&q=80',
-            linkCat: 'مواد حظيرة وصومعة'
-          },
-          {
-            id: 'sq-2',
-            title: 'شحن العملات',
-            subtitle: 'ذهب وماسات فورية',
-            imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80',
-            linkCat: 'عملات ومجوهرات'
-          },
-          {
-            id: 'sq-3',
-            title: 'أدوات الأرض',
-            subtitle: 'فؤوس ومناشير وقنابل',
-            imageUrl: 'https://images.unsplash.com/photo-1589241062272-c0a000072dfa?w=500&auto=format&fit=crop&q=80',
-            linkCat: 'أدوات توسعة المزرعة'
-          },
-          {
-            id: 'sq-4',
-            title: 'بطاقات رقمية',
-            subtitle: 'أكواد شحن فورية',
-            imageUrl: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500&auto=format&fit=crop&q=80',
-            linkCat: 'بطاقات شحن رقمية'
-          }
-        ]
+        items: []
       },
       // 3. منتجات متحركة (سلايدر عرض المنتجات المميزة)
       movingProducts: {
@@ -858,16 +823,16 @@ export default function App() {
     try {
       const saved = localStorage.getItem('haider_store_categories');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        let parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // استبعاد التصنيفات التجريبية التلقائية القديمة
+          parsed = parsed.filter(c => c && !['cat-1', 'cat-2', 'cat-3', 'cat-4'].includes(c.id));
+          if (parsed.length > 0) return parsed;
+        }
       }
     } catch {}
     return [
-      { id: 'all', name: 'الكل', icon: 'fa-solid fa-layer-group', imageUrl: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&auto=format&fit=crop&q=80' },
-      { id: 'cat-1', name: 'عملات ودنانير هاي داي', icon: 'fa-solid fa-coins', imageUrl: 'https://images.unsplash.com/photo-1618042164219-62c820f10723?w=800&auto=format&fit=crop&q=80' },
-      { id: 'cat-2', name: 'أدوات توسعة الحظيرة والصومعة', icon: 'fa-solid fa-hammer', imageUrl: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=800&auto=format&fit=crop&q=80' },
-      { id: 'cat-3', name: 'أدوات توسعة الأراضي والمنجم', icon: 'fa-solid fa-gem', imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=80' },
-      { id: 'cat-4', name: 'مواد ومحاصيل ومعدات المزرعة', icon: 'fa-solid fa-tractor', imageUrl: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&auto=format&fit=crop&q=80' }
+      { id: 'all', name: 'الكل', icon: 'fa-solid fa-layer-group', imageUrl: '' }
     ];
   });
 
