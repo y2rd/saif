@@ -14,7 +14,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -430,6 +432,66 @@ export async function resendFirebaseVerificationEmail(user) {
     return { success: false, message: 'لم يتم العثور على جلسة للمستخدم' };
   } catch (err) {
     return { success: false, message: err.message };
+  }
+}
+
+// إعداد والتحقق عبر رسائل SMS للهاتف الحقيقي عبر Firebase
+let confirmationResultRef = null;
+
+export function setupRecaptcha(containerId = 'recaptcha-container') {
+  if (!auth) return null;
+  try {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+        size: 'invisible',
+        callback: () => {}
+      });
+    }
+    return window.recaptchaVerifier;
+  } catch (e) {
+    console.warn("إعداد RecaptchaVerifier:", e);
+    return null;
+  }
+}
+
+export async function sendFirebasePhoneOtp(phoneNumber, containerId = 'recaptcha-container') {
+  if (!auth || !phoneNumber) return { success: false, message: 'رقم الهاتف مطلوب' };
+  try {
+    const appVerifier = setupRecaptcha(containerId);
+    if (!appVerifier) return { success: false, message: 'فشل تهيئة التحقق الأمني' };
+
+    // تنظيف وتنسيق الرقم الدولي (مثال: +9647XXXXXXXX)
+    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber.replace(/\s+/g, '') : `+${phoneNumber.replace(/\s+/g, '')}`;
+    const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+    confirmationResultRef = confirmationResult;
+    window.confirmationResult = confirmationResult;
+
+    return { success: true };
+  } catch (err) {
+    console.warn("خطأ في إرسال كود الهاتف من فايربيس:", err);
+    if (window.recaptchaVerifier) {
+      try { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; } catch(e) {}
+    }
+    let msg = 'تعذر إرسال رسالة التحقق SMS حالياً';
+    if (err.code === 'auth/invalid-phone-number') msg = 'صيغة رقم الهاتف غير صحيحة، تأكد من إدخال الرقم الدولي كاملاً';
+    else if (err.code === 'auth/quota-exceeded') msg = 'تم استنفاد الحصة اليومية لرسائل SMS، يرجى المحاولة لاحقاً';
+    else if (err.code === 'auth/too-many-requests') msg = 'تم إرسال طلبات كثيرة، يرجى الانتظار قليلاً';
+    return { success: false, message: msg, error: err };
+  }
+}
+
+export async function verifyFirebasePhoneOtp(code) {
+  const cr = confirmationResultRef || window.confirmationResult;
+  if (!cr) return { success: false, message: 'لم يتم العثور على جلسة تحقق نشطة' };
+  try {
+    const result = await cr.confirm(code);
+    return { success: true, user: result.user };
+  } catch (err) {
+    console.warn("خطأ في تأكيد كود SMS:", err);
+    let msg = 'رمز التحقق غير صحيح، يرجى التأكد وإعادة المحاولة';
+    if (err.code === 'auth/invalid-verification-code') msg = 'رمز التحقق المدخل غير صحيح';
+    else if (err.code === 'auth/code-expired') msg = 'انتهت صلاحية رمز التحقق، يرجى طلب رمز جديد';
+    return { success: false, message: msg, error: err };
   }
 }
 

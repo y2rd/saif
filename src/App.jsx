@@ -16,6 +16,8 @@ import {
   getCustomerByIdentifier,
   loginWithFirebaseAuth,
   registerWithFirebaseAuth,
+  sendFirebasePhoneOtp,
+  verifyFirebasePhoneOtp,
   saveOtpToCloud,
   verifyOtpFromCloud,
   sendOtpEmailNotification
@@ -261,10 +263,25 @@ export default function App() {
     }, 240);
   };
 
-  // إرسال كود التحقق OTP وحفظه سحابياً وإرساله للإيميل
+  // إرسال كود التحقق OTP وحفظه سحابياً وإرساله للإيميل أو رسالة SMS للهاتف
   const triggerSendOtp = async (contactIdentifier) => {
-    // إنشاء كود تحقق عشوائي مكون من 4 أرقام
-    const generatedCode = String(Math.floor(1000 + Math.random() * 9000));
+    // 1. إذا كان رقم هاتف: نرسل كود SMS حقيقي عبر Firebase Phone Auth
+    if (authMethod === 'phone') {
+      try {
+        const smsRes = await sendFirebasePhoneOtp(contactIdentifier, 'recaptcha-container');
+        if (smsRes.success) {
+          setOtpResendCountdown(60);
+          return 'firebase-sms';
+        } else if (smsRes.message) {
+          console.warn("إرسال SMS من فايربيس:", smsRes.message);
+        }
+      } catch (e) {
+        console.warn("خطأ غير متوقع في Firebase Phone Auth:", e);
+      }
+    }
+
+    // 2. كود تحقق سحابي في Firestore كخيار موثوق أو احتياطي
+    const generatedCode = String(Math.floor(100000 + Math.random() * 900000)); // 6 أرقام معيارية
     setOtpResendCountdown(60); // 60 ثانية لإعادة الإرسال
     
     // حفظ الكود في قاعدة بيانات Firestore
@@ -410,12 +427,26 @@ export default function App() {
     setAuthLoading(true);
 
     try {
-      // التحقق الصارم من كود التحقق من قاعدة البيانات
-      const cloudCheck = await verifyOtpFromCloud(fullContact, authOtp.trim());
-      const isValid = cloudCheck && cloudCheck.success;
+      let isValid = false;
+
+      // إذا كان التحقق برقم الهاتف، نتحقق أولاً عبر Firebase Phone Auth الرسمي
+      if (authMethod === 'phone') {
+        const phoneCheck = await verifyFirebasePhoneOtp(authOtp.trim());
+        if (phoneCheck && phoneCheck.success) {
+          isValid = true;
+        }
+      }
+
+      // إذا لم يكن هاتف أو كخيار سحابي مؤكد
+      if (!isValid) {
+        const cloudCheck = await verifyOtpFromCloud(fullContact, authOtp.trim());
+        if (cloudCheck && cloudCheck.success) {
+          isValid = true;
+        }
+      }
 
       if (!isValid) {
-        setAuthError(cloudCheck?.message || 'كود التحقق غير صحيح أو انتهت صلاحيته، يرجى إعادة المحاولة');
+        setAuthError('رمز التحقق غير صحيح أو انتهت صلاحيته، يرجى إعادة المحاولة');
         setAuthLoading(false);
         return;
       }
@@ -3829,26 +3860,16 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* إشعار إرسال الكود للبريد الإلكتروني + عرض الكود السريع لضمان عدم تعليق المستخدم */}
-                <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl text-center space-y-2 shadow-2xs">
-                  <div className="flex items-center justify-center gap-1.5 text-emerald-900 text-xs font-bold">
-                    <i className="fa-solid fa-shield-halved text-emerald-600"></i>
-                    <span>رمز التحقق الخاص بك:</span>
-                    <span className="font-mono text-sm tracking-widest text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
-                      {authGeneratedOtp}
+                {/* إشعار إرسال الكود الحقيقي */}
+                <div className="p-2.5 bg-gray-50 border border-gray-200/80 rounded-xl text-center space-y-1">
+                  <div className="flex items-center justify-center gap-1.5 text-gray-800 text-xs font-medium">
+                    <i className="fa-solid fa-paper-plane text-emerald-600 text-xs"></i>
+                    <span>
+                      {authMethod === 'phone' ? 'تم إرسال كود التحقق في رسالة SMS لهاتفك' : 'تم إرسال كود التحقق ورابط التأكيد لبريدك'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setAuthOtp(authGeneratedOtp)}
-                      className="text-[11px] font-semibold bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1 rounded-lg transition active:scale-95 cursor-pointer shadow-2xs"
-                    >
-                      تعبئة الرمز تلقائياً بنقرة واحدة
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-emerald-800/80 leading-tight">
-                    (تم توليد الرمز وتأمينه في السحابة لضمان دخول فوري بدون انتظار وصول رسائل الإيميل)
+                  <p className="text-[10px] text-gray-500">
+                    يرجى التحقق من رسائل هاتفك أو صندوق الوارد وإدخال الرمز أدناه
                   </p>
                 </div>
 
@@ -3861,17 +3882,17 @@ export default function App() {
                 <form onSubmit={handleVerifyOtp} className="space-y-3">
                   <div>
                     <label className="block text-[10px] font-medium text-gray-600 mb-1 text-center">
-                      أدخل رمز التحقق المكون من 4 أرقام
+                      أدخل رمز التحقق (OTP)
                     </label>
                     <input
                       type="text"
-                      maxLength="4"
+                      maxLength="6"
                       autoFocus
                       required
                       value={authOtp}
                       onChange={(e) => setAuthOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="••••"
-                      className="w-full text-center text-xl font-bold tracking-[0.4em] font-mono py-2 bg-gray-50 focus:bg-white border border-gray-300 focus:border-gray-900 rounded-xl outline-none transition shadow-2xs"
+                      placeholder="••••••"
+                      className="w-full text-center text-xl font-bold tracking-[0.3em] font-mono py-2 bg-gray-50 focus:bg-white border border-gray-300 focus:border-gray-900 rounded-xl outline-none transition shadow-2xs"
                     />
                   </div>
 
@@ -4138,9 +4159,14 @@ export default function App() {
                     </>
                   )}
                 </button>
+                {/* حاوية اختبار الأمان لرسائل SMS لفايربيس */}
+                <div id="recaptcha-container" className="flex justify-center my-1"></div>
               </form>
             </div>
             )}
+
+            {/* حاوية بديلة عامة للـ recaptcha خارج النموذج لضمان الاستدعاء */}
+            <div id="recaptcha-container-global"></div>
 
             {/* شروط الاستخدام والخصوصية في الأسفل دائماً بثبات */}
             <div className="pt-1.5 border-t border-gray-100/70 text-center">
