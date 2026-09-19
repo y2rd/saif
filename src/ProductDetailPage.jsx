@@ -507,11 +507,11 @@ export default function ProductDetailPage({
 
                 return (
                   <div className="mt-4 pt-3 border-t border-gray-100">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 max-w-sm mx-auto">
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
-                          className="store-feature-card relative overflow-hidden p-2 sm:p-2.5 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
+                          className="store-feature-card relative overflow-hidden p-2 rounded-[2px] bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
                         >
                           <div className="store-feature-icon-wrapper w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs mb-1.5 shadow-sm">
                             {feat.customIconUrl ? (
