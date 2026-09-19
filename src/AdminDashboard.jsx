@@ -3557,21 +3557,45 @@ service cloud.firestore {
                                   ⚠️ الرصيد لا يكفي
                                 </span>
                               )}
-                              {ord.walletDeducted && (
-                                <div className="mt-1 space-y-0.5">
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold text-[10px] border border-emerald-200">
-                                    <i className="fa-solid fa-wallet text-[9px]"></i>
-                                    <span>مدفوع من المحفظة</span>
-                                  </span>
-                                  {(ord.walletBalanceBefore !== undefined && ord.walletBalanceBefore !== null) && (
-                                    <div className="text-[9.5px] font-mono text-gray-500">
-                                      <span>سابقاً: ${parseFloat(ord.walletBalanceBefore).toFixed(2)}</span>
-                                      <span className="mx-1 text-gray-300">←</span>
-                                      <span className="font-bold text-emerald-700">بعده: ${parseFloat(ord.walletBalanceAfter || 0).toFixed(2)}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              {/* وسم المحفظة والأرصدة */}
+                              {(() => {
+                                const isWallet = ord.method === 'المحفظة' || ord.walletDeducted;
+                                if (!isWallet) return null;
+
+                                const matchedCust = customers.find(c =>
+                                  (ord.customerId && c.id === ord.customerId) ||
+                                  (ord.customerIdentifier && (c.identifier === ord.customerIdentifier || c.phone === ord.customerIdentifier || c.email === ord.customerIdentifier)) ||
+                                  (ord.customerPhone && (c.phone === ord.customerPhone || c.identifier === ord.customerPhone)) ||
+                                  (cleanCustomerName && (c.name === cleanCustomerName || c.name === ord.customer))
+                                );
+
+                                const orderCost = parseFloat(ord.walletDeductedAmount || ord.totalUsd || 0);
+                                const currentCustBalance = matchedCust ? parseFloat(matchedCust.balance || 0) : null;
+
+                                let balBefore = ord.walletBalanceBefore !== undefined && ord.walletBalanceBefore !== null
+                                  ? parseFloat(ord.walletBalanceBefore)
+                                  : (currentCustBalance !== null ? (ord.walletDeducted ? currentCustBalance + orderCost : currentCustBalance) : null);
+
+                                let balAfter = ord.walletBalanceAfter !== undefined && ord.walletBalanceAfter !== null
+                                  ? parseFloat(ord.walletBalanceAfter)
+                                  : (ord.walletDeducted && currentCustBalance !== null ? currentCustBalance : (balBefore !== null ? Math.max(0, balBefore - orderCost) : null));
+
+                                return (
+                                  <div className="mt-1 space-y-0.5">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold text-[10px] border border-emerald-200">
+                                      <i className="fa-solid fa-wallet text-[9px]"></i>
+                                      <span>مدفوع من المحفظة</span>
+                                    </span>
+                                    {balBefore !== null && (
+                                      <div className="text-[9.5px] font-mono text-gray-500 whitespace-nowrap">
+                                        <span>سابقاً: ${balBefore.toFixed(2)}</span>
+                                        <span className="mx-1 text-gray-300">←</span>
+                                        <span className="font-bold text-emerald-700">بعده: ${balAfter !== null ? balAfter.toFixed(2) : '0.00'}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </td>
 
                             {/* طريقة الدفع: نص نقي مع أيقونة سوداء */}
@@ -10370,38 +10394,92 @@ service cloud.firestore {
                 </div>
               )}
 
-              {selectedOrderDetails.walletDeducted && (
-                <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl space-y-2 text-emerald-900 text-xs">
-                  <div className="flex items-center gap-2 font-bold">
-                    <i className="fa-solid fa-wallet text-emerald-600 text-sm"></i>
-                    <span>مدفوع من المحفظة (تم الخصم بنجاح)</span>
+              {/* تفاصيل رصيد العميل والمحفظة */}
+              {(() => {
+                // البحث عن العميل المقترن بالطلب
+                const cleanName = (selectedOrderDetails.customer || '').replace(/\s*\([^)]*\)/g, '').trim();
+                const matchedCust = customers.find(c =>
+                  (selectedOrderDetails.customerId && c.id === selectedOrderDetails.customerId) ||
+                  (selectedOrderDetails.customerIdentifier && (c.identifier === selectedOrderDetails.customerIdentifier || c.phone === selectedOrderDetails.customerIdentifier || c.email === selectedOrderDetails.customerIdentifier)) ||
+                  (selectedOrderDetails.customerPhone && (c.phone === selectedOrderDetails.customerPhone || c.identifier === selectedOrderDetails.customerPhone)) ||
+                  (cleanName && (c.name === cleanName || c.name === selectedOrderDetails.customer))
+                );
+
+                const isWalletOrder = selectedOrderDetails.method === 'المحفظة' || selectedOrderDetails.walletDeducted;
+                const orderCost = parseFloat(selectedOrderDetails.walletDeductedAmount || selectedOrderDetails.totalUsd || 0);
+                const currentCustBalance = matchedCust ? parseFloat(matchedCust.balance || 0) : null;
+
+                // حساب أو استخراج الرصيد قبل الشراء وبعده
+                let balBefore = selectedOrderDetails.walletBalanceBefore !== undefined && selectedOrderDetails.walletBalanceBefore !== null
+                  ? parseFloat(selectedOrderDetails.walletBalanceBefore)
+                  : null;
+
+                let balAfter = selectedOrderDetails.walletBalanceAfter !== undefined && selectedOrderDetails.walletBalanceAfter !== null
+                  ? parseFloat(selectedOrderDetails.walletBalanceAfter)
+                  : null;
+
+                if (isWalletOrder) {
+                  if (balBefore === null && currentCustBalance !== null) {
+                    balBefore = selectedOrderDetails.walletDeducted ? (currentCustBalance + orderCost) : currentCustBalance;
+                  }
+                  if (balAfter === null) {
+                    if (selectedOrderDetails.walletDeducted && currentCustBalance !== null) {
+                      balAfter = currentCustBalance;
+                    } else if (balBefore !== null) {
+                      balAfter = Math.max(0, balBefore - orderCost);
+                    }
+                  }
+                }
+
+                if (!isWalletOrder && currentCustBalance === null) {
+                  return null;
+                }
+
+                return (
+                  <div className={`p-3 rounded-xl border space-y-2 text-xs ${
+                    isWalletOrder ? 'bg-gradient-to-r from-emerald-50/90 to-teal-50/90 border-emerald-200 text-emerald-950' : 'bg-gray-50 border-gray-200 text-gray-800'
+                  }`}>
+                    <div className="flex items-center justify-between font-bold">
+                      <div className="flex items-center gap-2">
+                        <i className={`fa-solid fa-wallet ${isWalletOrder ? 'text-emerald-600' : 'text-gray-500'} text-sm`}></i>
+                        <span>
+                          {isWalletOrder
+                            ? (selectedOrderDetails.walletDeducted ? 'مدفوع من المحفظة (تم الخصم)' : 'طريقة الدفع: المحفظة')
+                            : 'بيانات محفظة العميل'}
+                        </span>
+                      </div>
+                      {currentCustBalance !== null && (
+                        <span className="text-[11px] font-sans font-semibold px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-700">
+                          الرصيد الحالي الآن: <strong className="text-emerald-700 font-mono">${currentCustBalance.toFixed(2)}</strong>
+                        </span>
+                      )}
+                    </div>
+
+                    {isWalletOrder && (
+                      <div className="grid grid-cols-3 gap-2 bg-white/90 p-2.5 rounded-lg border border-emerald-100 font-mono text-center">
+                        <div>
+                          <span className="text-[10px] text-gray-500 font-sans block">الرصيد قبل الشراء:</span>
+                          <span className="font-bold text-gray-800 text-xs sm:text-sm">
+                            {balBefore !== null ? `$${balBefore.toFixed(2)}` : (currentCustBalance !== null ? `$${(currentCustBalance + orderCost).toFixed(2)}` : '—')}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-gray-500 font-sans block">المبلغ المخصوم:</span>
+                          <span className="font-bold text-red-600 text-xs sm:text-sm">
+                            -${orderCost.toFixed(2)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-gray-500 font-sans block">الرصيد بعد الشراء:</span>
+                          <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                            {balAfter !== null ? `$${balAfter.toFixed(2)}` : (balBefore !== null ? `$${Math.max(0, balBefore - orderCost).toFixed(2)}` : '—')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2 bg-white/80 p-2 rounded-lg border border-emerald-100 font-mono text-center">
-                    <div>
-                      <span className="text-[10px] text-gray-500 font-sans block">الرصيد سابقاً:</span>
-                      <span className="font-bold text-gray-800">
-                        {selectedOrderDetails.walletBalanceBefore !== undefined && selectedOrderDetails.walletBalanceBefore !== null
-                          ? `$${parseFloat(selectedOrderDetails.walletBalanceBefore).toFixed(2)}`
-                          : 'غير مسجل'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-gray-500 font-sans block">المبلغ المخصوم:</span>
-                      <span className="font-bold text-red-600">
-                        -${parseFloat(selectedOrderDetails.walletDeductedAmount || selectedOrderDetails.totalUsd).toFixed(2)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-gray-500 font-sans block">الرصيد بعد الشراء:</span>
-                      <span className="font-bold text-emerald-700">
-                        {selectedOrderDetails.walletBalanceAfter !== undefined && selectedOrderDetails.walletBalanceAfter !== null
-                          ? `$${parseFloat(selectedOrderDetails.walletBalanceAfter).toFixed(2)}`
-                          : 'غير مسجل'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* قائمة بنود المنتجات في الطلب */}
               {Array.isArray(selectedOrderDetails.items) && selectedOrderDetails.items.length > 0 && (
