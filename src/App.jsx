@@ -5003,11 +5003,11 @@ export default function App() {
                     <div className="flex items-center justify-between mb-3 px-1">
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-layer-group text-xs text-gray-400"></i>
-                        <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
                           {ilData.title || storeConfig.homeSections?.itemsList?.title || 'تصفح كافة الأقسام والتصنيفات'}
                         </h3>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-medium">
+                      <span className="text-[10px] text-gray-400 font-normal">
                         {ilData.subtitle || 'اختر القسم للتصفح الفوري'}
                       </span>
                     </div>
@@ -5074,7 +5074,7 @@ export default function App() {
                     <div className="flex items-center justify-between px-1">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-[#004956] rounded-full"></span>
-                        <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
                           {sqConfig.title || 'تسوق حسب الفئات المميزة'}
                         </h3>
                       </div>
@@ -5163,19 +5163,19 @@ export default function App() {
                 return (
                   <div key={section.id} className="space-y-3">
                     <div className="flex items-center justify-between pb-1 px-1">
-                      {/* العنوان على اليمين: "أحدث المنتجات" أو عنوان القسم المخصص */}
+                      {/* العنوان على اليمين: عنوان العنصر القابل للتغيير مع تنحيف وزنه */}
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 tracking-normal">
                           {movingTitle && movingTitle.trim() ? movingTitle : 'أحدث المنتجات'}
                         </h3>
                         {movingBadge && movingBadge.trim() && (
-                          <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                          <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">
                             {movingBadge}
                           </span>
                         )}
                       </div>
 
-                      {/* جهة اليسار: أزرار الأسهم الدائرية وزر "عرض الكل" تماماً مثل الصورة */}
+                      {/* جهة اليسار: أزرار الأسهم الدائرية وزر "عرض الكل" قابل للنقر بالكامل */}
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
@@ -5184,11 +5184,14 @@ export default function App() {
                               handleCategoryClick(selectedCat);
                             } else if (productsSectionRef.current) {
                               smoothScrollToElement(productsSectionRef.current, 600);
+                            } else {
+                              window.scrollTo({ top: 500, behavior: 'smooth' });
                             }
                           }}
-                          className="text-xs font-semibold text-gray-700 hover:text-black hover:underline ml-1 cursor-pointer"
+                          className="text-xs font-normal text-gray-600 hover:text-black hover:underline px-1 py-0.5 rounded cursor-pointer transition active:scale-95 flex items-center gap-1"
                         >
-                          عرض الكل
+                          <span>عرض الكل</span>
+                          <i className="fa-solid fa-arrow-left text-[9px] text-gray-400"></i>
                         </button>
                         <button
                           type="button"
@@ -5352,12 +5355,12 @@ export default function App() {
                   <div key={section.id} ref={productsSectionRef} className="rounded-2xl border border-gray-200/80 p-2.5 sm:p-6 bg-[#F9FAFB] shadow-2xs">
                     <div className="flex items-center justify-between mb-4 sm:mb-6 pb-2.5 sm:pb-3 border-b border-gray-200/60 px-1">
                       <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-5 bg-black rounded-full"></span>
-                        <h3 className="text-sm sm:text-lg font-bold text-black tracking-tight">
+                        <span className="w-1.5 h-4 bg-black rounded-full"></span>
+                        <h3 className="text-sm sm:text-base font-semibold text-black tracking-normal">
                           {gridTitle}
                         </h3>
                       </div>
-                      <span className="text-[11px] sm:text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">{filteredProducts.length} منتج</span>
+                      <span className="text-[10px] sm:text-xs font-normal text-gray-500 bg-gray-100 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">{filteredProducts.length} منتج</span>
                     </div>
 
                     {filteredProducts.length === 0 ? (
@@ -6947,7 +6950,7 @@ function SallaReviewsWidget({ reviews = [], title = '', subtitle = '' }) {
       {/* الترويسة بمحاذاة العنوان والعداد يميناً وزر 'عرض الكل' يساراً */}
       <div className="max-w-xl mx-auto px-2 mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
             <span>{mainTitle}</span>
             <span className="text-[10px] font-normal px-2 py-0.5 bg-amber-50 text-amber-800 rounded-xs">
               {currentIndex + 1} من {total}

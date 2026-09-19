@@ -607,6 +607,8 @@ export default function AdminDashboard({
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [openSectionMenuId, setOpenSectionMenuId] = useState(null); // معرف العنصر الذي تفتح له قائمة الثلاث نقاط
   const [editingLayoutSection, setEditingLayoutSection] = useState(null); // العنصر المفتوح للتحرير الكامل والتخصيص
+  const [editingSectionTitleId, setEditingSectionTitleId] = useState(null); // معرف العنصر الجاري تعديل اسمه سريعاً
+  const [editingSectionTitleValue, setEditingSectionTitleValue] = useState(''); // القيمة المؤقتة لتعديل الاسم
   const [newSectionCustomTitle, setNewSectionCustomTitle] = useState(''); // الاسم المخصص للعنصر الجديد قبل إضافته
 
   // حالات إدارة الصفحات التعريفية وروابط الفوتر (Custom Footer Pages)
@@ -6934,20 +6936,92 @@ export default function AdminDashboard({
                                 : 'bg-gray-50 border-gray-200/90 hover:border-gray-300'
                             }`}
                           >
-                            {/* عرض اسم العنصر فقط */}
-                            <div 
-                              onClick={() => setEditingLayoutSection(secItem)}
-                              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
-                              title="انقر لتعديل وتخصيص هذا العنصر"
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-gray-200 ${secItem.enabled !== false ? 'bg-gray-100' : 'bg-gray-200/60 text-gray-400'}`}>
+                            {/* عرض اسم العنصر وتعديله المباشر */}
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <div 
+                                onClick={() => setEditingLayoutSection(secItem)}
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-gray-200 cursor-pointer ${secItem.enabled !== false ? 'bg-gray-100' : 'bg-gray-200/60 text-gray-400'}`}
+                                title="انقر لتخصيص هذا العنصر"
+                              >
                                 <i className={`fa-solid ${iconMap[secItem.type] || 'fa-layer-group'} text-xs`}></i>
                               </div>
-                              <span className={`text-xs font-bold truncate transition ${secItem.enabled !== false ? 'text-gray-900 hover:text-[#004956]' : 'text-gray-400'}`}>
-                                {displayName}
-                              </span>
-                              {secItem.enabled === false && (
-                                <span className="text-[10px] bg-red-50 text-red-600 border border-red-200/60 px-1.5 py-0.5 rounded font-bold">معطل</span>
+
+                              {editingSectionTitleId === currentItemId ? (
+                                <form
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const trimmed = editingSectionTitleValue.trim();
+                                    if (!trimmed) {
+                                      setEditingSectionTitleId(null);
+                                      return;
+                                    }
+                                    setStoreConfig(prev => {
+                                      const list = [...(prev.homeLayout || arr)];
+                                      list[idx] = {
+                                        ...list[idx],
+                                        title: trimmed,
+                                        data: { ...(list[idx].data || {}), title: trimmed }
+                                      };
+                                      const updatedConfig = { ...prev, homeLayout: list };
+                                      try {
+                                        localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
+                                        localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                        syncStoreConfigToCloud(updatedConfig);
+                                      } catch {}
+                                      return updatedConfig;
+                                    });
+                                    setEditingSectionTitleId(null);
+                                    showToast('✅ تم تغيير اسم العنصر وحفظه بنجاح');
+                                  }}
+                                  className="flex items-center gap-1.5 flex-1 min-w-0"
+                                >
+                                  <input
+                                    type="text"
+                                    autoFocus
+                                    value={editingSectionTitleValue}
+                                    onChange={(e) => setEditingSectionTitleValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Escape') {
+                                        setEditingSectionTitleId(null);
+                                      }
+                                    }}
+                                    className="flex-1 min-w-0 px-2 py-1 text-xs font-semibold bg-white border-2 border-[#004956] rounded-lg outline-none text-gray-900"
+                                    placeholder="اكتب اسم العنصر..."
+                                  />
+                                  <button
+                                    type="submit"
+                                    className="w-6 h-6 rounded-lg bg-[#004956] text-white flex items-center justify-center text-[10px] hover:bg-[#003741] cursor-pointer"
+                                    title="حفظ الاسم"
+                                  >
+                                    <i className="fa-solid fa-check"></i>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingSectionTitleId(null)}
+                                    className="w-6 h-6 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-[10px] hover:bg-gray-300 cursor-pointer"
+                                    title="إلغاء"
+                                  >
+                                    ✕
+                                  </button>
+                                </form>
+                              ) : (
+                                <div 
+                                  className="flex items-center gap-2 min-w-0 flex-1 group/title cursor-pointer"
+                                  onClick={() => {
+                                    setEditingSectionTitleId(currentItemId);
+                                    setEditingSectionTitleValue(displayName);
+                                  }}
+                                  title="انقر لتغيير اسم العنصر سريعاً"
+                                >
+                                  <span className={`text-xs font-medium truncate transition ${secItem.enabled !== false ? 'text-gray-900 group-hover/title:text-[#004956]' : 'text-gray-400'}`}>
+                                    {displayName}
+                                  </span>
+                                  <i className="fa-solid fa-pen text-[9px] text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity"></i>
+                                  {secItem.enabled === false && (
+                                    <span className="text-[10px] bg-red-50 text-red-600 border border-red-200/60 px-1.5 py-0.5 rounded font-medium">معطل</span>
+                                  )}
+                                </div>
                               )}
                             </div>
 
@@ -7081,6 +7155,20 @@ export default function AdminDashboard({
                                     >
                                       <i className="fa-solid fa-pen-to-square text-gray-600 text-xs w-4 text-center"></i>
                                       <span>تعديل وتخصيص</span>
+                                    </button>
+
+                                    {/* خيار إعادة التسمية السريع */}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenSectionMenuId(null);
+                                        setEditingSectionTitleId(currentItemId);
+                                        setEditingSectionTitleValue(displayName);
+                                      }}
+                                      className="w-full px-3 py-2 text-right text-xs font-bold text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition"
+                                    >
+                                      <i className="fa-solid fa-font text-gray-600 text-xs w-4 text-center"></i>
+                                      <span>إعادة تسمية العنصر</span>
                                     </button>
 
                                     {/* تحريك لأعلى */}
