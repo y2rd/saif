@@ -3546,8 +3546,11 @@ export default function App() {
                                         type="button"
                                         onClick={() => {
                                           closeAuthModal();
-                                          setViewMode('admin');
-                                          setAdminSection('payments');
+                                          setAdminSection(null);
+                                          setTimeout(() => {
+                                            setViewMode('admin');
+                                            setAdminSection('payments');
+                                          }, 50);
                                         }}
                                         className="px-3 py-1 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-bold text-[10px] rounded-lg shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
                                       >
@@ -4652,6 +4655,7 @@ export default function App() {
               currentUser={currentUser}
               setViewMode={setViewMode}
               initialTab="store-design"
+              activeSection={adminSection}
               formatPrice={formatPrice}
               activeCurrency={activeCurrency}
               customers={customers}

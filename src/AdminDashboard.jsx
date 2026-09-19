@@ -30,6 +30,7 @@ export default function AdminDashboard({
   currentUser,
   setViewMode,
   initialTab,
+  activeSection,
   formatPrice: propFormatPrice,
   activeCurrency = 'USD',
   customers: propCustomers,
@@ -42,6 +43,14 @@ export default function AdminDashboard({
   const formatPrice = propFormatPrice || ((price) => `$${Number(price || 0).toFixed(2)}`);
   const [activeTab, setActiveTab] = useState(initialTab || 'store-design'); // analytics, products, orders, customers, coupons, store-design, settings
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // عند تغيير التاب من الخارج (مثل الضغط على "مراجعة واعتماد" من الإشعارات)
+  useEffect(() => {
+    if (activeSection && activeSection !== activeTab) {
+      setActiveTab(activeSection);
+      setMobileMenuOpen(false);
+    }
+  }, [activeSection]);
 
   // حالات طلبات الشحن والإشعارات
   const [selectedTopupProof, setSelectedTopupProof] = useState(null);
