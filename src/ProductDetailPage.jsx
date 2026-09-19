@@ -62,6 +62,19 @@ export default function ProductDetailPage({
   const isExchange = product.productType === 'exchange' || Boolean(product.exchangeCurrencyName && String(product.exchangeCurrencyName).trim());
   const isCustom = !isExchange && (product.productType === 'custom' || Boolean(product.customFieldLabel && String(product.customFieldLabel).trim()));
 
+  // فحص نفاذ الكمية
+  const isOutOfStock = (() => {
+    if (product.productType === 'license' && Array.isArray(product.licenseKeys)) {
+      const available = product.licenseKeys.filter(k => k && !k.used && !k.isUsed);
+      if (product.licenseKeys.length > 0 && available.length === 0) return true;
+    }
+    if (product.stock !== undefined && product.stock !== null && product.stock !== '') {
+      const s = parseInt(product.stock, 10);
+      if (!isNaN(s) && s <= 0) return true;
+    }
+    return false;
+  })();
+
   // بوكسات مخصصة يدوية للمبادلة (اسم البوكس وبجانبه خانته الفارغة)
   // تهيئة خانات المبادلة المخصصة المحددة من قبل المدير (من المنتج أو من الإعدادات العامة للمتجر)
   const initialFields = Array.isArray(product.exchangeCustomFields) && product.exchangeCustomFields.length > 0
@@ -451,48 +464,59 @@ export default function ProductDetailPage({
                   </button>
                 </div>
 
-                {/* زر الإضافة للسلة */}
-                <button
-                  onClick={() => {
-                     const finalQty = Math.max(minQty, parseInt(quantity) || minQty);
+                {/* زر الإضافة للسلة أو تنبيه نفاذ الكمية */}
+                {isOutOfStock ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full h-8 sm:h-9 px-3 sm:px-5 bg-gray-200 text-gray-500 font-bold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed text-xs sm:text-[13px]"
+                  >
+                    <i className="fa-solid fa-ban text-xs text-red-500"></i>
+                    <span>نفذت الكمية حالياً</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                       const finalQty = Math.max(minQty, parseInt(quantity) || minQty);
 
-                     // التحقق من الحقول المخصصة الإجبارية
-                     const requiredFields = Array.isArray(product.customFields)
-                       ? product.customFields.filter(f => f.label?.trim() && f.required)
-                       : [];
-                     const missingRequired = requiredFields.find(f => !(customFieldValues?.[f.id] || '').trim());
-                     if (missingRequired) {
-                       alert(`يرجى ملء حقل "${missingRequired.label}" قبل الإضافة للسلة.`);
-                       return;
-                     }
-
-                     if (isExchange) {
-                       const validBoxes = customBoxes.filter(b => b.value && b.value.trim());
-                       if (validBoxes.length === 0) {
-                         alert('يرجى ملء خانة واحدة على الأقل من البيانات قبل الإضافة للسلة.');
+                       // التحقق من الحقول المخصصة الإجبارية
+                       const requiredFields = Array.isArray(product.customFields)
+                         ? product.customFields.filter(f => f.label?.trim() && f.required)
+                         : [];
+                       const missingRequired = requiredFields.find(f => !(customFieldValues?.[f.id] || '').trim());
+                       if (missingRequired) {
+                         alert(`يرجى ملء حقل "${missingRequired.label}" قبل الإضافة للسلة.`);
                          return;
                        }
 
-                       const finalNote = validBoxes.map(b => `${b.name || 'بيانات'}: ${b.value.trim()}`).join(' | ');
-                       onAddToCart(product, null, finalNote, finalQty);
-                       return;
-                     }
+                       if (isExchange) {
+                         const validBoxes = customBoxes.filter(b => b.value && b.value.trim());
+                         if (validBoxes.length === 0) {
+                           alert('يرجى ملء خانة واحدة على الأقل من البيانات قبل الإضافة للسلة.');
+                           return;
+                         }
 
-                     // بناء الملاحظة النهائية من الحقول المخصصة + أي ملاحظة نصية
-                     const customFieldsNote = Array.isArray(product.customFields)
-                       ? product.customFields
-                           .filter(f => f.label?.trim() && (customFieldValues?.[f.id] || '').trim())
-                           .map(f => `${f.label}: ${customFieldValues[f.id].trim()}`)
-                           .join(' | ')
-                       : '';
-                     const finalNote = [customFieldsNote, customUserNote.trim()].filter(Boolean).join(' | ');
-                     onAddToCart(product, selectedTier, finalNote, finalQty);
-                  }}
-                  className="w-full h-8 sm:h-9 px-3 sm:px-5 bg-black hover:bg-gray-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-[13px] shadow-sm active:scale-98"
-                >
-                  <i className="fa-solid fa-cart-shopping text-white text-xs"></i>
-                  <span>أضف للسلة</span>
-                </button>
+                         const finalNote = validBoxes.map(b => `${b.name || 'بيانات'}: ${b.value.trim()}`).join(' | ');
+                         onAddToCart(product, null, finalNote, finalQty);
+                         return;
+                       }
+
+                       // بناء الملاحظة النهائية من الحقول المخصصة + أي ملاحظة نصية
+                       const customFieldsNote = Array.isArray(product.customFields)
+                         ? product.customFields
+                             .filter(f => f.label?.trim() && (customFieldValues?.[f.id] || '').trim())
+                             .map(f => `${f.label}: ${customFieldValues[f.id].trim()}`)
+                             .join(' | ')
+                         : '';
+                       const finalNote = [customFieldsNote, customUserNote.trim()].filter(Boolean).join(' | ');
+                       onAddToCart(product, selectedTier, finalNote, finalQty);
+                    }}
+                    className="w-full h-8 sm:h-9 px-3 sm:px-5 bg-black hover:bg-gray-800 text-white font-bold rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-[13px] shadow-sm active:scale-98"
+                  >
+                    <i className="fa-solid fa-cart-shopping text-white text-xs"></i>
+                    <span>أضف للسلة</span>
+                  </button>
+                )}
               </div>
 
               {/* 6. بطاقات مميزات المتجر الحقيقية داخل صفحة المنتج */}

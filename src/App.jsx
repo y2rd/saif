@@ -60,6 +60,24 @@ function isProductRequiringInput(prod) {
   return false;
 }
 
+// دالة فحص نفاذ كمية المنتج (المخزون صفر أو أقل)
+export function isProductOutOfStock(prod) {
+  if (!prod || typeof prod !== 'object') return false;
+  // إذا كان المنتج يحتوي على أكواد رقمية (license)، نتحقق من عدد الأكواد غير المستخدمة إذا كانت محددة
+  if (prod.productType === 'license' && Array.isArray(prod.licenseKeys)) {
+    const availableKeys = prod.licenseKeys.filter(k => k && !k.used && !k.isUsed);
+    if (prod.licenseKeys.length > 0 && availableKeys.length === 0) return true;
+  }
+  // فحص حقل stock
+  if (prod.stock !== undefined && prod.stock !== null && prod.stock !== '') {
+    const numStock = parseInt(prod.stock, 10);
+    if (!isNaN(numStock) && numStock <= 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // دالة إرسال إشعار فوري للنظام / الهاتف (تطبيق أندرويد + متصفح الويب)
 async function triggerDeviceNotification(title, body, id = Math.floor(Math.random() * 100000)) {
   // 1. إشعار تطبيق أندرويد (Capacitor Native Local Notification)
@@ -1186,22 +1204,51 @@ export default function App() {
       onCustomersUpdate: (cloudCustomers) => {
         if (Array.isArray(cloudCustomers)) {
           setCustomers(cloudCustomers);
-          // إذا كان المستخدم مسجلاً دخوله، نقوم بتحديث بياناته ورصيد محفظته فورياً
+          // تحديث بيانات ورصيد العميل الحالي بأمان تام وبدون أي خلط بين الحسابات
           try {
             const savedCur = localStorage.getItem('haider_current_user');
             if (savedCur) {
               const parsedCur = JSON.parse(savedCur);
-              if (parsedCur) {
-                const match = cloudCustomers.find(c => 
-                  c.id === parsedCur.id || 
-                  (c.identifier && parsedCur.identifier && c.identifier === parsedCur.identifier) ||
-                  (c.phone && parsedCur.phone && c.phone === parsedCur.phone) ||
-                  (c.email && parsedCur.email && c.email === parsedCur.email)
-                );
+              if (parsedCur && typeof parsedCur === 'object') {
+                // التأكد الصارم من وجود معرّف حقيقي غير فارغ لمنع المطابقات الخاطئة
+                const curId = String(parsedCur.id || '').trim();
+                const curEmail = String(parsedCur.email || '').trim().toLowerCase();
+                const curPhone = String(parsedCur.phone || '').trim();
+                const curIdent = String(parsedCur.identifier || '').trim().toLowerCase();
+
+                const match = cloudCustomers.find(c => {
+                  if (!c || typeof c !== 'object') return false;
+                  const cId = String(c.id || '').trim();
+                  const cEmail = String(c.email || '').trim().toLowerCase();
+                  const cPhone = String(c.phone || '').trim();
+                  const cIdent = String(c.identifier || '').trim().toLowerCase();
+
+                  if (curId && cId && curId === cId) return true;
+                  if (curEmail && cEmail && curEmail === cEmail) return true;
+                  if (curPhone && cPhone && curPhone === cPhone && curPhone.length >= 7) return true;
+                  if (curIdent && cIdent && curIdent === cIdent && curIdent.length >= 3) return true;
+                  return false;
+                });
+
                 if (match) {
-                  const merged = { ...parsedCur, ...match };
-                  setCurrentUser(merged);
-                  localStorage.setItem('haider_current_user', JSON.stringify(merged));
+                  // نحدث فقط البيانات التراكمية (الرصيد، الإشعارات، النقاط) دون استبدال هوية المستخدم الأساسية إذا كانت مختلفة
+                  setCurrentUser(prev => {
+                    const base = prev || parsedCur;
+                    const merged = {
+                      ...base,
+                      balance: match.balance !== undefined ? match.balance : base.balance,
+                      points: match.points !== undefined ? match.points : base.points,
+                      tier: match.tier || base.tier,
+                      status: match.status || base.status,
+                      notifications: match.notifications || base.notifications,
+                      walletTransactions: match.walletTransactions || base.walletTransactions,
+                      role: match.role || base.role
+                    };
+                    try {
+                      localStorage.setItem('haider_current_user', JSON.stringify(merged));
+                    } catch (e) {}
+                    return merged;
+                  });
                 }
               }
             }
@@ -2491,6 +2538,9 @@ export default function App() {
   };
 
   const filteredProducts = products.filter(p => {
+    // إخفاء أي منتج نفذت كميته من المتجر تلقائياً
+    if (isProductOutOfStock(p)) return false;
+
     let matchesCat = selectedCat === 'الكل' || p.category === selectedCat;
     if (!matchesCat) {
       // التحقق إذا كان التصنيف المختار قسماً رئيسياً يتبعه هذا القسم الفرعي
@@ -5026,9 +5076,9 @@ export default function App() {
                   displayProducts = filteredByIds.length > 0 ? filteredByIds : products;
                 }
 
-                if (displayProducts.length === 0 && products.length > 0) {
-                  displayProducts = products;
-                }
+                // استبعاد أي منتج نفذت كميته من شريط المنتجات المتحركة
+                displayProducts = displayProducts.filter(p => !isProductOutOfStock(p));
+
                 if (displayProducts.length === 0) return null;
 
                 const movingTitle = mpConfig.title !== undefined && mpConfig.title !== '' ? mpConfig.title : (section.title || 'أحدث المنتجات');
@@ -5500,6 +5550,9 @@ export default function App() {
       {viewMode === 'category' && (() => {
         const currentCatObj = categories.find(c => c.name === selectedCat) || { name: selectedCat };
         const categoryProducts = products.filter(p => {
+          // إخفاء أي منتج نفذت كميته من صفحة القسم
+          if (isProductOutOfStock(p)) return false;
+
           let matchesCat = false;
           if (selectedCat === 'الكل') {
             matchesCat = true;
@@ -5722,7 +5775,7 @@ export default function App() {
             formatPrice={formatPrice}
             activeCurrency={activeCurrency}
             onAddToCart={handleAddToCart}
-            relatedProducts={products}
+            relatedProducts={products.filter(p => !isProductOutOfStock(p))}
             onSelectProduct={(p) => setActiveProductForPage(p)}
             onSelectCategory={(catName) => {
               setSelectedCat(catName);
