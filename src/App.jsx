@@ -5399,24 +5399,24 @@ export default function App() {
                             <div className="p-2 sm:p-2.5 pt-1">
                               <div className="flex items-center justify-between gap-1.5 mb-2">
                                 {/* السعر أو متطلبات المبادلة والسعر القديم */}
-                                <div className="flex items-baseline gap-1.5">
+                                <div className="flex items-baseline gap-1">
                                   {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                     <div className="flex items-center text-right">
-                                      <span className="text-xs sm:text-sm font-bold text-teal-900 tracking-tight">
+                                      <span className="text-[9.5px] sm:text-[10.5px] font-semibold text-teal-900 tracking-tight">
                                         مبادلة
                                       </span>
                                     </div>
                                   ) : (
                                     <>
                                       <span 
-                                        className={`text-xs sm:text-sm font-bold font-price tracking-tight ${
+                                        className={`text-[9.5px] sm:text-[10.5px] font-bold font-price tracking-tight ${
                                           hasDiscount ? 'text-red-700' : 'text-black'
                                         }`}
                                       >
                                         {formatPrice(item.price, activeCurrency)}
                                       </span>
                                       {hasDiscount && (
-                                        <span className="text-[9px] sm:text-[10px] text-gray-400 line-through font-medium font-price">
+                                        <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price">
                                           {formatPrice(item.oldPrice, activeCurrency)}
                                         </span>
                                       )}
@@ -5700,24 +5700,24 @@ export default function App() {
                         <div className="p-3 sm:p-4 pt-1.5 sm:pt-2">
                           <div className="flex items-center justify-between gap-2 mb-2.5">
                             {/* السعر والسعر القديم أو متطلبات المبادلة */}
-                            <div className="flex items-baseline gap-1.5">
+                            <div className="flex items-baseline gap-1">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
-                                  <span className="text-xs sm:text-sm font-bold text-teal-900 tracking-tight">
+                                  <span className="text-[9.5px] sm:text-[10.5px] font-semibold text-teal-900 tracking-tight">
                                     مبادلة
                                   </span>
                                 </div>
                               ) : (
                                 <>
                                   <span 
-                                    className={`text-xs sm:text-sm font-bold font-price tracking-tight ${
+                                    className={`text-[9.5px] sm:text-[10.5px] font-bold font-price tracking-tight ${
                                       hasDiscount ? 'text-red-700' : 'text-black'
                                     }`}
                                   >
                                     {formatPrice(item.price, activeCurrency)}
                                   </span>
                                   {hasDiscount && (
-                                    <span className="text-[9px] sm:text-[10px] text-gray-400 line-through font-medium font-price">
+                                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price">
                                       {formatPrice(item.oldPrice, activeCurrency)}
                                     </span>
                                   )}
@@ -6659,11 +6659,11 @@ function AutoMovingProductsCarousel({
             <div className="p-2 pt-0.5">
               <div className="flex flex-col items-center justify-center gap-0.5 mb-1.5 text-center">
                 <div className="flex items-center gap-1 justify-center">
-                  <span className="text-xs sm:text-[12.5px] font-bold text-gray-900 font-price">
+                  <span className="text-[9.5px] sm:text-[10px] font-bold text-gray-900 font-price">
                     {formatPrice(p.price, activeCurrency)}
                   </span>
                   {hasDiscount && (
-                    <span className="text-[10px] text-gray-400 line-through font-price">
+                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-price">
                       {formatPrice(p.oldPrice, activeCurrency)}
                     </span>
                   )}
