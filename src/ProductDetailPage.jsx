@@ -513,11 +513,11 @@ export default function ProductDetailPage({
                           key={feat.id || fIndex}
                           className="store-feature-card relative overflow-hidden py-4 sm:py-5 px-3 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
                         >
-                          <div className="store-feature-icon-wrapper w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#0b1220] text-white flex items-center justify-center text-xs sm:text-base mb-2 shadow-xs group-hover:scale-105 transition-transform">
+                          <div className="store-feature-icon-wrapper w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#0b1220] text-white flex items-center justify-center text-[10px] sm:text-xs mb-1.5 shadow-xs group-hover:scale-105 transition-transform shrink-0">
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-5 sm:h-5 object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain brightness-0 invert" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-xs sm:text-sm`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[10px] sm:text-xs`}></i>
                             )}
                           </div>
                           <h4 className="font-bold text-gray-900 text-[11px] sm:text-xs tracking-tight truncate w-full mb-0.5">
