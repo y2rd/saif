@@ -1333,7 +1333,34 @@ export default function App() {
       }
 
       if (routeType === 'product' && param) {
-        const found = products.find(p => String(p.id) === String(param) || String(p.slug || '') === String(param));
+        // محاولة العثور على المنتج في الحالة الحالية أو التخزين المحلي
+        let allProds = products;
+        if (!allProds || allProds.length === 0) {
+          try {
+            const saved = localStorage.getItem('haider_store_products');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed)) allProds = parsed;
+            }
+          } catch (e) {}
+        }
+
+        const paramStr = String(param).trim();
+        const paramNum = parseInt(paramStr, 10);
+
+        let found = (allProds || []).find(p => 
+          String(p.id) === paramStr || 
+          String(p.slug || '') === paramStr ||
+          (p.sku && String(p.sku) === paramStr)
+        );
+
+        // إذا كان باراميتر الرابط رقماً تسلسلياً (مثل 1, 2, 3 أو فهرس الترتيب)
+        if (!found && !isNaN(paramNum) && allProds && allProds.length > 0) {
+          if (paramNum > 0 && paramNum <= allProds.length) {
+            found = allProds[paramNum - 1];
+          }
+        }
+
         if (found) {
           setActiveProductForPage(found);
           setViewMode('product-detail');
