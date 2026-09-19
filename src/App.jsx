@@ -1276,15 +1276,23 @@ export default function App() {
     if (window.location.hash !== targetHash) {
       isUpdatingHashRef.current = true;
       try {
-        window.history.replaceState(null, '', targetHash);
-      } catch (e) {
         window.location.hash = targetHash;
-      }
+      } catch (e) {}
       setTimeout(() => {
         isUpdatingHashRef.current = false;
-      }, 50);
+      }, 80);
     }
   }, [viewMode, activeProductForPage, activeCustomPage, selectedCat, adminSection]);
+
+  // دالة موحدة للرجوع للمتجر الرئيسي
+  const handleNavigateToStore = () => {
+    setViewMode('store');
+    setActiveProductForPage(null);
+    setActiveCustomPage(null);
+    setSelectedCat('الكل');
+    window.location.hash = '#/';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // المراجع لتتبع الحالة الحالية بدقة وفورية داخل مستمع زر / إيماءة الرجوع في الأندرويد
   const navStateRef = useRef({
@@ -1366,40 +1374,42 @@ export default function App() {
 
       // 8. إذا كان المستخدم في صفحة تفاصيل المنتج الكاملة
       if (state.viewMode === 'product-detail') {
-        setViewMode('store');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        handleNavigateToStore();
         return;
       }
 
-      // 9. إذا كان المستخدم في صفحة تصنيف محدد
+      // 9. إذا كان المستخدم في صفحة تعريفية مخصصة
+      if (state.viewMode === 'custom-page') {
+        handleNavigateToStore();
+        return;
+      }
+
+      // 10. إذا كان المستخدم في صفحة تصنيف محدد
       if (state.viewMode === 'category') {
-        setSelectedCat('الكل');
-        setViewMode('store');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        handleNavigateToStore();
         return;
       }
 
-      // 10. إذا كان المستخدم في لوحة تحكم الإدارة
+      // 11. إذا كان المستخدم في لوحة تحكم الإدارة
       if (state.viewMode === 'admin') {
-        setViewMode('store');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        handleNavigateToStore();
         return;
       }
 
-      // 11. إذا كان يبحث
+      // 12. إذا كان يبحث
       if (state.searchQuery) {
         setSearchQuery('');
         return;
       }
 
-      // 12. إذا كان مخصص قسم غير الكل في المتجر الرئيسي
+      // 13. إذا كان مخصص قسم غير الكل في المتجر الرئيسي
       if (state.selectedCat !== 'الكل') {
         setSelectedCat('الكل');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
 
-      // 13. إذا كان في الصفحة الرئيسية بالفعل: طلب ضغطة ثانية سريعة قبل إغلاق التطبيق لتفادي الخروج غير المقصود
+      // 14. إذا كان في الصفحة الرئيسية بالفعل: طلب ضغطة ثانية سريعة قبل إغلاق التطبيق لتفادي الخروج غير المقصود
       const now = Date.now();
       if (now - lastBackPressTime < 2000) {
         CapApp.exitApp();
@@ -5496,7 +5506,7 @@ export default function App() {
         return (
           <ProductDetailPage
             product={latestProduct}
-            onBack={() => setViewMode('store')}
+            onBack={handleNavigateToStore}
             storeConfig={storeConfig}
             formatPrice={formatPrice}
             activeCurrency={activeCurrency}
@@ -5506,7 +5516,7 @@ export default function App() {
             onSelectCategory={(catName) => {
               setSelectedCat(catName);
               if (catName === 'الكل') {
-                setViewMode('store');
+                handleNavigateToStore();
               } else {
                 setViewMode('category');
               }
@@ -5524,10 +5534,7 @@ export default function App() {
           {/* زر الرجوع للمتجر */}
           <button
             type="button"
-            onClick={() => {
-              setViewMode('store');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={handleNavigateToStore}
             className="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 shadow-2xs mb-6 cursor-pointer transition active:scale-95"
           >
             <i className="fa-solid fa-arrow-right text-xs"></i>
@@ -5553,10 +5560,7 @@ export default function App() {
               <span>{storeConfig.name || 'المتجر'}</span>
               <button
                 type="button"
-                onClick={() => {
-                  setViewMode('store');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={handleNavigateToStore}
                 className="text-[#004956] font-bold hover:underline cursor-pointer"
               >
                 تصفح المنتجات ←
