@@ -6403,7 +6403,11 @@ export default function AdminDashboard({
                           <div
                             key={secItem.id || idx}
                             className={`p-2.5 rounded-xl border transition flex items-center justify-between gap-2 relative ${
-                              secItem.enabled !== false ? 'bg-white border-gray-200 shadow-2xs hover:border-gray-300' : 'bg-gray-100/70 border-gray-200 text-gray-400 opacity-60'
+                              isMenuOpen ? 'z-30 ' : 'z-1 '
+                            }${
+                              secItem.enabled !== false
+                                ? 'bg-white border-gray-200 shadow-2xs hover:border-gray-300'
+                                : 'bg-gray-50 border-gray-200/90 hover:border-gray-300'
                             }`}
                           >
                             {/* عرض اسم العنصر فقط */}
@@ -6412,19 +6416,48 @@ export default function AdminDashboard({
                               className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
                               title="انقر لتعديل وتخصيص هذا العنصر"
                             >
-                              <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-gray-200 ${secItem.enabled !== false ? 'bg-gray-100' : 'bg-gray-200/60 text-gray-400'}`}>
                                 <i className={`fa-solid ${iconMap[secItem.type] || 'fa-layer-group'} text-xs`}></i>
                               </div>
-                              <span className="text-xs font-bold text-gray-900 truncate hover:text-[#004956] transition">
+                              <span className={`text-xs font-bold truncate transition ${secItem.enabled !== false ? 'text-gray-900 hover:text-[#004956]' : 'text-gray-400'}`}>
                                 {displayName}
                               </span>
                               {secItem.enabled === false && (
-                                <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded font-medium">معطل</span>
+                                <span className="text-[10px] bg-red-50 text-red-600 border border-red-200/60 px-1.5 py-0.5 rounded font-bold">معطل</span>
                               )}
                             </div>
 
-                            {/* أزرار الترتيب السريع + زر 3 نقاط مع قائمة الخيارات المنبثقة */}
-                            <div className="flex items-center gap-1 shrink-0">
+                            {/* أزرار الترتيب السريع + زر تفعيل/تعطيل مباشر + زر 3 نقاط مع قائمة الخيارات المنبثقة */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {/* زر التفعيل/التعطيل المباشر كزر تبديل سريع وواضح */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStoreConfig(prev => {
+                                    const list = [...(prev.homeLayout || arr)];
+                                    list[idx] = { ...list[idx], enabled: list[idx].enabled === false ? true : false };
+                                    const updatedConfig = { ...prev, homeLayout: list };
+                                    try {
+                                      localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
+                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                      syncStoreConfigToCloud(updatedConfig);
+                                    } catch {}
+                                    return updatedConfig;
+                                  });
+                                  showToast(secItem.enabled === false ? '✅ تم تفعيل العنصر بالمتجر' : 'تم تعطيل العنصر من المتجر');
+                                }}
+                                className={`h-6 px-2 rounded-lg text-[10px] font-bold flex items-center gap-1 border transition cursor-pointer active:scale-95 ${
+                                  secItem.enabled !== false
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                    : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300'
+                                }`}
+                                title={secItem.enabled !== false ? 'انقر لتعطيل العنصر من الواجهة' : 'انقر لإعادة تفعيل العنصر بالواجهة'}
+                              >
+                                <i className={`fa-solid ${secItem.enabled !== false ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-gray-400'} text-[10px]`}></i>
+                                <span>{secItem.enabled !== false ? 'مفعّل' : 'تفعيل'}</span>
+                              </button>
+
                               {/* أسهم الترتيب السريع (أعلى / أسفل) مباشرة في السطر مع الحفظ السحابي الفوري */}
                               <div className="flex items-center gap-0.5 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
                                 <button
@@ -6489,7 +6522,7 @@ export default function AdminDashboard({
                                     e.stopPropagation();
                                     setOpenSectionMenuId(isMenuOpen ? null : (secItem.id || idx));
                                   }}
-                                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer border ${
+                                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border ${
                                     isMenuOpen
                                       ? 'bg-black text-white border-black'
                                       : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
