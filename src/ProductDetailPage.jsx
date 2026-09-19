@@ -495,6 +495,54 @@ export default function ProductDetailPage({
                 </button>
               </div>
 
+              {/* 6. بطاقات مميزات المتجر الحقيقية داخل صفحة المنتج */}
+              {storeConfig?.productFeatures?.enabled !== false && (() => {
+                const activeFeatures = (storeConfig?.productFeatures?.items || [
+                  { id: 'feat-1', enabled: true, title: 'تسليم فوري', subtitle: 'على مدار 24 ساعة', icon: 'fa-solid fa-bolt' },
+                  { id: 'feat-2', enabled: true, title: 'ضمان أصلي', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
+                  { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments' }
+                ]).filter(f => f.enabled !== false);
+
+                if (activeFeatures.length === 0) return null;
+
+                return (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="grid grid-cols-3 gap-2">
+                      {activeFeatures.map((feat, fIndex) => {
+                        const gradients = [
+                          { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60' },
+                          { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60' },
+                          { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60' }
+                        ];
+                        const styleTheme = gradients[fIndex % gradients.length];
+
+                        return (
+                          <div
+                            key={feat.id || fIndex}
+                            className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
+                          >
+                            <div className={`absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-lg pointer-events-none`}></div>
+                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${styleTheme.iconBg} border flex items-center justify-center text-xs mb-1.5 shadow-2xs`}>
+                              {feat.customIconUrl ? (
+                                <img src={feat.customIconUrl} alt="" className="w-4 h-4 object-contain" />
+                              ) : (
+                                <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                              )}
+                            </div>
+                            <h4 className="font-extrabold text-gray-900 text-[10px] sm:text-[11px] tracking-tight truncate w-full">
+                              {feat.title}
+                            </h4>
+                            <p className="text-[8px] sm:text-[9px] text-gray-400 font-medium mt-0.5 leading-tight line-clamp-1 w-full">
+                              {feat.subtitle}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
             </div>
 
           </div>

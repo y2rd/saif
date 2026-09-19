@@ -8838,20 +8838,51 @@ export default function AdminDashboard({
 
             {/* معاينة مباشرة في صفحة الإدارة */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs space-y-3">
-              <span className="font-bold text-xs text-gray-900 block">معاينة شكل بطاقات المميزات في صفحة المنتج:</span>
-              <div className="p-2 sm:p-3 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center">
-                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center text-[10px] sm:text-[11px] text-gray-700 w-full max-w-lg">
-                  {(storeConfig.productFeatures?.items || []).filter(f => f.enabled !== false).map((feat, fIdx) => (
-                    <div key={fIdx} className="py-2 px-1 sm:px-2 bg-white/80 backdrop-blur-md rounded-[5px] border border-black/[0.04] shadow-xs flex flex-col justify-center items-center">
-                      {feat.customIconUrl ? (
-                        <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-5 sm:h-5 object-contain block mb-1" />
-                      ) : (
-                        <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-xs block mb-1`}></i>
-                      )}
-                      <span className="font-bold block text-black text-[10px] sm:text-[11px] truncate w-full">{feat.title}</span>
-                      <span className="text-[8px] sm:text-[9px] text-gray-400 truncate w-full">{feat.subtitle}</span>
-                    </div>
-                  ))}
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
+                  <i className="fa-solid fa-sparkles text-[#004956] text-xs"></i>
+                  <span>معاينة شكل بطاقات المميزات في صفحة المنتج:</span>
+                </span>
+                <span className="text-[10px] text-gray-400 font-medium">نفس المظهر الحقيقي المعروض للعملاء</span>
+              </div>
+              <div className="p-3 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto">
+                  {((storeConfig.productFeatures?.items || [
+                    { id: 'feat-1', enabled: true, title: 'تسليم فوري', subtitle: 'على مدار 24 ساعة', icon: 'fa-solid fa-bolt' },
+                    { id: 'feat-2', enabled: true, title: 'ضمان أصلي', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
+                    { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments' }
+                  ]).filter(f => f.enabled !== false)).map((feat, fIdx) => {
+                    const gradients = [
+                      { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60' },
+                      { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60' },
+                      { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60' }
+                    ];
+                    const styleTheme = gradients[fIdx % gradients.length];
+
+                    return (
+                      <div
+                        key={feat.id || fIdx}
+                        className="relative overflow-hidden p-2.5 sm:p-4 rounded-2xl bg-white border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center text-center"
+                      >
+                        <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${styleTheme.bg} blur-xl pointer-events-none`}></div>
+
+                        <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl ${styleTheme.iconBg} border flex items-center justify-center text-sm sm:text-base mb-2 shadow-2xs`}>
+                          {feat.customIconUrl ? (
+                            <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+                          ) : (
+                            <i className={feat.icon || 'fa-solid fa-bolt'}></i>
+                          )}
+                        </div>
+
+                        <h4 className="font-extrabold text-gray-900 text-[11px] sm:text-xs tracking-tight truncate w-full">
+                          {feat.title}
+                        </h4>
+                        <p className="text-[9px] sm:text-[10px] text-gray-400 font-medium mt-0.5 leading-snug line-clamp-2 w-full">
+                          {feat.subtitle}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
