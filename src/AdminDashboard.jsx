@@ -1890,15 +1890,17 @@ export default function AdminDashboard({
     document.body.removeChild(link);
   };
 
-  // تصدير نسخة احتياطية كاملة من المتجر
+  // تصدير نسخة احتياطية كاملة من المتجر (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات)
   const handleExportFullBackup = () => {
     const backupData = {
       storeConfig,
       products,
       categories,
-      orders,
+      coupons: coupons || [],
+      customers: customers || [],
+      orders: orders || [],
       exportedAt: new Date().toISOString(),
-      version: '1.0'
+      version: '2.0'
     };
     const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1912,7 +1914,7 @@ export default function AdminDashboard({
     showToast('تم تصدير وتحميل ملف النسخة الاحتياطية بنجاح');
   };
 
-  // استيراد نسخة احتياطية للمتجر
+  // استيراد نسخة احتياطية للمتجر (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات)
   const handleImportFullBackup = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1941,11 +1943,19 @@ export default function AdminDashboard({
           localStorage.setItem('haider_store_config_updatedAt', String(now));
           syncStoreConfigToCloud(data.storeConfig);
         }
+        if (Array.isArray(data.coupons)) {
+          setCoupons(data.coupons);
+          localStorage.setItem('haider_store_coupons', JSON.stringify(data.coupons));
+        }
+        if (Array.isArray(data.customers)) {
+          setCustomers(data.customers);
+          localStorage.setItem('haider_store_customers', JSON.stringify(data.customers));
+        }
         if (Array.isArray(data.orders)) {
           setOrders(data.orders);
           localStorage.setItem('haider_store_orders', JSON.stringify(data.orders));
         }
-        showToast('تم استيراد وتطبيق وتثبيت كافة بيانات المتجر بنجاح!');
+        showToast('تم استيراد وتطبيق وتثبيت كافة بيانات المتجر (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات) بنجاح!');
       } catch (err) {
         alert('حدث خطأ أثناء قراءة ملف النسخة الاحتياطية: ' + err.message);
       }
@@ -1959,6 +1969,9 @@ export default function AdminDashboard({
     const backupData = {
       products,
       categories,
+      coupons,
+      customers,
+      orders,
       storeConfig
     };
     navigator.clipboard.writeText(JSON.stringify(backupData, null, 2));
@@ -2070,7 +2083,7 @@ export default function AdminDashboard({
             {activeTab === 'features' && 'المميزات السريعة'}
             {activeTab === 'loyalty' && 'برنامج الولاء والمكافآت'}
             {activeTab === 'payments' && 'وسائل الدفع والباركود'}
-            {activeTab === 'cloud-backup' && 'النسخ الاحتياطي والسحابة'}
+            {activeTab === 'cloud-backup' && 'النسخ الاحتياطي واستعادة البيانات'}
           </span>
         </div>
 
@@ -2105,7 +2118,7 @@ export default function AdminDashboard({
           { id: 'features', label: 'المميزات السريعة', icon: 'fa-bolt' },
           { id: 'loyalty', label: 'الولاء والمكافآت', icon: 'fa-gift' },
           { id: 'payments', label: 'الدفع', icon: 'fa-credit-card', badge: pendingTopupsCount, badgeColor: 'bg-[#7F1D1D]' },
-          { id: 'cloud-backup', label: 'النسخ والسحابة', icon: 'fa-cloud-arrow-up' }
+          { id: 'cloud-backup', label: 'النسخ الاحتياطي', icon: 'fa-floppy-disk' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -2134,18 +2147,58 @@ export default function AdminDashboard({
       </div>
 
             {/* ========================================================= */}
-        {/* قسم النسخ الاحتياطي والمزامنة السحابية (حل مشكلة الرفع للاستضافة) */}
+        {/* قسم النسخ الاحتياطي واستعادة البيانات بالكامل */}
         {/* ========================================================= */}
         {activeTab === 'cloud-backup' && (
           <div className="max-w-4xl mx-auto space-y-5">
-            <div>
-              <h2 className="text-lg font-bold text-black flex items-center gap-2">
-                <i className="fa-solid fa-cloud-arrow-up text-[#004956] text-lg"></i>
-                <span>النسخ الاحتياطي والمزامنة السحابية (بيانات المتجر والاستضافة)</span>
-              </h2>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                حل مشكلة نقل المنتجات والأقسام وإعدادات المتجر من جهازك المحلي إلى المتجر المرفوع على أي منصة استضافة (Vercel, Netlify, GitHub, Hostinger)
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-bold text-gray-950 flex items-center gap-2">
+                  <span>💾</span>
+                  <span>النسخ الاحتياطي واستعادة البيانات بالكامل</span>
+                </h2>
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                  <i className="fa-solid fa-shield-check text-emerald-600"></i>
+                  <span>حماية كاملة</span>
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2.5 leading-relaxed font-medium">
+                يمكنك تنزيل نسخة احتياطية كاملة لبيانات المتجر (المنتجات الأقسام الكوبونات العملاء الطلبات الإعدادات) في ملف واحد واستعادتها بضغطة زر.
               </p>
+
+              {/* بطاقات تلخيص محتويات النسخة الاحتياطية */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mt-4 pt-4 border-t border-gray-100 text-center">
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-boxes-stacked text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">المنتجات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({products.length})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-folder-tree text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الأقسام</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({categories.length})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-tags text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الكوبونات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({coupons?.length || 0})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-users text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">العملاء</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({customers?.length || 0})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-bag-shopping text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الطلبات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">({orders?.length || 0})</span>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-xl border border-gray-100">
+                  <i className="fa-solid fa-sliders text-[#004956] text-sm block mb-1"></i>
+                  <span className="text-[11px] font-bold text-gray-800 block">الإعدادات</span>
+                  <span className="text-[10px] text-gray-500 font-medium">(كاملة)</span>
+                </div>
+              </div>
             </div>
 
             {/* تنبيه وشرح سبب ظهور المنتجات الافتراضية */}
@@ -2165,11 +2218,11 @@ export default function AdminDashboard({
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3.5 shadow-2xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                    <span className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs font-bold">1</span>
-                    <h3 className="text-xs font-bold text-gray-900">تصدير واستيراد ملف النسخة الاحتياطية (JSON)</h3>
+                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">1</span>
+                    <h3 className="text-xs font-bold text-gray-900">💾 تنزيل واستعادة النسخة الاحتياطية (ملف JSON)</h3>
                   </div>
                   <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                    اضغط زر "تحميل ملف النسخة" لتحميل كافة منتجاتك وأقسامك في ملف، ثم افتح لوحة التحكم في الرابط المرفوع واضغط "استيراد ملف" لتظهر فوراً!
+                    اضغط زر "تنزيل نسخة احتياطية كاملة" لحفظ كافة بيانات متجرك (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات) في ملف واحد واستعادتها بضغطة زر.
                   </p>
                 </div>
 
@@ -2177,15 +2230,15 @@ export default function AdminDashboard({
                   <button
                     type="button"
                     onClick={handleExportFullBackup}
-                    className="w-full py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
+                    className="w-full py-2.5 px-3 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
                   >
                     <i className="fa-solid fa-download text-xs"></i>
-                    <span>تحميل ملف النسخة الاحتياطية (Export JSON)</span>
+                    <span>تنزيل نسخة احتياطية كاملة للبيانات</span>
                   </button>
 
-                  <label className="w-full py-2.5 px-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-                    <i className="fa-solid fa-upload text-xs text-gray-600"></i>
-                    <span>استيراد وتطبيق ملف النسخة (Import JSON)</span>
+                  <label className="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                    <i className="fa-solid fa-upload text-xs text-emerald-700"></i>
+                    <span>استعادة البيانات من ملف النسخة الاحتياطية</span>
                     <input
                       type="file"
                       accept=".json,application/json"
@@ -2519,11 +2572,11 @@ export default function AdminDashboard({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-cloud-arrow-up text-sm ${activeTab === 'cloud-backup' ? 'text-gray-950' : 'text-sky-600'}`}></i>
-                    <span>النسخ الاحتياطي والسحابة</span>
+                    <i className={`fa-solid fa-floppy-disk text-sm ${activeTab === 'cloud-backup' ? 'text-gray-950' : 'text-[#004956]'}`}></i>
+                    <span>النسخ الاحتياطي</span>
                   </div>
-                  <span className="bg-sky-100 text-sky-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                    مهم
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                    حماية كاملة
                   </span>
                 </button>
               </div>
