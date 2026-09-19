@@ -3100,7 +3100,7 @@ export default function App() {
                                 <h4 className="text-xs font-bold text-gray-900 truncate">{favProd.name}</h4>
                                 <span className="text-[11px] font-bold text-[#004956] font-price">
                                   {favProd.productType === 'exchange' || (typeof favProd.exchangeCurrencyName === 'string' && favProd.exchangeCurrencyName.trim().length > 0)
-                                    ? `مبادلة ${favProd.exchangeTargetAmount || 1} ${favProd.exchangeTargetCurrencyName || 'نقطة'}`
+                                    ? 'مبادلة'
                                     : (favProd.currency === 'IQD' ? `${formatNumberInApp(favProd.price)} د.ع` : `$${formatNumberInApp(favProd.price)}`)}
                                 </span>
                               </div>
@@ -4979,11 +4979,10 @@ export default function App() {
                                 {/* السعر أو متطلبات المبادلة والسعر القديم */}
                                 <div className="flex items-baseline gap-1.5">
                                   {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
-                                    <div className="flex flex-col items-start gap-0.5 text-right">
-                                      <span className="text-[10px] sm:text-[11px] font-bold text-teal-950 font-english-num tracking-tight leading-tight">
-                                        مقابل <span dir="ltr">{(parseFloat(item.exchangeAmount) || 1).toLocaleString('en-US')}</span> {item.exchangeCurrencyName || 'مبادلة'}
+                                    <div className="flex items-center text-right">
+                                      <span className="text-xs sm:text-sm font-bold text-teal-900 tracking-tight">
+                                        مبادلة
                                       </span>
-                                      <span className="text-[9px] text-teal-700 font-medium">مبادلة بدون نقود</span>
                                     </div>
                                   ) : (
                                     <>
@@ -5267,11 +5266,10 @@ export default function App() {
                             {/* السعر والسعر القديم أو متطلبات المبادلة */}
                             <div className="flex items-baseline gap-1.5">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
-                                <div className="flex flex-col items-start gap-0.5 text-right">
-                                  <span className="text-[10px] sm:text-[11px] font-bold text-teal-950 font-english-num tracking-tight leading-tight">
-                                    مقابل <span dir="ltr">{(parseFloat(item.exchangeAmount) || 1).toLocaleString('en-US')}</span> {item.exchangeCurrencyName || 'مبادلة'}
+                                <div className="flex items-center text-right">
+                                  <span className="text-xs sm:text-sm font-bold text-teal-900 tracking-tight">
+                                    مبادلة
                                   </span>
-                                  <span className="text-[9px] text-teal-700 font-medium">مبادلة بدون نقود</span>
                                 </div>
                               ) : (
                                 <>
