@@ -508,35 +508,26 @@ export default function ProductDetailPage({
                 return (
                   <div className="mt-4 pt-3 border-t border-gray-100">
                     <div className="grid grid-cols-3 gap-2">
-                      {activeFeatures.map((feat, fIndex) => {
-                        const gradients = [
-                          { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60' },
-                          { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60' },
-                          { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60' }
-                        ];
-                        const styleTheme = gradients[fIndex % gradients.length];
-
-                        return (
-                          <div
-                            key={feat.id || fIndex}
-                            className="relative overflow-hidden p-2 sm:p-2.5 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
-                          >
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs mb-1.5 shadow-sm">
-                              {feat.customIconUrl ? (
-                                <img src={feat.customIconUrl} alt="" className="w-4 h-4 object-contain brightness-0 invert" />
-                              ) : (
-                                <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[11px]`}></i>
-                              )}
-                            </div>
-                            <h4 className="font-medium text-gray-900 text-[10px] sm:text-[11px] tracking-tight truncate w-full">
-                              {feat.title}
-                            </h4>
-                            <p className="text-[8px] sm:text-[9px] text-gray-400 font-light mt-0.5 leading-tight line-clamp-1 w-full">
-                              {feat.subtitle}
-                            </p>
+                      {activeFeatures.map((feat, fIndex) => (
+                        <div
+                          key={feat.id || fIndex}
+                          className="store-feature-card relative overflow-hidden p-2 sm:p-2.5 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
+                        >
+                          <div className="store-feature-icon-wrapper w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs mb-1.5 shadow-sm">
+                            {feat.customIconUrl ? (
+                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 object-contain brightness-0 invert" />
+                            ) : (
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[11px]`}></i>
+                            )}
                           </div>
-                        );
-                      })}
+                          <h4 className="font-medium text-black text-[10px] sm:text-[11px] tracking-tight truncate w-full">
+                            {feat.title}
+                          </h4>
+                          <p className="text-[8px] sm:text-[9px] text-gray-400 font-light mt-0.5 leading-tight line-clamp-1 w-full">
+                            {feat.subtitle}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );

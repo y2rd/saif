@@ -491,3 +491,16 @@ h1, h2, h3, h4, h5, h6,
 .text-gray-700 {
   color: #000000 !important;
 }
+
+/* ========================================================================= */
+/* إجبار أيقونات مميزات المتجر على أن تكون دائرية وسوداء تماماً              */
+/* ========================================================================= */
+.store-feature-icon-wrapper {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  border-radius: 9999px !important;
+}
+
+.store-feature-icon-wrapper i {
+  color: #FFFFFF !important;
+}

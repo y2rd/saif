@@ -8916,19 +8916,11 @@ export default function AdminDashboard({
                     { id: 'feat-1', enabled: true, title: 'سرعة التنفيذ', subtitle: 'خدمة آلية سريعة', icon: 'fa-solid fa-bolt' },
                     { id: 'feat-2', enabled: true, title: 'ضمان كامل', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
                     { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments' }
-                  ]).filter(f => f.enabled !== false)).map((feat, fIdx) => {
-                    const gradients = [
-                      { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60' },
-                      { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60' },
-                      { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60' }
-                    ];
-                    const styleTheme = gradients[fIdx % gradients.length];
-
-                    return (
-                      <div
-                        key={feat.id || fIdx}
-                        className="relative overflow-hidden p-2.5 sm:p-4 rounded-2xl bg-white border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center text-center"
-                      >
+                  ]).filter(f => f.enabled !== false)).map((feat, fIdx) => (
+                    <div
+                      key={feat.id || fIdx}
+                      className="store-feature-card relative overflow-hidden p-2.5 sm:p-4 rounded-2xl bg-white border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center text-center"
+                    >
                         {/* أيقونة دائرية سوداء */}
                         <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm sm:text-base mb-2 shadow-sm">
                           {feat.customIconUrl ? (
@@ -8945,8 +8937,7 @@ export default function AdminDashboard({
                           {feat.subtitle}
                         </p>
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
               </div>
             </div>
