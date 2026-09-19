@@ -1932,12 +1932,13 @@ export default function App() {
       return updated;
     });
 
-    if (currentUser && (currentUser.id === targetIdentifierOrId || currentUser.identifier === targetIdentifierOrId || currentUser.phone === targetIdentifierOrId || currentUser.name === targetIdentifierOrId)) {
+    if (currentUser && (currentUser.id === targetIdentifierOrId || currentUser.identifier === targetIdentifierOrId || currentUser.phone === targetIdentifierOrId || currentUser.name === targetIdentifierOrId || targetIdentifierOrId === 'all')) {
       const merged = { ...currentUser, notifications: [newNotif, ...(currentUser.notifications || [])] };
       setCurrentUser(merged);
       try {
         localStorage.setItem('haider_current_user', JSON.stringify(merged));
       } catch (e) {}
+      showNotificationBanner(newNotif.title, newNotif.message, newNotif.type || 'info');
     }
   };
 

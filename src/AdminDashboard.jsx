@@ -1164,6 +1164,76 @@ export default function AdminDashboard({
       syncOrderToCloud(modifiedOrder);
     }
 
+    // 4. إرسال إشعار فوري للعميل عند تحديث حالة طلبه
+    if (targetOrder && newStatus) {
+      const targetCust = customers.find(c =>
+        (targetOrder.customerId && c.id === targetOrder.customerId) ||
+        (targetOrder.customerIdentifier && (c.identifier === targetOrder.customerIdentifier || c.phone === targetOrder.customerIdentifier || c.email === targetOrder.customerIdentifier)) ||
+        (targetOrder.customerPhone && (c.phone === targetOrder.customerPhone || c.identifier === targetOrder.customerPhone)) ||
+        (targetOrder.customer && (
+          c.name === targetOrder.customer ||
+          c.name === (targetOrder.customer || '').replace(/\s*\([^)]*\)/g, '').trim()
+        ))
+      );
+
+      let statusMsg = `تم تحديث حالة طلبك رقم #${targetOrder.id} إلى: (${newStatus}).`;
+      let notifTitle = `تحديث الطلب #${targetOrder.id} (${newStatus})`;
+
+      if (newStatus === 'مكتمل') {
+        notifTitle = `اكتمل طلبك بنجاح! 🎉 #${targetOrder.id}`;
+        if (assignedKeys.length > 0) {
+          statusMsg = `تم إكمال طلبك وتسليم الأكواد بنجاح. يمكنك مراجعة الأكواد في تفاصيل الطلب الآن.`;
+        } else {
+          statusMsg = `تم تنفيذ طلبك بنجاح وتسليمه. نشكرك لاختيارك متجرنا!`;
+        }
+      } else if (newStatus === 'قيد التنفيذ') {
+        notifTitle = `طلبك قيد التنفيذ الآن ⚡ #${targetOrder.id}`;
+        statusMsg = `فريق العمل يقوم بتجهيز وتسليم طلبك رقم #${targetOrder.id} حالياً.`;
+      } else if (newStatus === 'ملغي') {
+        notifTitle = `تم إلغاء الطلب #${targetOrder.id} ❌`;
+        statusMsg = `تم إلغاء طلبك رقم #${targetOrder.id}. يرجى التواصل مع الدعم الفني لمزيد من التفاصيل.`;
+      } else if (newStatus === 'قيد المراجعة') {
+        notifTitle = `طلبك قيد المراجعة 🕒 #${targetOrder.id}`;
+        statusMsg = `طلبك رقم #${targetOrder.id} قيد المراجعة والتدقيق حالياً.`;
+      }
+
+      const orderNotif = {
+        id: `notif-order-${orderId}-${Date.now()}`,
+        title: notifTitle,
+        message: statusMsg,
+        type: 'order',
+        orderId: targetOrder.id,
+        date: new Date().toISOString(),
+        read: false
+      };
+
+      if (targetCust) {
+        const updatedCust = {
+          ...targetCust,
+          notifications: [orderNotif, ...(targetCust.notifications || [])]
+        };
+        const updatedCusts = customers.map(c => c.id === targetCust.id ? updatedCust : c);
+        setCustomers(updatedCusts);
+        syncCustomerToCloud(updatedCust);
+        try {
+          localStorage.setItem('haider_store_customers', JSON.stringify(updatedCusts));
+          const savedCur = localStorage.getItem('haider_current_user');
+          if (savedCur) {
+            const parsedCur = JSON.parse(savedCur);
+            if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
+              const mergedUser = { ...parsedCur, ...updatedCust };
+              localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+              if (setCurrentUser) setCurrentUser(mergedUser);
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (sendNotification) {
+        sendNotification(targetOrder.customerId || targetOrder.customerIdentifier || targetOrder.customer, orderNotif);
+      }
+    }
+
     if (selectedOrderDetails && selectedOrderDetails.id === orderId) {
       setSelectedOrderDetails(prev => ({
         ...prev,
@@ -10437,6 +10507,105 @@ export default function AdminDashboard({
                 <span>{editingCustomPage ? 'حفظ التعديلات' : 'إنشاء الصفحة'}</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* نافذة إرسال إشعار للعملاء (Broadcast Notification Modal) */}
+      {showBroadcastModal && (
+        <div className="fixed inset-0 z-[99999] bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150" dir="rtl">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* رأس النافذة */}
+            <div className="px-4 py-3.5 bg-gradient-to-r from-indigo-50 to-purple-50/50 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow-xs">
+                  <i className="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">إرسال إشعار للعملاء</h3>
+                  <p className="text-[10px] text-gray-500">سيصل الإشعار للعميل في حسابه مع تنبيه فوري</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBroadcastModal(false)}
+                className="w-7 h-7 rounded-full bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition cursor-pointer border border-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* نموذج كتابة الإشعار */}
+            <form onSubmit={handleSendBroadcastNotification} className="p-4 space-y-3.5 overflow-y-auto text-xs">
+              {/* اختيار الفئة المستهدفة */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                  المستلمون: <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={broadcastTarget}
+                  onChange={(e) => setBroadcastTarget(e.target.value)}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-600 focus:bg-white"
+                >
+                  <option value="all">📢 إرسال لجميع العملاء ({customers.length} مستخدم)</option>
+                  <optgroup label="أو اختر عميل محدد:">
+                    {customers.map(c => (
+                      <option key={c.id} value={c.id}>
+                        👤 {c.name} ({c.identifier || c.phone || c.email || 'بدون معرف'})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* عنوان الإشعار */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                  عنوان الإشعار: <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: خصومات حصرية لليوم فقط! 🔥 أو تحديث هام"
+                  value={broadcastTitle}
+                  onChange={(e) => setBroadcastTitle(e.target.value)}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-600 focus:bg-white"
+                />
+              </div>
+
+              {/* نص الرسالة */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                  نص الإشعار / الرسالة: <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="اكتب تفاصيل الإشعار أو العرض أو التنبيه هنا..."
+                  value={broadcastMessage}
+                  onChange={(e) => setBroadcastMessage(e.target.value)}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-600 focus:bg-white leading-relaxed"
+                />
+              </div>
+
+              {/* أزرار الإجراء */}
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBroadcastModal(false)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs active:scale-95 flex items-center gap-1.5"
+                >
+                  <i className="fa-solid fa-paper-plane text-xs"></i>
+                  <span>إرسال الإشعار الآن</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
