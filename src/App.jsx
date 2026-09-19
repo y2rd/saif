@@ -5079,18 +5079,18 @@ export default function App() {
                 return (
                   <div key={section.id} className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100/80">
                     {/* بطاقات المميزات: عصرية، خفيفة، متوافقة 100% مع الجوال والشاشات الكبيرة */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg mx-auto">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3.5 max-w-xl mx-auto">
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
-                          className="store-feature-card relative overflow-hidden p-2 sm:p-3.5 rounded-[2px] bg-white border border-gray-100 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center text-center group"
+                          className="store-feature-card relative overflow-hidden p-2 sm:p-3 rounded-[2px] bg-white border border-gray-100 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center text-center group"
                         >
-                          {/* أيقونة الميزة المودرن الدائرية السوداء */}
-                          <div className="store-feature-icon-wrapper w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black text-white flex items-center justify-center text-base sm:text-lg mb-2 sm:mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                          {/* أيقونة الميزة المودرن الدائرية السوداء المصغرة */}
+                          <div className="store-feature-icon-wrapper w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs sm:text-sm mb-1.5 sm:mb-2 shadow-sm group-hover:scale-105 transition-transform duration-300">
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain brightness-0 invert" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-sm sm:text-base`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-xs sm:text-sm`}></i>
                             )}
                           </div>
 

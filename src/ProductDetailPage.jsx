@@ -507,17 +507,17 @@ export default function ProductDetailPage({
 
                 return (
                   <div className="mt-4 pt-3 border-t border-gray-100">
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 max-w-sm mx-auto">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 max-w-md mx-auto">
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
                           className="store-feature-card relative overflow-hidden p-2 rounded-[2px] bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
                         >
-                          <div className="store-feature-icon-wrapper w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs mb-1.5 shadow-sm">
+                          <div className="store-feature-icon-wrapper w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center text-[10px] sm:text-xs mb-1.5 shadow-sm">
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain brightness-0 invert" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[11px]`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[10px] sm:text-[11px]`}></i>
                             )}
                           </div>
                           <h4 className="font-medium text-black text-[10px] sm:text-[11px] tracking-tight truncate w-full">

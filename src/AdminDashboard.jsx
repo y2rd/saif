@@ -8926,7 +8926,7 @@ export default function AdminDashboard({
                 <span className="text-[10px] text-gray-400 font-medium">نفس المظهر الحقيقي المعروض للعملاء</span>
               </div>
               <div className="p-3 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-sm mx-auto">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-md mx-auto">
                   {((storeConfig.productFeatures?.items || [
                     { id: 'feat-1', enabled: true, title: 'سرعة التنفيذ', subtitle: 'خدمة آلية سريعة', icon: 'fa-solid fa-bolt' },
                     { id: 'feat-2', enabled: true, title: 'ضمان كامل', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
@@ -8936,10 +8936,10 @@ export default function AdminDashboard({
                       key={feat.id || fIdx}
                       className="store-feature-card relative overflow-hidden p-2 sm:p-3 rounded-[2px] bg-white border border-gray-100 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center text-center"
                     >
-                        {/* أيقونة دائرية سوداء */}
-                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black text-white flex items-center justify-center text-sm sm:text-base mb-2 shadow-sm">
+                        {/* أيقونة دائرية سوداء مصغرة */}
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs sm:text-sm mb-2 shadow-sm">
                           {feat.customIconUrl ? (
-                            <img src={feat.customIconUrl} alt="" className="w-5 h-5 sm:w-6 sm:h-6 object-contain brightness-0 invert" />
+                            <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain brightness-0 invert" />
                           ) : (
                             <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white`}></i>
                           )}
