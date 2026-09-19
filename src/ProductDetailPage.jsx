@@ -160,11 +160,11 @@ export default function ProductDetailPage({
               className="w-full md:col-span-5 flex flex-col gap-2 sm:gap-3 md:sticky md:top-16 z-10 self-start shrink-0"
             >
               {/* صورة المنتج */}
-              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-transparent aspect-square w-full max-w-sm sm:max-w-md md:max-w-none mx-auto group flex items-center justify-center p-1.5 sm:p-4">
+              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-white aspect-square w-full max-w-sm sm:max-w-md md:max-w-none mx-auto group flex items-center justify-center border border-gray-100/80 shadow-xs">
                 <img
                   src={product.imageUrl || 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80'}
                   alt={product.title}
-                  className="w-full h-full object-contain transition duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
                 />
                 {product.badge && !['تسليم فوري', 'فوري', 'أصلي', 'ضمان أصلي', '24/7'].includes(product.badge.trim()) && (
                   <span className="absolute top-2 right-0 bg-[#5C1420] text-white text-[8.5px] sm:text-[9.5px] pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none font-medium shadow-sm tracking-wide">

@@ -6616,12 +6616,12 @@ function AutoMovingProductsCarousel({
             className="w-40 sm:w-44 shrink-0 bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
           >
             <div>
-              {/* 1. حاوية صورة المنتج مع خلفية رمادية فاتحة وزر القلب الشفاف في الزاوية العلوية */}
-              <div className="relative pt-[85%] bg-[#F2F4F7]/70 overflow-hidden flex items-center justify-center">
+              {/* 1. حاوية صورة المنتج تغطي الحاوية بالكامل بدون حواف أو حدود رمادية */}
+              <div className="relative pt-[85%] bg-white overflow-hidden flex items-center justify-center">
                 <img
                   src={p.imageUrl}
                   alt={p.title}
-                  className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
 
