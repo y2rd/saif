@@ -5322,7 +5322,7 @@ export default function AdminDashboard({
 
                         {isSub && (
                           <div className="text-gray-400 text-xs pl-1 flex items-center shrink-0" title="قسم فرعي">
-                            <i className="fa-solid fa-arrow-turn-down-left -rotate-90"></i>
+                            <i className="fa-solid fa-arrow-turn-down -rotate-90"></i>
                           </div>
                         )}
 
@@ -8920,7 +8920,7 @@ export default function AdminDashboard({
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
-                  <i className="fa-solid fa-sparkles text-[#004956] text-xs"></i>
+                  <i className="fa-solid fa-wand-magic-sparkles text-[#004956] text-xs"></i>
                   <span>معاينة شكل بطاقات المميزات في صفحة المنتج:</span>
                 </span>
                 <span className="text-[10px] text-gray-400 font-medium">نفس المظهر الحقيقي المعروض للعملاء</span>

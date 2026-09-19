@@ -733,7 +733,7 @@ export default function App() {
           enabled: true,
           title: 'ضمان كامل',
           subtitle: '100% مضمون',
-          icon: 'fa-solid fa-shield-check',
+          icon: 'fa-solid fa-shield-halved',
           customIconUrl: ''
         },
         {
@@ -3463,7 +3463,7 @@ export default function App() {
                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs shrink-0 ${
                                   tx.type === 'deposit' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                                 }`}>
-                                  <i className={`fa-solid ${tx.type === 'deposit' ? 'fa-arrow-down-left' : 'fa-arrow-up-right'}`}></i>
+                                  <i className={`fa-solid ${tx.type === 'deposit' ? 'fa-arrow-down' : 'fa-arrow-up-right'}`}></i>
                                 </div>
                                 <div>
                                   <div className="text-xs font-bold text-gray-900 leading-tight">
@@ -3527,7 +3527,7 @@ export default function App() {
                 {/* إشعار إرسال الكود للبريد الإلكتروني + عرض الكود السريع لضمان عدم تعليق المستخدم */}
                 <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl text-center space-y-2 shadow-2xs">
                   <div className="flex items-center justify-center gap-1.5 text-emerald-900 text-xs font-bold">
-                    <i className="fa-solid fa-shield-check text-emerald-600"></i>
+                    <i className="fa-solid fa-shield-halved text-emerald-600"></i>
                     <span>رمز التحقق الخاص بك:</span>
                     <span className="font-mono text-sm tracking-widest text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
                       {authGeneratedOtp}
