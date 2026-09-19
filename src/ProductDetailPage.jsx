@@ -506,24 +506,24 @@ export default function ProductDetailPage({
                 if (activeFeatures.length === 0) return null;
 
                 return (
-                  <div className="mt-4 pt-3 border-t border-gray-100">
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 max-w-md mx-auto">
+                  <div className="mt-6 pt-5 border-t border-gray-100">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-lg mx-auto">
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
-                          className="store-feature-card relative overflow-hidden p-2 rounded-[2px] bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
+                          className="store-feature-card relative overflow-hidden py-4 sm:py-5 px-3 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
                         >
-                          <div className="store-feature-icon-wrapper w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center text-[10px] sm:text-xs mb-1.5 shadow-sm">
+                          <div className="store-feature-icon-wrapper w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#0b1220] text-white flex items-center justify-center text-xs sm:text-base mb-2 shadow-xs group-hover:scale-105 transition-transform">
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-5 sm:h-5 object-contain brightness-0 invert" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[10px] sm:text-[11px]`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-xs sm:text-sm`}></i>
                             )}
                           </div>
-                          <h4 className="font-medium text-black text-[10px] sm:text-[11px] tracking-tight truncate w-full">
+                          <h4 className="font-bold text-gray-900 text-[11px] sm:text-xs tracking-tight truncate w-full mb-0.5">
                             {feat.title}
                           </h4>
-                          <p className="text-[8px] sm:text-[9px] text-gray-400 font-light mt-0.5 leading-tight line-clamp-1 w-full">
+                          <p className="text-[9.5px] sm:text-[10px] text-gray-400 font-normal leading-tight line-clamp-1 w-full">
                             {feat.subtitle}
                           </p>
                         </div>

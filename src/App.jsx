@@ -5107,28 +5107,28 @@ export default function App() {
                 if (activeFeatures.length === 0) return null;
 
                 return (
-                  <div key={section.id} className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100/80">
-                    {/* بطاقات المميزات: عصرية، خفيفة، متوافقة 100% مع الجوال والشاشات الكبيرة */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3.5 max-w-xl mx-auto">
+                  <div key={section.id} className="mt-10 sm:mt-16 pt-8 sm:pt-10 border-t border-gray-100/80">
+                    {/* بطاقات المميزات: مساحة واسعة ورحبة من جميع الجهات مطابقة لنمط سلة الرسمي والصورة المرجعية */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-6 max-w-5xl mx-auto px-2 sm:px-4">
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
-                          className="store-feature-card relative overflow-hidden p-2 sm:p-3 rounded-[2px] bg-white border border-gray-100 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center text-center group"
+                          className="store-feature-card relative overflow-hidden py-7 sm:py-9 px-5 sm:px-8 rounded-2xl bg-white border border-gray-100/90 shadow-[0_2px_14px_-4px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-gray-200 transition-all duration-300 flex flex-col items-center text-center group"
                         >
-                          {/* أيقونة الميزة المودرن الدائرية السوداء المصغرة */}
-                          <div className="store-feature-icon-wrapper w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white flex items-center justify-center text-xs sm:text-sm mb-1.5 sm:mb-2 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                          {/* أيقونة الميزة المودرن الدائرية السوداء/الداكنة الواسعة */}
+                          <div className="store-feature-icon-wrapper w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0b1220] text-white flex items-center justify-center text-base sm:text-xl mb-4 sm:mb-5 shadow-xs group-hover:scale-105 transition-transform duration-300">
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="w-6 h-6 sm:w-7 sm:h-7 object-contain brightness-0 invert" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-xs sm:text-sm`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-base sm:text-lg`}></i>
                             )}
                           </div>
 
-                          {/* نصوص الميزة */}
-                          <h4 className="font-medium text-black text-[11.5px] sm:text-sm tracking-tight truncate w-full group-hover:text-black transition-colors">
+                          {/* نصوص الميزة مع تباعد مريح وأنيق */}
+                          <h4 className="font-bold text-gray-900 text-sm sm:text-base tracking-tight truncate w-full group-hover:text-black transition-colors mb-1.5">
                             {feat.title}
                           </h4>
-                          <p className="text-[9.5px] sm:text-xs text-gray-400 font-light mt-0.5 sm:mt-1 leading-snug line-clamp-2 w-full">
+                          <p className="text-xs sm:text-sm text-gray-400 font-normal leading-relaxed line-clamp-2 w-full">
                             {feat.subtitle}
                           </p>
                         </div>
