@@ -94,6 +94,7 @@ export default function AdminDashboard({
   // حالة المنتجات والفرز والتقسيم
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('الكل');
+  const [productTypeFilter, setProductTypeFilter] = useState('all'); // all, digital, license, custom, exchange, physical
   const [productSortBy, setProductSortBy] = useState('default'); // default, price-asc, price-desc, stock-asc, stock-desc, name-asc
   const [productStockFilter, setProductStockFilter] = useState('all'); // all, in-stock, low-stock, out-of-stock
   const [groupByCategory, setGroupByCategory] = useState(true); // تقسيم حسب التصنيف
@@ -149,8 +150,8 @@ export default function AdminDashboard({
     oldPrice: '',
     costPrice: '',
     stock: 20,
-    badge: 'تسليم فوري',
-    productType: 'license', // 'license' أو 'file' أو 'service' أو 'physical' أو 'exchange'
+    badge: '',
+    productType: 'digital', // 'digital' أو 'license' أو 'custom' أو 'exchange' أو 'physical'
     downloadUrl: '',
     fileSize: '',
     licenseKeys: '',
@@ -681,6 +682,17 @@ export default function AdminDashboard({
           return false;
         }
       }
+      // فلترة نوع المنتج
+      if (productTypeFilter !== 'all') {
+        const rawType = p.productType || 'digital';
+        // دعم التوافقية
+        const resolvedType = (rawType === 'physical') ? 'physical'
+          : (rawType === 'exchange' || Boolean(p.exchangeCurrencyName && String(p.exchangeCurrencyName).trim())) ? 'exchange'
+          : (rawType === 'license' || (Array.isArray(p.licenseKeys) && p.licenseKeys.length > 0)) ? 'license'
+          : (rawType === 'custom' || p.customFieldLabel) ? 'custom'
+          : 'digital';
+        if (resolvedType !== productTypeFilter) return false;
+      }
       // فلترة حالة المخزون
       if (productStockFilter === 'in-stock' && (parseInt(p.stock) || 0) <= 0) return false;
       if (productStockFilter === 'low-stock' && ((parseInt(p.stock) || 0) > 5 || (parseInt(p.stock) || 0) <= 0)) return false;
@@ -702,7 +714,7 @@ export default function AdminDashboard({
       if (productSortBy === 'name-asc') return a.title.localeCompare(b.title, 'ar');
       return b.id - a.id;
     });
-  }, [products, productCatFilter, productSearch, productSortBy, productStockFilter]);
+  }, [products, productCatFilter, productTypeFilter, productSearch, productSortBy, productStockFilter]);
 
   // تقسيم المنتجات حسب التصنيف
   const groupedProducts = useMemo(() => {
@@ -2805,7 +2817,7 @@ export default function AdminDashboard({
                 
                 {/* شريط البحث والفلترة والفرز */}
                 <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {/* 1. بحث بالاسم */}
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-600 mb-1">🔍 البحث في المنتجات:</label>
@@ -2818,7 +2830,24 @@ export default function AdminDashboard({
                       />
                     </div>
 
-                    {/* 2. خيارات الفرز والترتيب */}
+                    {/* 2. فلترة نوع المنتج الحقيقي */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-600 mb-1">🏷️ نوع المنتج:</label>
+                      <select
+                        value={productTypeFilter}
+                        onChange={(e) => setProductTypeFilter(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none cursor-pointer font-medium"
+                      >
+                        <option value="all">كل الأنواع</option>
+                        <option value="digital">⚡ منتج رقمي</option>
+                        <option value="license">💳 بطاقة رقمية (أكواد)</option>
+                        <option value="custom">✍️ منتج حسب الطلب</option>
+                        <option value="exchange">🔄 منتج مبادلة</option>
+                        <option value="physical">📦 منتج ملموس</option>
+                      </select>
+                    </div>
+
+                    {/* 3. خيارات الفرز والترتيب */}
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-600 mb-1">🔃 ترتيب وفرز حسب:</label>
                       <select
@@ -2835,7 +2864,7 @@ export default function AdminDashboard({
                       </select>
                     </div>
 
-                    {/* 3. فلترة حالة المخزون */}
+                    {/* 4. فلترة حالة المخزون */}
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-600 mb-1">📦 حالة المخزون:</label>
                       <select
@@ -2860,12 +2889,13 @@ export default function AdminDashboard({
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-[#004956] font-bold">
                         {filteredProducts.length} منتج
                       </span>
-                      {(productSearch || productCatFilter !== 'الكل' || productSortBy !== 'default' || productStockFilter !== 'all') && (
+                      {(productSearch || productCatFilter !== 'الكل' || productTypeFilter !== 'all' || productSortBy !== 'default' || productStockFilter !== 'all') && (
                         <button
                           type="button"
                           onClick={() => {
                             setProductSearch('');
                             setProductCatFilter('الكل');
+                            setProductTypeFilter('all');
                             setProductSortBy('default');
                             setProductStockFilter('all');
                           }}
@@ -2893,9 +2923,9 @@ export default function AdminDashboard({
                       <button
                         type="button"
                         onClick={() => {
-                          setProductSearch('');
                           setProductCatFilter('الكل');
-                          setProductSortBy('default');
+                          setProductSearch('');
+                          setProductTypeFilter('all');
                           setProductStockFilter('all');
                         }}
                         className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold cursor-pointer transition"
@@ -2929,6 +2959,40 @@ export default function AdminDashboard({
                           {filteredProducts.map((p) => {
                             const isLowStock = p.stock > 0 && p.stock <= 5;
                             const isOutOfStock = p.stock <= 0;
+                            // استنتاج وتحديد نوع المنتج الحقيقي بدقة تامة
+                            const rawType = p.productType || '';
+                            const isExchangeType = rawType === 'exchange' || Boolean(p.exchangeCurrencyName && String(p.exchangeCurrencyName).trim());
+                            const isPhysicalType = rawType === 'physical';
+                            const isCustomType = rawType === 'custom' || Boolean(p.customFieldLabel && String(p.customFieldLabel).trim());
+                            const isLicenseType = rawType === 'license' || (Array.isArray(p.licenseKeys) && p.licenseKeys.length > 0);
+                            const isFileType = rawType === 'file' || Boolean(p.downloadUrl);
+
+                            let typeLabel = 'منتج رقمي';
+                            let typeIcon = 'fa-bolt';
+                            let typeBadgeClass = 'text-emerald-700 bg-emerald-50/80 border-emerald-200/60';
+
+                            if (isExchangeType) {
+                              typeLabel = 'منتج مبادلة';
+                              typeIcon = 'fa-rotate';
+                              typeBadgeClass = 'text-sky-700 bg-sky-50/80 border-sky-200/60';
+                            } else if (isPhysicalType) {
+                              typeLabel = 'منتج ملموس';
+                              typeIcon = 'fa-box';
+                              typeBadgeClass = 'text-amber-700 bg-amber-50/80 border-amber-200/60';
+                            } else if (isCustomType) {
+                              typeLabel = 'منتج حسب الطلب';
+                              typeIcon = 'fa-pen-to-square';
+                              typeBadgeClass = 'text-purple-700 bg-purple-50/80 border-purple-200/60';
+                            } else if (isLicenseType) {
+                              typeLabel = 'بطاقة رقمية (أكواد)';
+                              typeIcon = 'fa-key';
+                              typeBadgeClass = 'text-amber-800 bg-amber-50/80 border-amber-200/60';
+                            } else if (isFileType) {
+                              typeLabel = 'ملف تحميل';
+                              typeIcon = 'fa-file-arrow-down';
+                              typeBadgeClass = 'text-blue-700 bg-blue-50/80 border-blue-200/60';
+                            }
+
                             return (
                               <tr key={p.id} className="hover:bg-gray-50/80 transition-colors group">
                                 {/* عمود المنتج: اسم المنتج وتحته القسم بخط صغير ومعرف المنتج */}
@@ -2967,23 +3031,15 @@ export default function AdminDashboard({
                                   </div>
                                 </td>
 
-                                {/* نوع المنتج والتسليم: نص نقي مع أيقونة سوداء بدون خلفيات ملونة */}
+                                {/* نوع المنتج والتسليم: عرض نوع المنتج الحقيقي المستخدم مع أيقونة مناسبة */}
                                 <td className="py-2 px-2 whitespace-nowrap">
                                   <div className="flex flex-col gap-1 items-start">
-                                    <span className="inline-flex items-center gap-1.5 text-xs text-gray-800 font-medium">
-                                      <i className={`fa-solid ${
-                                        p.productType === 'physical' ? 'fa-box' :
-                                        p.productType === 'file' ? 'fa-file-arrow-down' :
-                                        p.productType === 'service' ? 'fa-gear' : 'fa-key'
-                                      } text-[11px] text-black`}></i>
-                                      <span>
-                                        {p.productType === 'physical' ? 'سلعة مادية' :
-                                         p.productType === 'file' ? 'ملف تحميل' :
-                                         p.productType === 'service' ? 'خدمة' : 'كود / ترخيص'}
-                                      </span>
+                                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-lg border ${typeBadgeClass}`}>
+                                      <i className={`fa-solid ${typeIcon} text-[10px]`}></i>
+                                      <span>{typeLabel}</span>
                                     </span>
                                     {p.hasQuantityTiers && p.quantityTiers?.length > 0 && (
-                                      <span className="inline-flex items-center gap-1 text-[10px] text-gray-500 font-medium">
+                                      <span className="inline-flex items-center gap-1 text-[10px] text-gray-500 font-medium mr-1">
                                         <i className="fa-solid fa-tags text-[9px] text-black"></i>
                                         <span>{p.quantityTiers.length} باقات تسعير</span>
                                       </span>
@@ -2993,18 +3049,27 @@ export default function AdminDashboard({
 
                                 {/* السعر والتكلفة */}
                                 <td className="py-2 px-2 whitespace-nowrap">
-                                  <div className="font-bold text-gray-900 font-mono text-xs">
-                                    ${Number(p.price).toFixed(2)}
-                                  </div>
-                                  {p.costPrice && (
-                                    <div className="text-[10px] text-amber-700 font-mono font-medium" title="سعر التكلفة">
-                                      تكلفة: ${Number(p.costPrice).toFixed(2)}
+                                  {isExchangeType ? (
+                                    <div className="font-bold text-sky-800 text-xs flex items-center gap-1">
+                                      <i className="fa-solid fa-rotate text-[10px]"></i>
+                                      <span>مبادلة: {p.exchangeCurrencyName || 'مطلوب'}</span>
                                     </div>
-                                  )}
-                                  {p.oldPrice && (
-                                    <div className="text-[10px] text-gray-400 line-through font-mono">
-                                      ${Number(p.oldPrice).toFixed(2)}
-                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className="font-bold text-gray-900 font-mono text-xs">
+                                        ${Number(p.price || 0).toFixed(2)}
+                                      </div>
+                                      {p.costPrice && (
+                                        <div className="text-[10px] text-amber-700 font-mono font-medium" title="سعر التكلفة">
+                                          تكلفة: ${Number(p.costPrice).toFixed(2)}
+                                        </div>
+                                      )}
+                                      {p.oldPrice && (
+                                        <div className="text-[10px] text-gray-400 line-through font-mono">
+                                          ${Number(p.oldPrice).toFixed(2)}
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                 </td>
 
@@ -3015,7 +3080,7 @@ export default function AdminDashboard({
                                       isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'
                                     }`}></span>
                                     <span>
-                                      {isOutOfStock ? 'نفذت الكمية' : `${p.stock} ${p.productType === 'license' ? 'كود' : 'قطعة'}`}
+                                      {isOutOfStock ? 'نفذت الكمية' : `${p.stock} ${isLicenseType ? 'كود' : 'قطعة'}`}
                                     </span>
                                     {isLowStock && (
                                       <span className="text-[10px] text-amber-600 font-normal font-sans">(متبقي قليل)</span>
@@ -8659,8 +8724,8 @@ export default function AdminDashboard({
             {/* بطاقات تحرير المميزات الفردية */}
             <div className="space-y-4">
               {(storeConfig.productFeatures?.items || [
-                { id: 'feat-1', enabled: true, title: 'تسليم فوري', subtitle: 'على مدار 24 ساعة', icon: 'fa-solid fa-bolt', customIconUrl: '' },
-                { id: 'feat-2', enabled: true, title: 'ضمان أصلي', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved', customIconUrl: '' },
+                { id: 'feat-1', enabled: true, title: 'سرعة التنفيذ', subtitle: 'خدمة آلية سريعة', icon: 'fa-solid fa-bolt', customIconUrl: '' },
+                { id: 'feat-2', enabled: true, title: 'ضمان كامل', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved', customIconUrl: '' },
                 { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments', customIconUrl: '' }
               ]).map((feat, index) => (
                 <div key={feat.id || index} className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs space-y-4">
@@ -8848,8 +8913,8 @@ export default function AdminDashboard({
               <div className="p-3 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100">
                 <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto">
                   {((storeConfig.productFeatures?.items || [
-                    { id: 'feat-1', enabled: true, title: 'تسليم فوري', subtitle: 'على مدار 24 ساعة', icon: 'fa-solid fa-bolt' },
-                    { id: 'feat-2', enabled: true, title: 'ضمان أصلي', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
+                    { id: 'feat-1', enabled: true, title: 'سرعة التنفيذ', subtitle: 'خدمة آلية سريعة', icon: 'fa-solid fa-bolt' },
+                    { id: 'feat-2', enabled: true, title: 'ضمان كامل', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
                     { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments' }
                   ]).filter(f => f.enabled !== false)).map((feat, fIdx) => {
                     const gradients = [

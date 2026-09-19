@@ -723,15 +723,15 @@ export default function App() {
         {
           id: 'feat-1',
           enabled: true,
-          title: 'تسليم فوري',
-          subtitle: 'على مدار 24 ساعة',
+          title: 'سرعة التنفيذ',
+          subtitle: 'خدمة آلية سريعة',
           icon: 'fa-solid fa-bolt',
           customIconUrl: ''
         },
         {
           id: 'feat-2',
           enabled: true,
-          title: 'ضمان أصلي',
+          title: 'ضمان كامل',
           subtitle: '100% مضمون',
           icon: 'fa-solid fa-shield-check',
           customIconUrl: ''
@@ -5070,8 +5070,8 @@ export default function App() {
                 if (storeConfig.productFeatures?.enabled === false || storeConfig.productFeatures?.showInStoreFooter === false) return null;
                 const sfData = section.data || storeConfig.homeSections?.storeFeatures || {};
                 const activeFeatures = (sfData.items || storeConfig.productFeatures?.items || [
-                  { id: 'feat-1', enabled: true, title: 'تسليم فوري', subtitle: 'على مدار 24 ساعة', icon: 'fa-solid fa-bolt' },
-                  { id: 'feat-2', enabled: true, title: 'ضمان أصلي', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
+                  { id: 'feat-1', enabled: true, title: 'سرعة التنفيذ', subtitle: 'خدمة آلية سريعة', icon: 'fa-solid fa-bolt' },
+                  { id: 'feat-2', enabled: true, title: 'ضمان كامل', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
                   { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments' }
                 ]).filter(f => f.enabled !== false);
 
@@ -5086,13 +5086,13 @@ export default function App() {
                           <i className="fa-solid fa-sparkles text-xs"></i>
                         </div>
                         <div>
-                          <h3 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight">
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-900 tracking-tight">
                             {sfData.title || storeConfig.homeSections?.storeFeatures?.title || 'لماذا تختار متجرنا؟'}
                           </h3>
-                          <p className="text-[10px] sm:text-xs text-gray-400 font-medium">تجربة تسوق رقمية استثنائية وموثوقة</p>
+                          <p className="text-[10px] sm:text-xs text-gray-400 font-light">تجربة تسوق رقمية استثنائية وموثوقة</p>
                         </div>
                       </div>
-                      <div className="hidden sm:flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50/80 px-2.5 py-1 rounded-full border border-emerald-200/50">
+                      <div className="hidden sm:flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50/80 px-2.5 py-1 rounded-full border border-emerald-200/50">
                         <i className="fa-solid fa-circle-check text-[10px]"></i>
                         <span>خدمة موثوقة ومضمونة</span>
                       </div>
@@ -5102,9 +5102,9 @@ export default function App() {
                     <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {activeFeatures.map((feat, fIndex) => {
                         const gradients = [
-                          { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60', badge: 'فوري' },
-                          { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60', badge: 'أصلي' },
-                          { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60', badge: '24/7' }
+                          { bg: 'from-amber-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-amber-500/10 text-amber-600 border-amber-200/60' },
+                          { bg: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-200/60' },
+                          { bg: 'from-blue-500/10 via-indigo-500/5 to-transparent', iconBg: 'bg-blue-500/10 text-blue-600 border-blue-200/60' }
                         ];
                         const styleTheme = gradients[fIndex % gradients.length];
 
@@ -5126,10 +5126,10 @@ export default function App() {
                             </div>
 
                             {/* نصوص الميزة */}
-                            <h4 className="font-extrabold text-gray-900 text-[11.5px] sm:text-sm tracking-tight truncate w-full group-hover:text-[#004956] transition-colors">
+                            <h4 className="font-medium text-gray-900 text-[11.5px] sm:text-sm tracking-tight truncate w-full group-hover:text-[#004956] transition-colors">
                               {feat.title}
                             </h4>
-                            <p className="text-[9.5px] sm:text-xs text-gray-400 font-medium mt-0.5 sm:mt-1 leading-snug line-clamp-2 w-full">
+                            <p className="text-[9.5px] sm:text-xs text-gray-400 font-light mt-0.5 sm:mt-1 leading-snug line-clamp-2 w-full">
                               {feat.subtitle}
                             </p>
                           </div>

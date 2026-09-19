@@ -153,8 +153,8 @@ export default function ProductDetailPage({
                   alt={product.title}
                   className="w-full h-full object-contain transition duration-500 group-hover:scale-105"
                 />
-                {product.badge && (
-                  <span className="absolute top-2 right-0 bg-[#5C1420] text-white text-[8.5px] sm:text-[9.5px] pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none font-bold shadow-sm tracking-wide">
+                {product.badge && !['تسليم فوري', 'فوري', 'أصلي', 'ضمان أصلي', '24/7'].includes(product.badge.trim()) && (
+                  <span className="absolute top-2 right-0 bg-[#5C1420] text-white text-[8.5px] sm:text-[9.5px] pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none font-medium shadow-sm tracking-wide">
                     {product.badge}
                   </span>
                 )}
@@ -498,8 +498,8 @@ export default function ProductDetailPage({
               {/* 6. بطاقات مميزات المتجر الحقيقية داخل صفحة المنتج */}
               {storeConfig?.productFeatures?.enabled !== false && (() => {
                 const activeFeatures = (storeConfig?.productFeatures?.items || [
-                  { id: 'feat-1', enabled: true, title: 'تسليم فوري', subtitle: 'على مدار 24 ساعة', icon: 'fa-solid fa-bolt' },
-                  { id: 'feat-2', enabled: true, title: 'ضمان أصلي', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
+                  { id: 'feat-1', enabled: true, title: 'سرعة التنفيذ', subtitle: 'خدمة آلية فورية', icon: 'fa-solid fa-bolt' },
+                  { id: 'feat-2', enabled: true, title: 'ضمان كامل', subtitle: 'مباشر 100%', icon: 'fa-solid fa-shield-halved' },
                   { id: 'feat-3', enabled: true, title: 'دعم متواصل', subtitle: 'واتساب ومباشر', icon: 'fa-solid fa-comments' }
                 ]).filter(f => f.enabled !== false);
 
@@ -529,10 +529,10 @@ export default function ProductDetailPage({
                                 <i className={feat.icon || 'fa-solid fa-bolt'}></i>
                               )}
                             </div>
-                            <h4 className="font-extrabold text-gray-900 text-[10px] sm:text-[11px] tracking-tight truncate w-full">
+                            <h4 className="font-medium text-gray-900 text-[10px] sm:text-[11px] tracking-tight truncate w-full">
                               {feat.title}
                             </h4>
-                            <p className="text-[8px] sm:text-[9px] text-gray-400 font-medium mt-0.5 leading-tight line-clamp-1 w-full">
+                            <p className="text-[8px] sm:text-[9px] text-gray-400 font-light mt-0.5 leading-tight line-clamp-1 w-full">
                               {feat.subtitle}
                             </p>
                           </div>
