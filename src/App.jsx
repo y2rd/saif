@@ -2476,8 +2476,8 @@ export default function App() {
         </>
       )}
 
-      {/* الشريط العلوي الخاص بأقصى الصفحة: العربية | USD ومعه في نفس الصف البحث */}
-      <div className="bg-[#F9FAFB] border-b border-gray-200/80 px-3 sm:px-8 py-2 sticky top-0 z-40 backdrop-blur-md" style={{ paddingTop: (!storeConfig.announcements?.length && !storeConfig.announcement) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
+      {/* الشريط العلوي الخاص بأقصى الصفحة: العربية | USD ومعه في نفس الصف البحث بدون حدود */}
+      <div className="bg-[#F9FAFB] px-3 sm:px-8 py-2 sticky top-0 z-40 backdrop-blur-md" style={{ paddingTop: (!storeConfig.announcements?.length && !storeConfig.announcement) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
           {/* 1. في أقصى اليمين: العربية | USD */}
@@ -2485,7 +2485,7 @@ export default function App() {
             <button
               type="button"
               onClick={toggleCurrencyMenu}
-              className="px-2.5 sm:px-3 py-1 rounded-full border border-gray-200 bg-gray-50/90 hover:bg-gray-100 text-black text-[11px] sm:text-xs font-light flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+              className="px-2.5 sm:px-3 py-1 rounded-full bg-white hover:bg-gray-100 text-black text-[11px] sm:text-xs font-light flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
               title="تغيير العملة واللغة"
             >
               <span className="text-black">{activeLanguage === 'en' ? 'English' : 'العربية'}</span>
@@ -2618,7 +2618,7 @@ export default function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ابحث عن منتج، باقة، ماسات..."
-                className="w-full pr-7 sm:pr-8 pl-6 sm:pl-7 h-6 sm:h-6.5 bg-gray-50/90 hover:bg-gray-100/90 focus:bg-white border border-gray-200 focus:border-gray-900 rounded-full text-[10.5px] sm:text-[11px] outline-none transition shadow-2xs placeholder:text-gray-400 font-light leading-none"
+                className="w-full pr-7 sm:pr-8 pl-6 sm:pl-7 h-6 sm:h-6.5 bg-gray-50/90 hover:bg-gray-100/90 focus:bg-white border-0 rounded-full text-[10.5px] sm:text-[11px] outline-none transition shadow-2xs placeholder:text-gray-400 font-light leading-none"
               />
               <i className="fa-solid fa-magnifying-glass absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] sm:text-[11px] pointer-events-none"></i>
               {searchQuery && (
@@ -2638,7 +2638,7 @@ export default function App() {
       </div>
 
       {/* الهيدر الأساسي للمتجر أسفله: الأقسام + الشعار + زر الإدارة + السلة */}
-      <header className="bg-white border-b border-gray-100 px-3 sm:px-8 py-2 sm:py-2.5 z-30 shadow-2xs relative">
+      <header className="bg-white px-3 sm:px-8 py-2 sm:py-2.5 z-30 shadow-2xs relative">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
           {/* الجانب الأيمن: زر الأقسام (fa-bars) + الشعار */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -2660,7 +2660,7 @@ export default function App() {
                   alt={storeConfig.name || 'شعار المتجر'}
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl object-cover shrink-0 hover:opacity-95 transition"
                   title={storeConfig.name}
-                />
+                ></img>
               ) : (
                 <div
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-2xs shrink-0 hover:opacity-95 transition"
@@ -2698,7 +2698,7 @@ export default function App() {
                     openAuthModal('login');
                   }
                 }}
-                className="p-2 sm:px-3 sm:py-1.5 rounded-full border border-gray-200/90 bg-white hover:bg-gray-50 text-gray-700 hover:text-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0 active:scale-95 text-xs font-light"
+                className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 hover:text-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0 active:scale-95 text-xs font-light"
                 title={currentUser ? `حساب: ${currentUser.name}` : "تسجيل الدخول / إنشاء حساب"}
               >
                 <i className="fa-regular fa-user text-xs text-gray-700"></i>
@@ -2854,7 +2854,7 @@ export default function App() {
             {/* زر سلة المشتريات مع موشن الاهتزاز والتكبير عند إضافة أي منتج */}
             <button
               onClick={openCartWithMotion}
-              className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 active:scale-95 shadow-2xs cursor-pointer flex items-center justify-center shrink-0 ${
+              className={`relative w-8 h-8 sm:w-9 sm:h-9 rounded-full text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 active:scale-95 shadow-2xs cursor-pointer flex items-center justify-center shrink-0 ${
                 cartBump ? 'cart-icon-bump ring-2 ring-emerald-400 bg-emerald-50/50' : ''
               }`}
               title="فتح سلة المشتريات"
