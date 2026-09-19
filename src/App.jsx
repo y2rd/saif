@@ -5321,7 +5321,7 @@ export default function App() {
                         <p className="text-[11px] text-gray-400">يمكنك البدء بإضافة منتجاتك وأقسامك عبر لوحة التحكم.</p>
                       </div>
                     ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
                       {filteredProducts.map((item) => {
                         const isInWishlist = wishlist.includes(item.id);
                         const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -5351,15 +5351,15 @@ export default function App() {
                                 />
 
                                 {/* شارة الترويج والعروض المؤقتة ملتصقة تماماً بالحافة اليمنى وتنتهي باستدارة جهة اليسار فقط */}
-                                <div className="absolute top-2.5 right-0 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+                                <div className="absolute top-2 right-0 flex flex-col items-end gap-1 z-10 pointer-events-none">
                                   {item.flashSaleEnabled && item.flashSaleEndsAt && new Date(item.flashSaleEndsAt).getTime() > Date.now() && (
-                                    <span className="bg-gradient-to-r from-red-600 to-rose-500 text-white text-[8.5px] sm:text-[9.5px] font-bold pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none shadow-sm tracking-wide flex items-center gap-1 animate-pulse">
-                                      <i className="fa-solid fa-bolt text-yellow-300 text-[9px]"></i>
-                                      <span>عرض مؤقت 🔥</span>
+                                    <span className="bg-gradient-to-r from-red-600 to-rose-500 text-white text-[8px] sm:text-[9px] font-bold pr-1.5 pl-2.5 py-0.5 rounded-l-full rounded-r-none shadow-sm tracking-wide flex items-center gap-1 animate-pulse">
+                                      <i className="fa-solid fa-bolt text-yellow-300 text-[8px]"></i>
+                                      <span>عرض 🔥</span>
                                     </span>
                                   )}
                                   {item.badge && (
-                                    <span className="bg-[#5C1420] text-white text-[8.5px] sm:text-[9.5px] font-bold pr-2 pl-3 py-0.5 rounded-l-full rounded-r-none shadow-sm tracking-wide flex items-center gap-1">
+                                    <span className="bg-[#5C1420] text-white text-[8px] sm:text-[9px] font-bold pr-1.5 pl-2.5 py-0.5 rounded-l-full rounded-r-none shadow-sm tracking-wide flex items-center gap-1">
                                       <span>{item.badge}</span>
                                     </span>
                                   )}
@@ -5374,20 +5374,20 @@ export default function App() {
                                   }}
                                   title={isInWishlist ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
                                   aria-label="Add to wishlist"
-                                  className={`absolute top-2.5 left-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center transition-all duration-200 z-10 cursor-pointer shadow-2xs ${
+                                  className={`absolute top-2 left-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center transition-all duration-200 z-10 cursor-pointer shadow-2xs ${
                                     isInWishlist 
                                       ? 'bg-red-50 border-red-200 text-red-500 scale-110' 
                                       : 'bg-white/90 backdrop-blur-xs border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'
                                   }`}
                                 >
-                                  <i className={`fa-heart text-xs sm:text-sm ${isInWishlist ? 'fa-solid text-red-500' : 'fa-regular'}`}></i>
+                                  <i className={`fa-heart text-[10px] sm:text-xs ${isInWishlist ? 'fa-solid text-red-500' : 'fa-regular'}`}></i>
                                 </button>
                               </div>
 
                               {/* 2. محتوى البطاقة: العنوان مع مسافات مقلصة ومضبوطة */}
-                              <div className="p-3 sm:p-4 pb-1 sm:pb-1 text-right">
+                              <div className="p-2 sm:p-2.5 pb-0.5 text-right">
                                 <h3
-                                  className="text-xs sm:text-[13px] md:text-sm font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
+                                  className="text-[11.5px] sm:text-xs md:text-[13px] font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
                                   title={item.title}
                                 >
                                   {item.title}
@@ -5396,8 +5396,8 @@ export default function App() {
                             </div>
 
                             {/* 3. أسفل البطاقة: السعر وبمحاذاته التقييم مباشرة في نفس السطر */}
-                            <div className="p-3 sm:p-4 pt-1.5 sm:pt-2">
-                              <div className="flex items-center justify-between gap-2 mb-2.5">
+                            <div className="p-2 sm:p-2.5 pt-1">
+                              <div className="flex items-center justify-between gap-1.5 mb-2">
                                 {/* السعر أو متطلبات المبادلة والسعر القديم */}
                                 <div className="flex items-baseline gap-1.5">
                                   {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
@@ -5470,9 +5470,9 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                                 >
-                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-xs"></i>
+                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[11px]"></i>
                                   <span>{buttonText || 'إضافة للسلة'}</span>
                                 </button>
                               )}
@@ -5625,7 +5625,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
                   {categoryProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -5764,19 +5764,19 @@ export default function App() {
                               <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-xs"></i>
                               <span>تحديد البيانات</span>
                             </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddToCart(item, null, '', 1);
-                              }}
-                              className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
-                            >
-                              <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-xs"></i>
-                              <span>إضافة للسلة</span>
-                            </button>
-                          )}
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddToCart(item, null, '', 1);
+                                  }}
+                                  className="w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
+                                >
+                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[11px]"></i>
+                                  <span>إضافة للسلة</span>
+                                </button>
+                              )}
                         </div>
                       </div>
                     );
@@ -6613,7 +6613,7 @@ function AutoMovingProductsCarousel({
               setViewMode('product-detail');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="w-48 sm:w-56 shrink-0 bg-white border card-soft-blur rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+            className="w-40 sm:w-44 shrink-0 bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
           >
             <div>
               {/* 1. حاوية صورة المنتج مع خلفية رمادية فاتحة وزر القلب الشفاف في الزاوية العلوية */}
@@ -6645,9 +6645,9 @@ function AutoMovingProductsCarousel({
               </div>
 
               {/* 2. عنوان المنتج ممركز أو في اليمين بشكل أنيق ومدمج */}
-              <div className="p-3 pb-1 text-center">
+              <div className="p-2 pb-0.5 text-center">
                 <h3
-                  className="text-xs sm:text-[13px] font-bold text-gray-900 line-clamp-1 leading-snug"
+                  className="text-[11px] sm:text-xs font-bold text-gray-900 line-clamp-1 leading-snug"
                   title={p.title}
                 >
                   {p.title}
@@ -6656,10 +6656,10 @@ function AutoMovingProductsCarousel({
             </div>
 
             {/* 3. أسفل البطاقة: السعر وزر إضافة للسلة المطابق لـ سلة */}
-            <div className="p-3 pt-1">
-              <div className="flex flex-col items-center justify-center gap-0.5 mb-2.5 text-center">
-                <div className="flex items-center gap-1.5 justify-center">
-                  <span className="text-xs sm:text-[13px] font-bold text-gray-900 font-price">
+            <div className="p-2 pt-0.5">
+              <div className="flex flex-col items-center justify-center gap-0.5 mb-1.5 text-center">
+                <div className="flex items-center gap-1 justify-center">
+                  <span className="text-xs sm:text-[12.5px] font-bold text-gray-900 font-price">
                     {formatPrice(p.price, activeCurrency)}
                   </span>
                   {hasDiscount && (
