@@ -6197,16 +6197,33 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="space-y-3.5">
-                    {/* صف واحد يجمع: اسم المتجر مصغر + نص وزر رفع لوقو + معاينة اللوقو */}
+                    {/* صف واحد يجمع: اسم المتجر مصغر + نص وزر رفع لوقو + معاينة اللوقو + زر حفظ ومزامنة فورية */}
                     <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1">اسم وشعار المتجر</label>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-[11px] font-bold text-gray-700">اسم وشعار المتجر</label>
+                        <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-emerald-200">
+                          <i className="fa-solid fa-cloud-arrow-up text-[9px]"></i>
+                          <span>مزامنة سحابية حية 24/7</span>
+                        </span>
+                      </div>
                       <div className="flex flex-wrap items-center gap-2.5">
                         {/* بوكس اسم المتجر مصغر ومتناسق */}
                         <div className="w-48 sm:w-60">
                           <input
                             type="text"
                             value={storeConfig.name || ''}
-                            onChange={(e) => setStoreConfig(prev => ({ ...prev, name: e.target.value }))}
+                            onChange={(e) => {
+                              const newName = e.target.value;
+                              setStoreConfig(prev => {
+                                const updated = { ...prev, name: newName };
+                                try {
+                                  localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                                  localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                  syncStoreConfigToCloud(updated);
+                                } catch {}
+                                return updated;
+                              });
+                            }}
                             className="w-full p-2 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-black focus:bg-white transition"
                             placeholder="اسم المتجر..."
                           />
@@ -6231,7 +6248,17 @@ export default function AdminDashboard({
                                 }
                                 const reader = new FileReader();
                                 reader.onloadend = () => {
-                                  setStoreConfig(prev => ({ ...prev, logoUrl: reader.result }));
+                                  const base64Logo = reader.result;
+                                  setStoreConfig(prev => {
+                                    const updated = { ...prev, logoUrl: base64Logo };
+                                    try {
+                                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                      syncStoreConfigToCloud(updated);
+                                    } catch {}
+                                    return updated;
+                                  });
+                                  showToast('✅ تم رفع الشعار وحفظه سحابياً فوراً!');
                                 };
                                 reader.readAsDataURL(file);
                               }
@@ -6251,7 +6278,18 @@ export default function AdminDashboard({
                               />
                               <button
                                 type="button"
-                                onClick={() => setStoreConfig(prev => ({ ...prev, logoUrl: '' }))}
+                                onClick={() => {
+                                  setStoreConfig(prev => {
+                                    const updated = { ...prev, logoUrl: '' };
+                                    try {
+                                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                                      syncStoreConfigToCloud(updated);
+                                    } catch {}
+                                    return updated;
+                                  });
+                                  showToast('تم حذف الشعار وتحديث السحابة فوراً');
+                                }}
                                 className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] flex items-center justify-center shadow-xs cursor-pointer hover:bg-red-700"
                                 title="حذف الشعار"
                               >
@@ -6273,7 +6311,18 @@ export default function AdminDashboard({
                       <input
                         type="text"
                         value={storeConfig.subTitle || ''}
-                        onChange={(e) => setStoreConfig(prev => ({ ...prev, subTitle: e.target.value }))}
+                        onChange={(e) => {
+                          const newSub = e.target.value;
+                          setStoreConfig(prev => {
+                            const updated = { ...prev, subTitle: newSub };
+                            try {
+                              localStorage.setItem('haider_store_config', JSON.stringify(updated));
+                              localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                              syncStoreConfigToCloud(updated);
+                            } catch {}
+                            return updated;
+                          });
+                        }}
                         className="w-full p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black focus:bg-white transition"
                         placeholder="مثلاً: كل ما تحتاجه لمزرعتك بأفضل الأسعار وأسرع تسليم"
                       />
