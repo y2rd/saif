@@ -534,4 +534,52 @@ h1, h2, h3, h4, h5, h6,
 /* ========================================================================= */
 .store-feature-card {
   border-radius: 2px !important;
-}
+}
+
+/* ========================================================================= */
+/* تأثيرات وظلال متجر y2rd.com الناعمة والضبابية بدلاً من الحدود الحادة       */
+/* ========================================================================= */
+.header-soft-blur {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
+}
+
+.topbar-soft-blur {
+  background-color: rgba(249, 250, 251, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.search-soft-blur {
+  background-color: #f3f4f6 !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.2s ease !important;
+}
+
+.search-soft-blur:focus-within, .search-soft-blur:focus {
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+.btn-soft-blur {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-soft-blur:hover {
+  background-color: #f9fafb !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.card-soft-blur {
+  border-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.02) !important;
+}
+
+.card-soft-blur:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 6px 10px -4px rgba(0, 0, 0, 0.03) !important;
+}
+
