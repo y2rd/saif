@@ -5108,12 +5108,20 @@ export default function App() {
 
                 return (
                   <div key={section.id} className="mt-8 sm:mt-16 pt-6 sm:pt-10 border-t border-gray-100/80">
-                    {/* بطاقات المميزات: في صف واحد على الجوال والكمبيوتر (3 أعمدة) مع مسافات متناسقة */}
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-6 max-w-5xl mx-auto px-1 sm:px-4">
+                    {/* بطاقات المميزات: إجبار العرض في صف واحد دائماً على الجوال والشاشات كافة (Single Row) */}
+                    <div
+                      className="grid grid-cols-3 gap-1.5 sm:gap-6 max-w-5xl mx-auto px-1 sm:px-4"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        width: '100%'
+                      }}
+                    >
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
-                          className="store-feature-card relative overflow-hidden py-3 sm:py-9 px-1.5 sm:px-8 rounded-xl sm:rounded-2xl bg-white border border-gray-100/90 shadow-[0_2px_14px_-4px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-gray-200 transition-all duration-300 flex flex-col items-center text-center group"
+                          style={{ minWidth: 0 }}
+                          className="store-feature-card relative overflow-hidden py-3 sm:py-9 px-1 sm:px-8 rounded-xl sm:rounded-2xl bg-white border border-gray-100/90 shadow-[0_2px_14px_-4px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-gray-200 transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
                         >
                           {/* أيقونة الميزة المودرن الدائرية السوداء المتناسقة */}
                           <div className="store-feature-icon-wrapper w-8 h-8 sm:w-14 sm:h-14 rounded-full bg-[#0b1220] text-white flex items-center justify-center text-xs sm:text-xl mb-1.5 sm:mb-5 shadow-xs group-hover:scale-105 transition-transform duration-300 shrink-0">
@@ -5125,10 +5133,10 @@ export default function App() {
                           </div>
 
                           {/* نصوص الميزة */}
-                          <h4 className="font-bold text-gray-900 text-[10.5px] sm:text-base tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 sm:mb-1.5">
+                          <h4 className="font-bold text-gray-900 text-[10px] sm:text-base tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 sm:mb-1.5 text-center">
                             {feat.title}
                           </h4>
-                          <p className="text-[8.5px] sm:text-sm text-gray-400 font-normal leading-tight sm:leading-relaxed line-clamp-2 w-full">
+                          <p className="text-[8px] sm:text-sm text-gray-400 font-normal leading-tight sm:leading-relaxed line-clamp-2 w-full text-center">
                             {feat.subtitle}
                           </p>
                         </div>
