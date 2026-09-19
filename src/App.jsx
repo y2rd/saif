@@ -5123,20 +5123,23 @@ export default function App() {
                           style={{ minWidth: 0 }}
                           className="store-feature-card relative overflow-hidden py-3 sm:py-9 px-1 sm:px-8 rounded-xl sm:rounded-2xl bg-white border border-gray-100/90 shadow-[0_2px_14px_-4px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-gray-200 transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
                         >
-                          {/* أيقونة الميزة المودرن الدائرية المصغرة والأنيقة */}
-                          <div className="store-feature-icon-wrapper w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-[#0b1220] text-white flex items-center justify-center text-[10px] sm:text-base mb-1.5 sm:mb-3 shadow-xs group-hover:scale-105 transition-transform duration-300 shrink-0">
+                          {/* أيقونة الميزة المودرن الدائرية المصغرة والأنيقة مع inline-styles لضمان التطبيق الفوري */}
+                          <div 
+                            className="store-feature-icon-wrapper rounded-full bg-[#0b1220] text-white flex items-center justify-center mb-1 sm:mb-2.5 shadow-xs group-hover:scale-105 transition-transform duration-300 shrink-0"
+                            style={{ width: '26px', height: '26px', minWidth: '26px', minHeight: '26px' }}
+                          >
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="w-3 h-3 sm:w-5 sm:h-5 object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" style={{ width: '13px', height: '13px' }} className="object-contain brightness-0 invert" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white text-[9px] sm:text-sm`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white`} style={{ fontSize: '10px' }}></i>
                             )}
                           </div>
 
                           {/* نصوص الميزة */}
-                          <h4 className="font-bold text-gray-900 text-[9.5px] sm:text-sm tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 sm:mb-1 text-center">
+                          <h4 className="font-bold text-gray-900 text-[10px] sm:text-xs tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 text-center">
                             {feat.title}
                           </h4>
-                          <p className="text-[8px] sm:text-xs text-gray-400 font-normal leading-tight sm:leading-relaxed line-clamp-2 w-full text-center">
+                          <p className="text-[8px] sm:text-[11px] text-gray-400 font-normal leading-tight sm:leading-relaxed line-clamp-2 w-full text-center">
                             {feat.subtitle}
                           </p>
                         </div>
