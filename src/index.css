@@ -389,9 +389,9 @@ html, body {
   font-weight: 300 !important;
 }
 
-/* جعل الخط رفيعاً وخفيفاً في كل مكان داخل لوحة التحكم */
+/* جعل الخط رفيعاً وخفيفاً في كل مكان داخل لوحة التحكم مع الحفاظ التام على أوزان خطوط الأيقونات */
 .admin-dashboard-container,
-.admin-dashboard-container * {
+.admin-dashboard-container *:not(i):not([class*="fa-"]) {
   font-weight: 400 !important;
 }
 
