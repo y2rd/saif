@@ -6427,7 +6427,7 @@ export default function AdminDashboard({
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                    <div className="space-y-1.5 overflow-visible">
                       {(storeConfig.homeLayout || [
                         { id: 'sec-products-grid', type: 'productsGrid', title: 'منتجات المتجر', enabled: true },
                         { id: 'sec-items-list', type: 'itemsList', title: 'الأقسام والتصنيفات', enabled: true },
@@ -6444,15 +6444,16 @@ export default function AdminDashboard({
                           squareImages: 'fa-border-all text-gray-700'
                         };
 
+                        const currentItemId = String(secItem.id || `layout-item-${idx}`);
                         const displayName = secItem.title || secItem.data?.title || (secItem.type === 'movingProducts' ? 'منتجات متحركة' : secItem.type === 'wideBanner' ? 'بانر عريض' : secItem.type === 'bannerSlider' ? 'بانر سلايدر' : secItem.type === 'squareImages' ? 'صور مربعة' : secItem.type === 'itemsList' ? 'قائمة تصنيفات' : secItem.type);
                         const typeLabel = secItem.type === 'movingProducts' ? 'سلايدر منتجات متحركة' : secItem.type === 'wideBanner' ? 'بانر عريض' : secItem.type === 'bannerSlider' ? 'بانر سلايدر' : secItem.type === 'squareImages' ? 'كروت صور مربعة' : secItem.type === 'itemsList' ? 'شريط أقسام' : secItem.type;
-                        const isMenuOpen = openSectionMenuId === (secItem.id || idx);
+                        const isMenuOpen = String(openSectionMenuId) === currentItemId;
 
                         return (
                           <div
-                            key={secItem.id || idx}
+                            key={currentItemId}
                             className={`p-2.5 rounded-xl border transition flex items-center justify-between gap-2 relative ${
-                              isMenuOpen ? 'z-30 ' : 'z-1 '
+                              isMenuOpen ? 'z-50 ring-2 ring-black/10 ' : 'z-1 '
                             }${
                               secItem.enabled !== false
                                 ? 'bg-white border-gray-200 shadow-2xs hover:border-gray-300'
@@ -6569,12 +6570,12 @@ export default function AdminDashboard({
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setOpenSectionMenuId(isMenuOpen ? null : (secItem.id || idx));
+                                    setOpenSectionMenuId(isMenuOpen ? null : currentItemId);
                                   }}
                                   className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border ${
                                     isMenuOpen
-                                      ? 'bg-black text-white border-black'
-                                      : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
+                                      ? 'bg-black text-white border-black shadow-sm'
+                                      : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'
                                   }`}
                                   title="خيارات العنصر"
                                 >
@@ -6584,12 +6585,15 @@ export default function AdminDashboard({
                                 {isMenuOpen && (
                                   <>
                                     <div
-                                      className="fixed inset-0 z-40"
-                                      onClick={() => setOpenSectionMenuId(null)}
+                                      className="fixed inset-0 z-[100]"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenSectionMenuId(null);
+                                      }}
                                     ></div>
 
                                     <div
-                                      className="absolute left-0 top-9 z-50 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 py-1.5 animate-in fade-in zoom-in-95 duration-150"
+                                      className="absolute left-0 top-full mt-1.5 z-[101] w-48 bg-white rounded-2xl shadow-2xl border border-gray-200 py-1.5 animate-in fade-in zoom-in-95 duration-150"
                                       dir="rtl"
                                     >
                                       {/* خيار تعديل وتخصيص */}
