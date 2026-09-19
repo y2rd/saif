@@ -1193,9 +1193,12 @@ export default function AdminDashboard({
     let walletRefundToast = '';
     if (newStatus === 'ملغي' && targetOrder) {
       const isPaidByWallet = targetOrder.walletDeducted || targetOrder.method === 'المحفظة';
-      const alreadyRefunded = !!targetOrder.walletRefunded;
+      const alreadyRefunded = Boolean(targetOrder.walletRefunded);
 
-      if (isPaidByWallet && !alreadyRefunded) {
+      // حماية صارمة: لا يتم إرجاع المبلغ إطلاقاً إذا كان مسترجعاً سابقاً
+      if (alreadyRefunded) {
+        // تم إرجاعه مسبقاً - لا تفعل شيئاً مالياً
+      } else if (isPaidByWallet) {
         const refundAmount = parseFloat(targetOrder.walletDeductedAmount || targetOrder.totalUsd || 0);
 
         if (refundAmount > 0) {
@@ -1209,56 +1212,67 @@ export default function AdminDashboard({
             ))
           );
 
-          const custName = targetCust?.name || targetOrder.customer || 'العميل';
-          const currentBal = targetCust ? parseFloat(targetCust.balance || 0) : 0;
-
-          const shouldRefund = window.confirm(
-            `💰 استرجاع رصيد المحفظة للطلب الملغي #${targetOrder.id}:\n\n` +
-            `• العميل: ${custName}\n` +
-            `• المبلغ المدفوع من المحفظة: $${refundAmount.toFixed(2)}\n` +
-            `• رصيد العميل الحالي: $${currentBal.toFixed(2)}\n` +
-            `• الرصيد بعد الاسترجاع: $${(currentBal + refundAmount).toFixed(2)}\n\n` +
-            `هل ترغب بإرجاع المبلغ ($${refundAmount.toFixed(2)}) إلى محفظة العميل تلقائياً؟`
+          // فحص أمان إضافي: التأكد من سجل المعاملات المالية أن هذا الطلب لم يُسترجع له من قبل
+          const txAlreadyExists = targetCust?.walletTransactions?.some(
+            tx => tx.orderId === targetOrder.id || tx.id === `tx_refund_${targetOrder.id}` || (tx.title && tx.title.includes(`#${targetOrder.id}`))
           );
 
-          if (shouldRefund && targetCust) {
-            const newBal = parseFloat((currentBal + refundAmount).toFixed(2));
-            const refundTx = {
-              id: `tx_refund_${Date.now()}`,
-              type: 'deposit',
-              amount: refundAmount,
-              balanceAfter: newBal,
-              title: `استرجاع رصيد للطلب الملغي #${targetOrder.id}`,
-              date: new Date().toISOString()
-            };
-
-            const updatedCust = {
-              ...targetCust,
-              balance: newBal,
-              walletTransactions: [refundTx, ...(targetCust.walletTransactions || [])]
-            };
-
-            const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
-            setCustomers(updatedCustomersList);
-            syncCustomerToCloud(updatedCust);
-            try {
-              localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
-              const savedCur = localStorage.getItem('haider_current_user');
-              if (savedCur) {
-                const parsedCur = JSON.parse(savedCur);
-                if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
-                  const mergedUser = { ...parsedCur, ...updatedCust };
-                  localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
-                  if (setCurrentUser) setCurrentUser(mergedUser);
-                }
-              }
-            } catch (err) {}
-
+          if (txAlreadyExists) {
             targetOrder.walletRefunded = true;
             targetOrder.walletRefundedAmount = refundAmount;
-            targetOrder.walletRefundedDate = new Date().toISOString();
-            targetOrder.walletBalanceAfterRefund = newBal;
-            walletRefundToast = ` 💸 وتم إرجاع $${refundAmount.toFixed(2)} لمحفظة العميل (الرصيد الجديد: $${newBal.toFixed(2)})`;
+          } else {
+            const custName = targetCust?.name || targetOrder.customer || 'العميل';
+            const currentBal = targetCust ? parseFloat(targetCust.balance || 0) : 0;
+
+            const shouldRefund = window.confirm(
+              `💰 استرجاع رصيد المحفظة للطلب الملغي #${targetOrder.id}:\n\n` +
+              `• العميل: ${custName}\n` +
+              `• المبلغ المدفوع من المحفظة: $${refundAmount.toFixed(2)}\n` +
+              `• رصيد العميل الحالي: $${currentBal.toFixed(2)}\n` +
+              `• الرصيد بعد الاسترجاع: $${(currentBal + refundAmount).toFixed(2)}\n\n` +
+              `هل ترغب بإرجاع المبلغ ($${refundAmount.toFixed(2)}) إلى محفظة العميل تلقائياً؟`
+            );
+
+            if (shouldRefund && targetCust) {
+              const newBal = parseFloat((currentBal + refundAmount).toFixed(2));
+              const refundTx = {
+                id: `tx_refund_${targetOrder.id}_${Date.now()}`,
+                orderId: targetOrder.id,
+                type: 'deposit',
+                amount: refundAmount,
+                balanceAfter: newBal,
+                title: `استرجاع رصيد للطلب الملغي #${targetOrder.id}`,
+                date: new Date().toISOString()
+              };
+
+              const updatedCust = {
+                ...targetCust,
+                balance: newBal,
+                walletTransactions: [refundTx, ...(targetCust.walletTransactions || [])]
+              };
+
+              const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
+              setCustomers(updatedCustomersList);
+              syncCustomerToCloud(updatedCust);
+              try {
+                localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+                const savedCur = localStorage.getItem('haider_current_user');
+                if (savedCur) {
+                  const parsedCur = JSON.parse(savedCur);
+                  if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
+                    const mergedUser = { ...parsedCur, ...updatedCust };
+                    localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+                    if (setCurrentUser) setCurrentUser(mergedUser);
+                  }
+                }
+              } catch (err) {}
+
+              targetOrder.walletRefunded = true;
+              targetOrder.walletRefundedAmount = refundAmount;
+              targetOrder.walletRefundedDate = new Date().toISOString();
+              targetOrder.walletBalanceAfterRefund = newBal;
+              walletRefundToast = ` 💸 وتم إرجاع $${refundAmount.toFixed(2)} لمحفظة العميل (الرصيد الجديد: $${newBal.toFixed(2)})`;
+            }
           }
         }
       }
@@ -1388,6 +1402,157 @@ export default function AdminDashboard({
     } else {
       showToast(`تم تحديث حالة الطلب إلى "${newStatus}"${walletDeductedToast}${walletRefundToast}`);
     }
+  };
+
+  // إرجاع يدوي آمن ومحمي من التكرار والتدبيل لمبلغ الطلب إلى محفظة العميل
+  const handleManualRefundToWallet = (orderId) => {
+    const targetOrder = orders.find(o => o.id === orderId) || (selectedOrderDetails?.id === orderId ? selectedOrderDetails : null);
+    if (!targetOrder) return;
+
+    // 1. فحص صارم ومباشر: إذا تم الإرجاع سابقاً، منع العملية فوراً برسالة تنبيهية
+    if (targetOrder.walletRefunded) {
+      alert(`⚠️ تنبيه أمني:\nتم إرجاع مبلغ هذا الطلب ($${parseFloat(targetOrder.walletRefundedAmount || targetOrder.totalUsd || 0).toFixed(2)}) إلى محفظة العميل مسبقاً في تاريخ:\n${targetOrder.walletRefundedDate ? new Date(targetOrder.walletRefundedDate).toLocaleString('ar-SA') : 'سابقاً'}.\n\nلا يمكن إرجاع المبلغ مرة أخرى منعاً لتكرار الرصيد.`);
+      return;
+    }
+
+    const refundAmount = parseFloat(targetOrder.walletDeductedAmount || targetOrder.totalUsd || 0);
+    if (refundAmount <= 0) {
+      alert('⚠️ تنبيه: لا يوجد مبلغ مدفوع بالمحفظة لهذا الطلب ليتم إرجاعه.');
+      return;
+    }
+
+    const targetCust = customers.find(c =>
+      (targetOrder.customerId && c.id === targetOrder.customerId) ||
+      (targetOrder.customerIdentifier && (c.identifier === targetOrder.customerIdentifier || c.phone === targetOrder.customerIdentifier || c.email === targetOrder.customerIdentifier)) ||
+      (targetOrder.customerPhone && (c.phone === targetOrder.customerPhone || c.identifier === targetOrder.customerPhone)) ||
+      (targetOrder.customer && (
+        c.name === targetOrder.customer ||
+        c.name === (targetOrder.customer || '').replace(/\s*\([^)]*\)/g, '').trim()
+      ))
+    );
+
+    if (!targetCust) {
+      alert('⚠️ لم يتم العثور على حساب العميل المرتبط بهذا الطلب في قاعدة البيانات.');
+      return;
+    }
+
+    // 2. فحص أمان إضافي وعميق: التحقق من سجل حركات المحفظة لدى العميل
+    const existingTx = targetCust.walletTransactions?.find(
+      tx => tx.orderId === targetOrder.id || tx.id === `tx_refund_${targetOrder.id}` || (tx.title && tx.title.includes(`#${targetOrder.id}`))
+    );
+
+    if (existingTx) {
+      alert(`⚠️ تنبيه أمني:\nوجدنا في سجل معاملات محفظة العميل حركة استرجاع مسجلة بالفعل لهذا الطلب رقم #${targetOrder.id}.\nتم قفل الطلب لمنع تدبيل الرصيد.`);
+      const updatedOrders = orders.map(o => o.id === orderId ? { ...o, walletRefunded: true, walletRefundedAmount: refundAmount } : o);
+      setOrders(updatedOrders);
+      try { localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrders)); } catch (e) {}
+      if (selectedOrderDetails?.id === orderId) {
+        setSelectedOrderDetails(prev => ({ ...prev, walletRefunded: true, walletRefundedAmount: refundAmount }));
+      }
+      return;
+    }
+
+    const custName = targetCust.name || 'العميل';
+    const currentBal = parseFloat(targetCust.balance || 0);
+    const newBal = parseFloat((currentBal + refundAmount).toFixed(2));
+
+    const confirmed = window.confirm(
+      `💰 تأكيد إرجاع الرصيد للمحفظة يدويّاً:\n\n` +
+      `• رقم الطلب: #${targetOrder.id}\n` +
+      `• العميل: ${custName}\n` +
+      `• المبلغ المسترجع: $${refundAmount.toFixed(2)}\n` +
+      `• رصيد العميل الحالي: $${currentBal.toFixed(2)}\n` +
+      `• الرصيد بعد الإرجاع: $${newBal.toFixed(2)}\n\n` +
+      `هل أنت متأكد من إرجاع $${refundAmount.toFixed(2)} لحساب العميل الآن؟ (لن يمكن التراجع أو الإرجاع مرة أخرى)`
+    );
+
+    if (!confirmed) return;
+
+    // تسجيل العملية وحفظ الرصيد الجديد
+    const refundTx = {
+      id: `tx_refund_${targetOrder.id}_${Date.now()}`,
+      orderId: targetOrder.id,
+      type: 'deposit',
+      amount: refundAmount,
+      balanceAfter: newBal,
+      title: `استرجاع رصيد للطلب الملغي #${targetOrder.id}`,
+      date: new Date().toISOString()
+    };
+
+    const updatedCust = {
+      ...targetCust,
+      balance: newBal,
+      walletTransactions: [refundTx, ...(targetCust.walletTransactions || [])]
+    };
+
+    const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
+    setCustomers(updatedCustomersList);
+    syncCustomerToCloud(updatedCust);
+
+    try {
+      localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+      const savedCur = localStorage.getItem('haider_current_user');
+      if (savedCur) {
+        const parsedCur = JSON.parse(savedCur);
+        if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
+          const mergedUser = { ...parsedCur, ...updatedCust };
+          localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+          if (setCurrentUser) setCurrentUser(mergedUser);
+        }
+      }
+    } catch (err) {}
+
+    // تحديث الطلب ليصبح مُسترجعاً بشكل دائم
+    const refundDate = new Date().toISOString();
+    const updatedOrders = orders.map(o => {
+      if (o.id === orderId) {
+        return {
+          ...o,
+          walletRefunded: true,
+          walletRefundedAmount: refundAmount,
+          walletRefundedDate: refundDate,
+          walletBalanceAfterRefund: newBal
+        };
+      }
+      return o;
+    });
+
+    setOrders(updatedOrders);
+    try {
+      localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrders));
+    } catch (e) {}
+
+    const modifiedOrder = updatedOrders.find(o => o.id === orderId);
+    if (modifiedOrder) {
+      syncOrderToCloud(modifiedOrder);
+    }
+
+    if (selectedOrderDetails && selectedOrderDetails.id === orderId) {
+      setSelectedOrderDetails(prev => ({
+        ...prev,
+        walletRefunded: true,
+        walletRefundedAmount: refundAmount,
+        walletRefundedDate: refundDate,
+        walletBalanceAfterRefund: newBal
+      }));
+    }
+
+    // إرسال إشعار للعميل
+    const refundNotif = {
+      id: `notif-refund-${orderId}-${Date.now()}`,
+      title: `تم استرجاع الرصيد إلى محفظتك 💰 #${targetOrder.id}`,
+      message: `تم إرجاع مبلغ $${refundAmount.toFixed(2)} إلى رصيد محفظتك لإلغاء الطلب #${targetOrder.id}. رصيدك الجديد: $${newBal.toFixed(2)}.`,
+      type: 'wallet',
+      orderId: targetOrder.id,
+      date: new Date().toISOString(),
+      read: false
+    };
+
+    if (sendNotification) {
+      sendNotification(targetOrder.customerId || targetOrder.customerIdentifier || targetOrder.customer, refundNotif);
+    }
+
+    showToast(`تم إرجاع $${refundAmount.toFixed(2)} إلى محفظة ${custName} بنجاح!`);
   };
 
   // حذف طلب مفرد
@@ -10584,7 +10749,7 @@ service cloud.firestore {
                             </span>
                             <button
                               type="button"
-                              onClick={() => handleUpdateOrderStatus(selectedOrderDetails.id, 'ملغي')}
+                              onClick={() => handleManualRefundToWallet(selectedOrderDetails.id)}
                               className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold cursor-pointer text-[10px] transition shrink-0"
                             >
                               إرجاع الرصيد للعميل الآن 💰
