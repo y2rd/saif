@@ -1,5 +1,15 @@
 {
   "appId": "com.haider.mystore",
   "appName": "MyStore",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "https://y2rd.github.io/saif/",
+    "cleartext": true,
+    "allowNavigation": [
+      "y2rd.github.io",
+      "*.github.io",
+      "*.firebaseio.com",
+      "*.googleapis.com"
+    ]
+  }
 }
