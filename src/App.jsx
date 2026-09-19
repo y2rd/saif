@@ -5113,7 +5113,7 @@ export default function App() {
                 const movingBadge = mpConfig.badgeText !== undefined ? mpConfig.badgeText : (sourceType === 'category' && selectedCat && selectedCat !== 'الكل' ? selectedCat : '');
 
                 return (
-                  <div key={section.id} className="space-y-3 mx-2 sm:mx-4 md:mx-6">
+                  <div key={section.id} className="space-y-3">
                     <div className="flex items-center justify-between pb-1 px-1">
                       {/* العنوان على اليمين: "أحدث المنتجات" أو عنوان القسم المخصص */}
                       <div className="flex items-center gap-2">
@@ -5301,7 +5301,7 @@ export default function App() {
                 const buttonText = (rawBtn && !rawBtn.includes('قسم المبادلة') && !rawBtn.includes('المبادلة')) ? rawBtn : 'إضافة للسلة';
 
                 return (
-                  <div key={section.id} ref={productsSectionRef} className="rounded-2xl border border-gray-200/80 p-3 sm:p-7 md:p-8 mx-2 sm:mx-4 md:mx-6 bg-[#F9FAFB] shadow-2xs">
+                  <div key={section.id} ref={productsSectionRef} className="rounded-2xl border border-gray-200/80 p-2.5 sm:p-6 bg-[#F9FAFB] shadow-2xs">
                     <div className="flex items-center justify-between mb-4 sm:mb-6 pb-2.5 sm:pb-3 border-b border-gray-200/60 px-1">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-5 bg-black rounded-full"></span>
@@ -5602,8 +5602,8 @@ export default function App() {
 
         return (
           <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#F9FAFB] pb-16 animate-page-view" dir="rtl">
-            {/* محتوى صفحة القسم: المنتجات فقط مع هوامش يمين ويسار */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-8 md:px-12 lg:px-14 py-6 font-normal">
+            {/* محتوى صفحة القسم: المنتجات فقط */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {categoryProducts.length === 0 ? (
                 <div className="text-center py-20 px-4 bg-white rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
                   <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 text-2xl">
