@@ -993,6 +993,36 @@ export default function AdminDashboard({
     let walletDeductedToast = '';
 
     if (newStatus === 'مكتمل' && targetOrder) {
+      // فحص رصيد محفظة العميل مسبقاً وتنبيه المدير قبل التأكيد إذا كان الطلب يتعدى رصيد المحفظة
+      const matchedCust = customers.find(c =>
+        (targetOrder.customerId && c.id === targetOrder.customerId) ||
+        (targetOrder.customerIdentifier && (c.identifier === targetOrder.customerIdentifier || c.phone === targetOrder.customerIdentifier || c.email === targetOrder.customerIdentifier)) ||
+        (targetOrder.customerPhone && (c.phone === targetOrder.customerPhone || c.identifier === targetOrder.customerPhone)) ||
+        (targetOrder.customer && (
+          c.name === targetOrder.customer ||
+          c.name === (targetOrder.customer || '').replace(/\s*\([^)]*\)/g, '').trim()
+        ))
+      );
+
+      const orderCostCheck = parseFloat(targetOrder.totalUsd || 0);
+      const custBalCheck = matchedCust ? parseFloat(matchedCust.balance || 0) : 0;
+
+      // إذا لم يتم الخصم مسبقاً وسعر الطلب أكبر من رصيد المحفظة المتوفر
+      if (!targetOrder.walletDeducted && orderCostCheck > custBalCheck) {
+        const shortage = (orderCostCheck - custBalCheck).toFixed(2);
+        const confirmMsg = `⚠️ تنبيه للمدير قبل إكمال الطلب #${targetOrder.id}:\n\n` +
+          `• قيمة الطلب: $${orderCostCheck.toFixed(2)}\n` +
+          `• رصيد محفظة العميل (${matchedCust?.name || targetOrder.customer}): $${custBalCheck.toFixed(2)}\n` +
+          `• النقص في المحفظة: $${shortage}\n\n` +
+          `قيمة الطلب أكبر من رصيد المحفظة المتوفر للعميل!\n` +
+          `هل تريد الاستمرار وتغيير حالة الطلب إلى "مكتمل" على أي حال؟`;
+        
+        const proceed = window.confirm(confirmMsg);
+        if (!proceed) {
+          return; // إلغاء العملية بناءً على رغبة المدير
+        }
+      }
+
       // 1. تسليم أكواد البطاقات الرقمية إن وجدت
       if (!targetOrder.fulfilledKeys || targetOrder.fulfilledKeys.length === 0) {
         if (Array.isArray(targetOrder.items) && targetOrder.items.length > 0) {
@@ -1198,10 +1228,11 @@ export default function AdminDashboard({
 
       if (newStatus === 'مكتمل') {
         notifTitle = `اكتمل طلبك بنجاح! 🎉 #${targetOrder.id}`;
+        const walletText = targetOrder.walletDeducted ? ` وتم خصم $${parseFloat(targetOrder.walletDeductedAmount || 0).toFixed(2)} من محفظتك.` : '';
         if (assignedKeys.length > 0) {
-          statusMsg = `تم إكمال طلبك وتسليم الأكواد بنجاح. يمكنك مراجعة الأكواد في تفاصيل الطلب الآن.`;
+          statusMsg = `تم إكمال طلبك وتسليم الأكواد بنجاح${walletText}. يمكنك مراجعة الأكواد في تفاصيل الطلب الآن.`;
         } else {
-          statusMsg = `تم تنفيذ طلبك بنجاح وتسليمه. نشكرك لاختيارك متجرنا!`;
+          statusMsg = `تم تنفيذ طلبك بنجاح وتسليمه${walletText}. نشكرك لاختيارك متجرنا!`;
         }
       } else if (newStatus === 'قيد التنفيذ') {
         notifTitle = `طلبك قيد التنفيذ الآن ⚡ #${targetOrder.id}`;
