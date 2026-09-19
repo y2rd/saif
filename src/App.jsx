@@ -252,8 +252,16 @@ export default function App() {
     return () => window.removeEventListener('app-show-modal', handleCustomAppModal);
   }, []);
 
+  const lastBannerRef = useRef({ title: '', time: 0 });
+
   const showNotificationBanner = (title, message, type = 'info') => {
-    setInAppBanner({ title, message, type, id: Date.now() });
+    const now = Date.now();
+    if (lastBannerRef.current.title === title && (now - lastBannerRef.current.time) < 4000) {
+      return; // منع إطلاق نفس الإشعار خلال 4 ثوانٍ
+    }
+    lastBannerRef.current = { title, time: now };
+
+    setInAppBanner({ title, message, type, id: now });
     triggerDeviceNotification(title, message);
     setTimeout(() => {
       setInAppBanner(prev => (prev && prev.title === title ? null : prev));
@@ -2042,9 +2050,14 @@ export default function App() {
     if (targetIdentifierOrId === 'all') {
       setCustomers(prev => {
         const updated = prev.map(c => {
+          const currentList = Array.isArray(c.notifications) ? c.notifications : [];
+          // منع تكرار نفس الإشعار إذا كان موجوداً
+          if (currentList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
+            return c;
+          }
           const u = {
             ...c,
-            notifications: [newNotif, ...(c.notifications || [])]
+            notifications: [newNotif, ...currentList]
           };
           syncCustomerToCloud(u);
           return u;
@@ -2055,21 +2068,29 @@ export default function App() {
         return updated;
       });
       if (currentUser) {
-        const merged = { ...currentUser, notifications: [newNotif, ...(currentUser.notifications || [])] };
-        setCurrentUser(merged);
-        try {
-          localStorage.setItem('haider_current_user', JSON.stringify(merged));
-        } catch (e) {}
+        const curList = Array.isArray(currentUser.notifications) ? currentUser.notifications : [];
+        if (!curList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
+          const merged = { ...currentUser, notifications: [newNotif, ...curList] };
+          setCurrentUser(merged);
+          try {
+            localStorage.setItem('haider_current_user', JSON.stringify(merged));
+          } catch (e) {}
+        }
       }
+      showNotificationBanner(newNotif.title, newNotif.message, newNotif.type || 'info');
       return;
     }
 
     setCustomers(prev => {
       const updated = prev.map(c => {
         if (c.id === targetIdentifierOrId || c.identifier === targetIdentifierOrId || c.phone === targetIdentifierOrId || c.name === targetIdentifierOrId) {
+          const currentList = Array.isArray(c.notifications) ? c.notifications : [];
+          if (currentList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
+            return c;
+          }
           const u = {
             ...c,
-            notifications: [newNotif, ...(c.notifications || [])]
+            notifications: [newNotif, ...currentList]
           };
           syncCustomerToCloud(u);
           return u;

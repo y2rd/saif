@@ -2098,29 +2098,11 @@ export default function AdminDashboard({
     };
 
     if (broadcastTarget === 'all') {
-      const updated = customers.map(c => ({
-        ...c,
-        notifications: [notif, ...(c.notifications || [])]
-      }));
-      setCustomers(updated);
-      try {
-        localStorage.setItem('haider_store_customers', JSON.stringify(updated));
-      } catch (e) {}
       if (sendNotification) {
         sendNotification('all', notif);
       }
       showToast('📢 تم إرسال الإشعار لجميع العملاء بنجاح!');
     } else {
-      const updated = customers.map(c => c.id === broadcastTarget ? ({
-        ...c,
-        notifications: [notif, ...(c.notifications || [])]
-      }) : c);
-      setCustomers(updated);
-      const targetC = customers.find(c => c.id === broadcastTarget);
-      if (targetC) syncCustomerToCloud({ ...targetC, notifications: [notif, ...(targetC.notifications || [])] });
-      try {
-        localStorage.setItem('haider_store_customers', JSON.stringify(updated));
-      } catch (e) {}
       if (sendNotification) {
         sendNotification(broadcastTarget, notif);
       }
