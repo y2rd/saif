@@ -1122,6 +1122,8 @@ export default function AdminDashboard({
             walletDeductedToast = ` وتم خصم ${orderCost} $ من محفظة العميل (المتبقي: ${newBal} $)`;
             targetOrder.walletDeducted = true;
             targetOrder.walletDeductedAmount = orderCost;
+            targetOrder.walletBalanceBefore = currentBal;
+            targetOrder.walletBalanceAfter = newBal;
           } else if (orderCost > 0) {
             // رصيد المحفظة لا يكفي
             const shortage = (orderCost - currentBal).toFixed(2);
@@ -1195,6 +1197,8 @@ export default function AdminDashboard({
           fulfilledKeys: assignedKeys.length > 0 ? assignedKeys : (o.fulfilledKeys || []),
           walletDeducted: targetOrder?.walletDeducted || o.walletDeducted || false,
           walletDeductedAmount: targetOrder?.walletDeductedAmount || o.walletDeductedAmount || 0,
+          walletBalanceBefore: targetOrder?.walletBalanceBefore ?? o.walletBalanceBefore ?? null,
+          walletBalanceAfter: targetOrder?.walletBalanceAfter ?? o.walletBalanceAfter ?? null,
           walletWarning: targetOrder?.walletWarning || o.walletWarning || null
         };
       }
@@ -3554,17 +3558,27 @@ service cloud.firestore {
                                 </span>
                               )}
                               {ord.walletDeducted && (
-                                <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">
-                                  ✓ تم خصم المحفظة
-                                </span>
+                                <div className="mt-1 space-y-0.5">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold text-[10px] border border-emerald-200">
+                                    <i className="fa-solid fa-wallet text-[9px]"></i>
+                                    <span>مدفوع من المحفظة</span>
+                                  </span>
+                                  {(ord.walletBalanceBefore !== undefined && ord.walletBalanceBefore !== null) && (
+                                    <div className="text-[9.5px] font-mono text-gray-500">
+                                      <span>سابقاً: ${parseFloat(ord.walletBalanceBefore).toFixed(2)}</span>
+                                      <span className="mx-1 text-gray-300">←</span>
+                                      <span className="font-bold text-emerald-700">بعده: ${parseFloat(ord.walletBalanceAfter || 0).toFixed(2)}</span>
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </td>
 
                             {/* طريقة الدفع: نص نقي مع أيقونة سوداء */}
                             <td className="py-2 px-2 whitespace-nowrap">
                               <div className="flex items-center gap-1.5 text-xs text-gray-800 font-medium">
-                                <i className="fa-solid fa-credit-card text-black text-[11px]"></i>
-                                <span>{ord.method}</span>
+                                <i className={`fa-solid ${ord.method === 'المحفظة' || ord.walletDeducted ? 'fa-wallet text-emerald-600' : 'fa-credit-card text-black'} text-[11px]`}></i>
+                                <span>{ord.method === 'المحفظة' || ord.walletDeducted ? 'مدفوع من المحفظة' : ord.method}</span>
                               </div>
                             </td>
 
@@ -10357,9 +10371,35 @@ service cloud.firestore {
               )}
 
               {selectedOrderDetails.walletDeducted && (
-                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-800 text-xs font-semibold">
-                  <i className="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
-                  <span>تم خصم مبلغ الطلب ({selectedOrderDetails.walletDeductedAmount || selectedOrderDetails.totalUsd} $) من محفظة العميل بنجاح.</span>
+                <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl space-y-2 text-emerald-900 text-xs">
+                  <div className="flex items-center gap-2 font-bold">
+                    <i className="fa-solid fa-wallet text-emerald-600 text-sm"></i>
+                    <span>مدفوع من المحفظة (تم الخصم بنجاح)</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 bg-white/80 p-2 rounded-lg border border-emerald-100 font-mono text-center">
+                    <div>
+                      <span className="text-[10px] text-gray-500 font-sans block">الرصيد سابقاً:</span>
+                      <span className="font-bold text-gray-800">
+                        {selectedOrderDetails.walletBalanceBefore !== undefined && selectedOrderDetails.walletBalanceBefore !== null
+                          ? `$${parseFloat(selectedOrderDetails.walletBalanceBefore).toFixed(2)}`
+                          : 'غير مسجل'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 font-sans block">المبلغ المخصوم:</span>
+                      <span className="font-bold text-red-600">
+                        -${parseFloat(selectedOrderDetails.walletDeductedAmount || selectedOrderDetails.totalUsd).toFixed(2)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 font-sans block">الرصيد بعد الشراء:</span>
+                      <span className="font-bold text-emerald-700">
+                        {selectedOrderDetails.walletBalanceAfter !== undefined && selectedOrderDetails.walletBalanceAfter !== null
+                          ? `$${parseFloat(selectedOrderDetails.walletBalanceAfter).toFixed(2)}`
+                          : 'غير مسجل'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
 

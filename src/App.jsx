@@ -2352,6 +2352,8 @@ export default function App() {
         method: 'المحفظة',
         walletDeducted: true,
         walletDeductedAmount: orderCost,
+        walletBalanceBefore: currentBal,
+        walletBalanceAfter: newBal,
         fulfilledKeys: assignedKeys,
         proof: '',
         txId: `دفع مباشر من المحفظة - ${newTx.id}`,
