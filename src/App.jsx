@@ -5387,7 +5387,7 @@ export default function App() {
                               {/* 2. محتوى البطاقة: العنوان مع مسافات مقلصة ومضبوطة */}
                               <div className="p-2 sm:p-2.5 pb-0.5 text-right">
                                 <h3
-                                  className="text-[11.5px] sm:text-xs md:text-[13px] font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
+                                  className="text-[10.5px] sm:text-[11.5px] md:text-xs font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
                                   title={item.title}
                                 >
                                   {item.title}
@@ -5686,9 +5686,9 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-3 sm:p-4 pb-1 sm:pb-1 text-right">
+                          <div className="p-2 sm:p-2.5 pb-0.5 text-right">
                             <h3
-                              className="text-xs sm:text-[13px] md:text-sm font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
+                              className="text-[10.5px] sm:text-[11.5px] md:text-xs font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug"
                               title={item.title}
                             >
                               {item.title}
@@ -6647,7 +6647,7 @@ function AutoMovingProductsCarousel({
               {/* 2. عنوان المنتج ممركز أو في اليمين بشكل أنيق ومدمج */}
               <div className="p-2 pb-0.5 text-center">
                 <h3
-                  className="text-[11px] sm:text-xs font-bold text-gray-900 line-clamp-1 leading-snug"
+                  className="text-[10px] sm:text-[11px] font-bold text-gray-900 line-clamp-1 leading-snug"
                   title={p.title}
                 >
                   {p.title}
