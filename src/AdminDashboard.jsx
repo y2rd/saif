@@ -3052,7 +3052,7 @@ export default function AdminDashboard({
                                   {isExchangeType ? (
                                     <div className="font-bold text-sky-800 text-xs flex items-center gap-1">
                                       <i className="fa-solid fa-rotate text-[10px]"></i>
-                                      <span>مبادلة: {p.exchangeCurrencyName || 'مطلوب'}</span>
+                                      <span>مبادلة</span>
                                     </div>
                                   ) : (
                                     <>
