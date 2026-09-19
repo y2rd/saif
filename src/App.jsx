@@ -5444,9 +5444,9 @@ export default function App() {
                                     setViewMode('product-detail');
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                   }}
-                                  className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                                 >
-                                  <i className="fa-solid fa-right-left text-teal-700 text-xs"></i>
+                                  <i className="fa-solid fa-right-left text-teal-700 text-[10px]"></i>
                                   <span>طلب المبادلة</span>
                                 </button>
                               ) : isProductRequiringInput(item) ? (
@@ -5458,9 +5458,9 @@ export default function App() {
                                     setViewMode('product-detail');
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                   }}
-                                  className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                                 >
-                                  <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-xs"></i>
+                                  <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-[10px]"></i>
                                   <span>تحديد البيانات</span>
                                 </button>
                               ) : (
@@ -5470,9 +5470,9 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                                 >
-                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[11px]"></i>
+                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[10px]"></i>
                                   <span>{buttonText || 'إضافة للسلة'}</span>
                                 </button>
                               )}
@@ -5745,9 +5745,9 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                             >
-                              <i className="fa-solid fa-right-left text-teal-700 text-xs"></i>
+                              <i className="fa-solid fa-right-left text-teal-700 text-[10px]"></i>
                               <span>طلب المبادلة</span>
                             </button>
                           ) : isProductRequiringInput(item) ? (
@@ -5759,9 +5759,9 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs sm:text-[13px] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                             >
-                              <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-xs"></i>
+                              <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-[10px]"></i>
                               <span>تحديد البيانات</span>
                             </button>
                               ) : (
@@ -5771,9 +5771,9 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[11px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs group/btn"
                                 >
-                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[11px]"></i>
+                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-black text-[10px]"></i>
                                   <span>إضافة للسلة</span>
                                 </button>
                               )}
@@ -6687,9 +6687,9 @@ function AutoMovingProductsCarousel({
                     setViewMode('product-detail');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full py-2 rounded-xl border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-1.5 rounded-lg border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
-                  <i className="fa-solid fa-right-left text-teal-700 text-xs"></i>
+                  <i className="fa-solid fa-right-left text-teal-700 text-[10px]"></i>
                   <span>طلب المبادلة</span>
                 </button>
               ) : isProductRequiringInput(p) ? (
@@ -6701,9 +6701,9 @@ function AutoMovingProductsCarousel({
                     setViewMode('product-detail');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full py-2 rounded-xl border border-gray-200 hover:border-black bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-1.5 rounded-lg border border-gray-200 hover:border-black bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
-                  <i className="fa-solid fa-pen-to-square text-gray-700 text-xs"></i>
+                  <i className="fa-solid fa-pen-to-square text-gray-700 text-[10px]"></i>
                   <span>تحديد البيانات</span>
                 </button>
               ) : (
@@ -6713,9 +6713,9 @@ function AutoMovingProductsCarousel({
                     e.stopPropagation();
                     handleAddToCart(p, null, '', 1);
                   }}
-                  className="w-full py-2 rounded-xl border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                  className="w-full py-1.5 rounded-lg border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
-                  <i className="fa-solid fa-bag-shopping text-xs"></i>
+                  <i className="fa-solid fa-bag-shopping text-[10px]"></i>
                   <span>أضف إلى السلة</span>
                 </button>
               )}
