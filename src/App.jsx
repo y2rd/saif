@@ -579,6 +579,22 @@ export default function App() {
     } catch (e) {}
   }, [topupRequests]);
 
+  // عدد طلبات الشحن المعلقة التي تحتاج اعتماد المدير
+  const pendingTopupsCount = useMemo(() => {
+    return (topupRequests || []).filter(t => t.status === 'معلق').length;
+  }, [topupRequests]);
+
+  // إجمالي الإشعارات غير المقروءة الخاصة بالمدير (طلبات الشحن المعلقة + الإشعارات الإدارية غير المقروءة)
+  const managerNotificationsCount = useMemo(() => {
+    if (!currentUser) return 0;
+    const unreadCount = (currentUser.notifications || []).filter(n => !n.read).length;
+    if (isManager) {
+      // للمدير: نضمن إظهار كل طلبات الشحن المعلقة حتى لو لم تُدرج كإشعار نصي بعد
+      return Math.max(unreadCount, pendingTopupsCount);
+    }
+    return unreadCount;
+  }, [currentUser, isManager, pendingTopupsCount]);
+
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [topupAmountUsd, setTopupAmountUsd] = useState('');
   const [topupMethod, setTopupMethod] = useState('zaincash');
@@ -1973,6 +1989,7 @@ export default function App() {
       sendTelegramNotification(storeConfig, tgMsg);
     } catch (e) {}
 
+    // إشعار العميل باستلام طلبه
     const notif = {
       id: `notif-${Date.now()}`,
       title: 'تم استلام طلب شحن المحفظة',
@@ -1982,14 +1999,55 @@ export default function App() {
       read: false
     };
 
+    // إشعار فوري لمدير المتجر والمشرفين يظهر باللون الأحمر الغامق
+    const adminTopupNotif = {
+      id: `notif-admin-topup-${newTopup.id}-${Date.now()}`,
+      title: 'طلب شحن محفظة جديد 💳',
+      message: `قام العميل ${newTopup.customerName} بطلب شحن رصيد بقيمة $${amount} (${newTopup.method}). يرجى مراجعة إشعار التحويل واعتماده.`,
+      type: 'admin-topup',
+      topupId: newTopup.id,
+      amount: amount,
+      date: new Date().toISOString(),
+      read: false
+    };
+
+    // تحديث إشعارات جميع المديرين والمشرفين في قائمة العملاء ومزامنتها
+    setCustomers(prevCustomers => {
+      const updatedList = prevCustomers.map(c => {
+        if (c.role === 'admin' || c.role === 'supervisor') {
+          const updatedC = {
+            ...c,
+            notifications: [adminTopupNotif, ...(c.notifications || [])]
+          };
+          syncCustomerToCloud(updatedC);
+          return updatedC;
+        }
+        return c;
+      });
+      try {
+        localStorage.setItem('haider_store_customers', JSON.stringify(updatedList));
+      } catch (e) {}
+      return updatedList;
+    });
+
+    const isCurrentAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor');
+    const userNotifications = isCurrentAdmin
+      ? [adminTopupNotif, notif, ...(currentUser.notifications || [])]
+      : [notif, ...(currentUser.notifications || [])];
+
     const updatedUser = {
       ...currentUser,
-      notifications: [notif, ...(currentUser.notifications || [])]
+      notifications: userNotifications
     };
     setCurrentUser(updatedUser);
     try {
       localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
     } catch (e) {}
+    syncCustomerToCloud(updatedUser);
+
+    if (isCurrentAdmin) {
+      showNotificationBanner('💳 طلب شحن جديد!', `طلب شحن من ${newTopup.customerName} بقيمة $${amount}`, 'admin-topup');
+    }
 
     alert(`✅ تم إرسال طلب الشحن بنجاح (${newTopup.id})! سيتم مراجعته وإيداع الرصيد في محفظتك قريباً.`);
     setIsTopupModalOpen(false);
@@ -2698,13 +2756,22 @@ export default function App() {
                     openAuthModal('login');
                   }
                 }}
-                className="p-2 sm:px-3 sm:py-1.5 rounded-full btn-soft-blur text-gray-700 hover:text-black transition flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95 text-xs font-light"
+                className="relative p-2 sm:px-3 sm:py-1.5 rounded-full btn-soft-blur text-gray-700 hover:text-black transition flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95 text-xs font-light"
                 title={currentUser ? `حساب: ${currentUser.name}` : "تسجيل الدخول / إنشاء حساب"}
               >
                 <i className="fa-regular fa-user text-xs text-gray-700"></i>
                 <span className="hidden md:inline font-light text-gray-800">
                   {currentUser ? currentUser.name : 'تسجيل الدخول'}
                 </span>
+                {/* إشعار أحمر غامق بالعدد عند وجود إشعارات / طلبات شحن جديدة */}
+                {managerNotificationsCount > 0 && (
+                  <span 
+                    className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 bg-[#7F1D1D] text-white rounded-full text-[9px] font-extrabold flex items-center justify-center shadow-md animate-pulse border border-white"
+                    title={`لديك ${managerNotificationsCount} إشعارات غير مقروءة`}
+                  >
+                    {managerNotificationsCount > 99 ? '+99' : managerNotificationsCount}
+                  </span>
+                )}
               </button>
 
               {/* القائمة المنسدلة المحدثة بالأيقونات والعناصر المطلوبة */}
@@ -2730,10 +2797,17 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => openAuthModal('login', 'notifications')}
-                      className="w-full px-4 py-2 text-xs text-gray-700 hover:text-black hover:bg-gray-50/90 transition flex items-center gap-3 cursor-pointer"
+                      className="w-full px-4 py-2 text-xs text-gray-700 hover:text-black hover:bg-gray-50/90 transition flex items-center justify-between cursor-pointer group"
                     >
-                      <i className="fa-regular fa-bell text-sm text-gray-500 w-4 text-center"></i>
-                      <span className="font-normal text-gray-700">الإشعارات</span>
+                      <div className="flex items-center gap-3">
+                        <i className="fa-regular fa-bell text-sm text-gray-500 w-4 text-center group-hover:text-black"></i>
+                        <span className="font-normal text-gray-700 group-hover:text-black">الإشعارات</span>
+                      </div>
+                      {managerNotificationsCount > 0 && (
+                        <span className="bg-[#7F1D1D] text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse shadow-2xs">
+                          {managerNotificationsCount}
+                        </span>
+                      )}
                     </button>
 
                     {/* 2. الطلبات */}
@@ -2842,12 +2916,20 @@ export default function App() {
             {(isManager || viewMode === 'admin') && (
               <button
                 onClick={handleOpenAdminPanel}
-                className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 shadow-xs text-white hover:opacity-90 active:scale-95 cursor-pointer shrink-0"
+                className="relative px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 shadow-xs text-white hover:opacity-90 active:scale-95 cursor-pointer shrink-0"
                 style={{ backgroundColor: storeConfig.primaryColor }}
                 title={viewMode === 'admin' ? 'الرجوع للمتجر' : 'دخول لوحة التحكم'}
               >
                 <i className={`fa-solid ${viewMode === 'admin' ? 'fa-store' : 'fa-gear'} text-white text-[11px] sm:text-xs`}></i>
                 <span>{viewMode === 'admin' ? 'المتجر' : 'الإدارة'}</span>
+                {viewMode !== 'admin' && managerNotificationsCount > 0 && (
+                  <span 
+                    className="min-w-[17px] h-[17px] px-1 bg-[#7F1D1D] text-white rounded-full text-[9px] font-extrabold flex items-center justify-center shadow-md animate-pulse border border-white"
+                    title={`يوجد ${managerNotificationsCount} إشعار وطلب شحن معلق`}
+                  >
+                    {managerNotificationsCount > 99 ? '+99' : managerNotificationsCount}
+                  </span>
+                )}
               </button>
             )}
 
@@ -3393,27 +3475,65 @@ export default function App() {
                           </button>
                         </div>
                         <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
-                          {currentUser.notifications.map((notif, idx) => (
-                            <div
-                              key={notif.id || idx}
-                              className={`p-3 rounded-2xl border transition text-xs space-y-1 ${
-                                notif.read ? 'bg-gray-50/70 border-gray-100 text-gray-700' : 'bg-emerald-50/50 border-emerald-200 text-gray-900 shadow-2xs'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 font-bold">
-                                  <span className="text-sm">
-                                    {notif.type === 'wallet' ? '💰' : notif.type === 'order' ? '📦' : notif.type === 'promo' ? '🔥' : '🔔'}
+                          {currentUser.notifications.map((notif, idx) => {
+                            const isAdminTopup = notif.type === 'admin-topup';
+                            return (
+                              <div
+                                key={notif.id || idx}
+                                className={`p-3 rounded-2xl border transition text-xs space-y-1.5 ${
+                                  isAdminTopup
+                                    ? notif.read 
+                                      ? 'bg-rose-50/50 border-rose-200 text-rose-950' 
+                                      : 'bg-[#7F1D1D]/10 border-[#7F1D1D]/40 text-gray-950 shadow-xs ring-1 ring-[#7F1D1D]/30'
+                                    : notif.read 
+                                      ? 'bg-gray-50/70 border-gray-100 text-gray-700' 
+                                      : 'bg-emerald-50/50 border-emerald-200 text-gray-900 shadow-2xs'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 font-bold">
+                                    {isAdminTopup ? (
+                                      <span className="w-6 h-6 rounded-full bg-[#7F1D1D] text-white flex items-center justify-center text-[11px] shadow-2xs shrink-0">
+                                        💳
+                                      </span>
+                                    ) : (
+                                      <span className="text-sm">
+                                        {notif.type === 'wallet' ? '💰' : notif.type === 'order' ? '📦' : notif.type === 'promo' ? '🔥' : '🔔'}
+                                      </span>
+                                    )}
+                                    <span className={isAdminTopup ? 'text-[#7F1D1D] font-extrabold text-[12px]' : ''}>
+                                      {notif.title}
+                                    </span>
+                                    {isAdminTopup && !notif.read && (
+                                      <span className="bg-[#7F1D1D] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
+                                        جديد
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] text-gray-400 font-mono">
+                                    {notif.date ? new Date(notif.date).toLocaleDateString('ar-IQ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                                   </span>
-                                  <span>{notif.title}</span>
                                 </div>
-                                <span className="text-[10px] text-gray-400 font-mono">
-                                  {notif.date ? new Date(notif.date).toLocaleDateString('ar-IQ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
-                                </span>
+                                <p className="text-[11px] text-gray-700 leading-relaxed pr-8">{notif.message}</p>
+                                {isAdminTopup && isManager && (
+                                  <div className="pr-8 pt-1 flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        closeAuthModal();
+                                        setViewMode('admin');
+                                        setAdminSection('payments');
+                                      }}
+                                      className="px-3 py-1 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-bold text-[10px] rounded-lg shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                    >
+                                      <i className="fa-solid fa-credit-card text-[9px]"></i>
+                                      <span>مراجعة واعتماد الطلب في لوحة الإدارة</span>
+                                    </button>
+                                  </div>
+                                )}
                               </div>
-                              <p className="text-[11px] text-gray-600 leading-relaxed pr-6">{notif.message}</p>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ) : (

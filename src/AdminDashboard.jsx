@@ -579,6 +579,10 @@ export default function AdminDashboard({
     return orders.filter(o => o.status === 'قيد المراجعة').length;
   }, [orders]);
 
+  const pendingTopupsCount = useMemo(() => {
+    return (topupRequests || []).filter(t => t.status === 'معلق').length;
+  }, [topupRequests]);
+
   // حالات محرر وتخصيص صفحات المتجر بنمط سلة (Visual Page Builder)
   const [customizerViewport, setCustomizerViewport] = useState('desktop'); // 'desktop' أو 'mobile'
   const [customizerMobileTab, setCustomizerMobileTab] = useState('sections'); // 'sections' (العناصر) أو 'preview' (المعاينة)
@@ -2030,7 +2034,7 @@ export default function AdminDashboard({
           { id: 'fonts', label: 'المظهر', icon: 'fa-palette' },
           { id: 'features', label: 'المميزات السريعة', icon: 'fa-bolt' },
           { id: 'loyalty', label: 'الولاء والمكافآت', icon: 'fa-gift' },
-          { id: 'payments', label: 'الدفع', icon: 'fa-credit-card' },
+          { id: 'payments', label: 'الدفع', icon: 'fa-credit-card', badge: pendingTopupsCount, badgeColor: 'bg-[#7F1D1D]' },
           { id: 'cloud-backup', label: 'النسخ والسحابة', icon: 'fa-cloud-arrow-up' }
         ].map(tab => (
           <button
@@ -2051,7 +2055,7 @@ export default function AdminDashboard({
             <i className={`fa-solid ${tab.icon} text-xs`}></i>
             <span className="leading-none">{tab.label}</span>
             {tab.badge > 0 && (
-              <span className="bg-amber-500 text-white rounded-full px-1.5 py-0.2 text-[9px] font-bold leading-none">
+              <span className={`${tab.badgeColor || 'bg-amber-500'} text-white rounded-full px-1.5 py-0.2 text-[9px] font-bold leading-none animate-pulse`}>
                 {tab.badge}
               </span>
             )}
@@ -2423,12 +2427,19 @@ export default function AdminDashboard({
 
                 <button
                   onClick={() => { setActiveTab('payments'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
                     activeTab === 'payments' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
-                  <i className={`fa-solid fa-credit-card text-sm ${activeTab === 'payments' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                  <span>وسائل الدفع والباركود</span>
+                  <div className="flex items-center gap-2.5">
+                    <i className={`fa-solid fa-credit-card text-sm ${activeTab === 'payments' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                    <span>وسائل الدفع والباركود</span>
+                  </div>
+                  {pendingTopupsCount > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7F1D1D] text-white font-bold animate-pulse shadow-2xs">
+                      {pendingTopupsCount} طلب شحن
+                    </span>
+                  )}
                 </button>
 
                 <button
