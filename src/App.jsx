@@ -3547,7 +3547,7 @@ export default function App() {
                                         onClick={() => {
                                           closeAuthModal();
                                           setViewMode('admin');
-                                          setAdminSection({ tab: 'payments', ts: Date.now() });
+                                          setAdminSection({ tab: 'customers', ts: Date.now() });
                                         }}
                                         className="px-3 py-1 bg-[#7F1D1D] hover:bg-[#991B1B] text-white font-bold text-[10px] rounded-lg shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
                                       >
