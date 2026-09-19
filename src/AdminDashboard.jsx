@@ -45,8 +45,14 @@ export default function AdminDashboard({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // عند تغيير التاب من الخارج (مثل الضغط على "مراجعة واعتماد" من الإشعارات)
+  // نستخدم ref لتجاهل أول تشغيل عند mount لمنع تجاوز initialTab
+  const activeSectionMountedRef = useRef(false);
   useEffect(() => {
-    if (activeSection && activeSection !== activeTab) {
+    if (!activeSectionMountedRef.current) {
+      activeSectionMountedRef.current = true;
+      return; // تجاهل أول تشغيل (mount)
+    }
+    if (activeSection) {
       setActiveTab(activeSection);
       setMobileMenuOpen(false);
     }

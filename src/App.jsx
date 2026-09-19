@@ -106,7 +106,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState('store'); // 'store' أو 'admin' أو 'product-detail' أو 'category' أو 'custom-page'
   const [activeProductForPage, setActiveProductForPage] = useState(null);
   const [activeCustomPage, setActiveCustomPage] = useState(null); // الصفحة التعريفية المفتوحة للقراءة
-  const [adminSection, setAdminSection] = useState('settings'); // التوجه المباشر للإعدادات لتجربة رفع الباركود
+  const [adminSection, setAdminSection] = useState(null); // التوجه المباشر لتاب محدد عند الفتح (null = لا توجيه)
 
   // العملة والمعروض: 'USD' أو 'IQD'، ولغة المتجر: 'ar' أو 'en'
   const [activeCurrency, setActiveCurrency] = useState('USD');
