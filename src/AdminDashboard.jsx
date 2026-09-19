@@ -1189,6 +1189,81 @@ export default function AdminDashboard({
       }
     }
 
+    // معالجة استرجاع الرصيد إلى محفظة العميل عند إلغاء الطلب (إذا كان مدفوعاً من المحفظة ولم يتم استرجاعه مسبقاً)
+    let walletRefundToast = '';
+    if (newStatus === 'ملغي' && targetOrder) {
+      const isPaidByWallet = targetOrder.walletDeducted || targetOrder.method === 'المحفظة';
+      const alreadyRefunded = !!targetOrder.walletRefunded;
+
+      if (isPaidByWallet && !alreadyRefunded) {
+        const refundAmount = parseFloat(targetOrder.walletDeductedAmount || targetOrder.totalUsd || 0);
+
+        if (refundAmount > 0) {
+          const targetCust = customers.find(c =>
+            (targetOrder.customerId && c.id === targetOrder.customerId) ||
+            (targetOrder.customerIdentifier && (c.identifier === targetOrder.customerIdentifier || c.phone === targetOrder.customerIdentifier || c.email === targetOrder.customerIdentifier)) ||
+            (targetOrder.customerPhone && (c.phone === targetOrder.customerPhone || c.identifier === targetOrder.customerPhone)) ||
+            (targetOrder.customer && (
+              c.name === targetOrder.customer ||
+              c.name === (targetOrder.customer || '').replace(/\s*\([^)]*\)/g, '').trim()
+            ))
+          );
+
+          const custName = targetCust?.name || targetOrder.customer || 'العميل';
+          const currentBal = targetCust ? parseFloat(targetCust.balance || 0) : 0;
+
+          const shouldRefund = window.confirm(
+            `💰 استرجاع رصيد المحفظة للطلب الملغي #${targetOrder.id}:\n\n` +
+            `• العميل: ${custName}\n` +
+            `• المبلغ المدفوع من المحفظة: $${refundAmount.toFixed(2)}\n` +
+            `• رصيد العميل الحالي: $${currentBal.toFixed(2)}\n` +
+            `• الرصيد بعد الاسترجاع: $${(currentBal + refundAmount).toFixed(2)}\n\n` +
+            `هل ترغب بإرجاع المبلغ ($${refundAmount.toFixed(2)}) إلى محفظة العميل تلقائياً؟`
+          );
+
+          if (shouldRefund && targetCust) {
+            const newBal = parseFloat((currentBal + refundAmount).toFixed(2));
+            const refundTx = {
+              id: `tx_refund_${Date.now()}`,
+              type: 'deposit',
+              amount: refundAmount,
+              balanceAfter: newBal,
+              title: `استرجاع رصيد للطلب الملغي #${targetOrder.id}`,
+              date: new Date().toISOString()
+            };
+
+            const updatedCust = {
+              ...targetCust,
+              balance: newBal,
+              walletTransactions: [refundTx, ...(targetCust.walletTransactions || [])]
+            };
+
+            const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
+            setCustomers(updatedCustomersList);
+            syncCustomerToCloud(updatedCust);
+            try {
+              localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+              const savedCur = localStorage.getItem('haider_current_user');
+              if (savedCur) {
+                const parsedCur = JSON.parse(savedCur);
+                if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
+                  const mergedUser = { ...parsedCur, ...updatedCust };
+                  localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+                  if (setCurrentUser) setCurrentUser(mergedUser);
+                }
+              }
+            } catch (err) {}
+
+            targetOrder.walletRefunded = true;
+            targetOrder.walletRefundedAmount = refundAmount;
+            targetOrder.walletRefundedDate = new Date().toISOString();
+            targetOrder.walletBalanceAfterRefund = newBal;
+            walletRefundToast = ` 💸 وتم إرجاع $${refundAmount.toFixed(2)} لمحفظة العميل (الرصيد الجديد: $${newBal.toFixed(2)})`;
+          }
+        }
+      }
+    }
+
     const updatedOrders = orders.map(o => {
       if (o.id === orderId) {
         return {
@@ -1199,7 +1274,11 @@ export default function AdminDashboard({
           walletDeductedAmount: targetOrder?.walletDeductedAmount || o.walletDeductedAmount || 0,
           walletBalanceBefore: targetOrder?.walletBalanceBefore ?? o.walletBalanceBefore ?? null,
           walletBalanceAfter: targetOrder?.walletBalanceAfter ?? o.walletBalanceAfter ?? null,
-          walletWarning: targetOrder?.walletWarning || o.walletWarning || null
+          walletWarning: targetOrder?.walletWarning || o.walletWarning || null,
+          walletRefunded: targetOrder?.walletRefunded ?? o.walletRefunded ?? false,
+          walletRefundedAmount: targetOrder?.walletRefundedAmount ?? o.walletRefundedAmount ?? null,
+          walletRefundedDate: targetOrder?.walletRefundedDate ?? o.walletRefundedDate ?? null,
+          walletBalanceAfterRefund: targetOrder?.walletBalanceAfterRefund ?? o.walletBalanceAfterRefund ?? null
         };
       }
       return o;
@@ -1243,7 +1322,10 @@ export default function AdminDashboard({
         statusMsg = `فريق العمل يقوم بتجهيز وتسليم طلبك رقم #${targetOrder.id} حالياً.`;
       } else if (newStatus === 'ملغي') {
         notifTitle = `تم إلغاء الطلب #${targetOrder.id} ❌`;
-        statusMsg = `تم إلغاء طلبك رقم #${targetOrder.id}. يرجى التواصل مع الدعم الفني لمزيد من التفاصيل.`;
+        const refundNote = targetOrder.walletRefunded
+          ? ` وتمت إعادة مبلغ الطلب ($${parseFloat(targetOrder.walletRefundedAmount || 0).toFixed(2)}) إلى محفظتك بنجاح.`
+          : '';
+        statusMsg = `تم إلغاء طلبك رقم #${targetOrder.id}${refundNote} يرجى التواصل مع الدعم الفني لمزيد من التفاصيل.`;
       } else if (newStatus === 'قيد المراجعة') {
         notifTitle = `طلبك قيد المراجعة 🕒 #${targetOrder.id}`;
         statusMsg = `طلبك رقم #${targetOrder.id} قيد المراجعة والتدقيق حالياً.`;
@@ -1293,14 +1375,18 @@ export default function AdminDashboard({
         fulfilledKeys: assignedKeys.length > 0 ? assignedKeys : (prev.fulfilledKeys || []),
         walletDeducted: targetOrder?.walletDeducted || prev.walletDeducted || false,
         walletDeductedAmount: targetOrder?.walletDeductedAmount || prev.walletDeductedAmount || 0,
-        walletWarning: targetOrder?.walletWarning || prev.walletWarning || null
+        walletWarning: targetOrder?.walletWarning || prev.walletWarning || null,
+        walletRefunded: targetOrder?.walletRefunded ?? prev.walletRefunded ?? false,
+        walletRefundedAmount: targetOrder?.walletRefundedAmount ?? prev.walletRefundedAmount ?? null,
+        walletRefundedDate: targetOrder?.walletRefundedDate ?? prev.walletRefundedDate ?? null,
+        walletBalanceAfterRefund: targetOrder?.walletBalanceAfterRefund ?? prev.walletBalanceAfterRefund ?? null
       }));
     }
 
     if (newStatus === 'مكتمل' && assignedKeys.length > 0) {
       showToast(`تم إكمال الطلب وتسليم ${assignedKeys.length} كود بنجاح للعميل!${walletDeductedToast}`);
     } else {
-      showToast(`تم تحديث حالة الطلب إلى "${newStatus}"${walletDeductedToast}`);
+      showToast(`تم تحديث حالة الطلب إلى "${newStatus}"${walletDeductedToast}${walletRefundToast}`);
     }
   };
 
@@ -10456,25 +10542,55 @@ service cloud.firestore {
                     </div>
 
                     {isWalletOrder && (
-                      <div className="grid grid-cols-3 gap-2 bg-white/90 p-2.5 rounded-lg border border-emerald-100 font-mono text-center">
-                        <div>
-                          <span className="text-[10px] text-gray-500 font-sans block">الرصيد قبل الشراء:</span>
-                          <span className="font-bold text-gray-800 text-xs sm:text-sm">
-                            {balBefore !== null ? `$${balBefore.toFixed(2)}` : (currentCustBalance !== null ? `$${(currentCustBalance + orderCost).toFixed(2)}` : '—')}
-                          </span>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-3 gap-2 bg-white/90 p-2.5 rounded-lg border border-emerald-100 font-mono text-center">
+                          <div>
+                            <span className="text-[10px] text-gray-500 font-sans block">الرصيد قبل الشراء:</span>
+                            <span className="font-bold text-gray-800 text-xs sm:text-sm">
+                              {balBefore !== null ? `$${balBefore.toFixed(2)}` : (currentCustBalance !== null ? `$${(currentCustBalance + orderCost).toFixed(2)}` : '—')}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-gray-500 font-sans block">المبلغ المخصوم:</span>
+                            <span className="font-bold text-red-600 text-xs sm:text-sm">
+                              -${orderCost.toFixed(2)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-gray-500 font-sans block">الرصيد بعد الشراء:</span>
+                            <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                              {balAfter !== null ? `$${balAfter.toFixed(2)}` : (balBefore !== null ? `$${Math.max(0, balBefore - orderCost).toFixed(2)}` : '—')}
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-[10px] text-gray-500 font-sans block">المبلغ المخصوم:</span>
-                          <span className="font-bold text-red-600 text-xs sm:text-sm">
-                            -${orderCost.toFixed(2)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-gray-500 font-sans block">الرصيد بعد الشراء:</span>
-                          <span className="font-bold text-emerald-700 text-xs sm:text-sm">
-                            {balAfter !== null ? `$${balAfter.toFixed(2)}` : (balBefore !== null ? `$${Math.max(0, balBefore - orderCost).toFixed(2)}` : '—')}
-                          </span>
-                        </div>
+
+                        {/* حالة استرجاع الرصيد في حال كان الطلب ملغياً */}
+                        {selectedOrderDetails.walletRefunded ? (
+                          <div className="p-2 bg-emerald-100/90 border border-emerald-300 rounded-lg flex items-center justify-between text-[11px] text-emerald-900 font-bold">
+                            <span className="flex items-center gap-1.5">
+                              <span>✅</span>
+                              <span>تم إرجاع الرصيد لمسؤول المحفظة (${parseFloat(selectedOrderDetails.walletRefundedAmount || orderCost).toFixed(2)}) بنجاح</span>
+                            </span>
+                            {selectedOrderDetails.walletBalanceAfterRefund && (
+                              <span className="font-mono bg-white px-2 py-0.5 rounded text-emerald-800 border border-emerald-200">
+                                الرصيد بعد الإرجاع: ${parseFloat(selectedOrderDetails.walletBalanceAfterRefund).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        ) : selectedOrderDetails.status === 'ملغي' && (selectedOrderDetails.walletDeducted || selectedOrderDetails.method === 'المحفظة') ? (
+                          <div className="p-2 bg-amber-50 border border-amber-300 rounded-lg flex items-center justify-between text-[11px]">
+                            <span className="text-amber-900 font-medium">
+                              ⚠️ هذا الطلب ملغي ولكن لم يتم إرجاع المبلغ (${orderCost.toFixed(2)}) للمحفظة بعد.
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateOrderStatus(selectedOrderDetails.id, 'ملغي')}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold cursor-pointer text-[10px] transition shrink-0"
+                            >
+                              إرجاع الرصيد للعميل الآن 💰
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     )}
                   </div>
@@ -10576,19 +10692,24 @@ service cloud.firestore {
               {/* تغيير حالة الطلب */}
               <div>
                 <label className="block font-bold text-gray-700 mb-1">تحديث حالة الطلب:</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['قيد المراجعة', 'قيد التنفيذ', 'مكتمل'].map(st => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { label: 'قيد المراجعة', val: 'قيد المراجعة', activeClass: 'bg-amber-600 text-white border-amber-600' },
+                    { label: 'قيد التنفيذ', val: 'قيد التنفيذ', activeClass: 'bg-blue-600 text-white border-blue-600' },
+                    { label: 'مكتمل', val: 'مكتمل', activeClass: 'bg-[#004956] text-white border-[#004956]' },
+                    { label: 'ملغي', val: 'ملغي', activeClass: 'bg-red-600 text-white border-red-600' }
+                  ].map(st => (
                     <button
-                      key={st}
+                      key={st.val}
                       type="button"
-                      onClick={() => handleUpdateOrderStatus(selectedOrderDetails.id, st)}
-                      className={`py-2 rounded-xl border text-center transition font-semibold cursor-pointer ${
-                        selectedOrderDetails.status === st
-                          ? 'bg-[#004956] text-white border-[#004956]'
+                      onClick={() => handleUpdateOrderStatus(selectedOrderDetails.id, st.val)}
+                      className={`py-2 rounded-xl border text-center transition font-semibold cursor-pointer text-xs ${
+                        selectedOrderDetails.status === st.val
+                          ? st.activeClass
                           : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                       }`}
                     >
-                      {st}
+                      {st.label}
                     </button>
                   ))}
                 </div>
