@@ -45,7 +45,46 @@ export default function AdminDashboard({
   deletedOrderIdsRef
 }) {
   const formatPrice = propFormatPrice || ((price) => `$${Number(price || 0).toFixed(2)}`);
-  const [activeTab, setActiveTab] = useState(initialTab || 'store-design'); // analytics, products, orders, customers, coupons, store-design, settings
+  // التحقق من صلاحيات المشرفين وتحديد الأقسام المسموح بها بدقة
+  const isSuperAdmin = currentUser?.role === 'admin';
+  const supervisorPerms = currentUser?.permissions || {};
+
+  // التحقق مما إذا كان المستخدم يملك صلاحية الوصول لقسم معين
+  const canAccessTab = (tabId) => {
+    if (isSuperAdmin) return true; // المدير العام يملك صلاحية كاملة على كل الأقسام
+    if (currentUser?.role !== 'supervisor') return false;
+
+    switch (tabId) {
+      case 'orders':
+        return Boolean(supervisorPerms.canManageOrders);
+      case 'products':
+      case 'categories':
+        return Boolean(supervisorPerms.canManageProducts);
+      case 'coupons':
+        return Boolean(supervisorPerms.canManageCoupons);
+      case 'analytics':
+        return Boolean(supervisorPerms.canViewReports);
+      case 'customers':
+        // متاح للمشرف إذا كان يملك إدارة الطلبات أو المنتجات كقراءة، لكن تعديل صلاحيات الحسابات للمدير فقط
+        return Boolean(supervisorPerms.canManageOrders || supervisorPerms.canManageProducts || supervisorPerms.canViewReports);
+      default:
+        // الأقسام الحساسة (تصميم المتجر، الإعلانات، المظهر، المميزات، الولاء، وسائل الدفع، النسخ الاحتياطي) محصورة بالمدير فقط
+        return false;
+    }
+  };
+
+  // تحديد التبويب الافتراضي الأولي بحسب صلاحيات المشرف
+  const getDefaultTab = () => {
+    if (initialTab && canAccessTab(initialTab)) return initialTab;
+    if (isSuperAdmin) return initialTab || 'store-design';
+    if (supervisorPerms.canManageOrders) return 'orders';
+    if (supervisorPerms.canManageProducts) return 'products';
+    if (supervisorPerms.canManageCoupons) return 'coupons';
+    if (supervisorPerms.canViewReports) return 'analytics';
+    return 'orders';
+  };
+
+  const [activeTab, setActiveTab] = useState(getDefaultTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // عند تغيير التاب من الخارج (مثل الضغط على "مراجعة واعتماد" من الإشعارات)
@@ -58,7 +97,7 @@ export default function AdminDashboard({
     }
     // activeSection يمكن أن يكون: string مباشر أو { tab, ts } لضمان التفعيل دائماً
     const tab = activeSection && typeof activeSection === 'object' ? activeSection.tab : activeSection;
-    if (tab) {
+    if (tab && canAccessTab(tab)) {
       setActiveTab(tab);
       setMobileMenuOpen(false);
     }
@@ -2355,18 +2394,26 @@ export default function AdminDashboard({
     }
   };
 
-  // التحقق الأمني: منع أي مستخدم ليس مديراً (role !== 'admin') من رؤية أو استخدام لوحة التحكم
-  if (!currentUser || currentUser.role !== 'admin') {
+  // التحقق الأمني: منع أي مستخدم ليس مديراً أو مشرفاً يملك صلاحية من رؤية أو استخدام لوحة التحكم
+  const isSupervisorRole = currentUser?.role === 'supervisor';
+  const hasAnySupervisorPerm = Boolean(
+    supervisorPerms.canManageOrders ||
+    supervisorPerms.canManageProducts ||
+    supervisorPerms.canManageCoupons ||
+    supervisorPerms.canViewReports
+  );
+
+  if (!currentUser || (!isSuperAdmin && !(isSupervisorRole && hasAnySupervisorPerm))) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6" dir="rtl">
         <div className="max-w-md w-full bg-white rounded-3xl border border-gray-200 shadow-xl p-8 text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-red-50 text-red-500 flex items-center justify-center text-3xl shadow-2xs">
             <i className="fa-solid fa-lock"></i>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">منطقة محظورة - مخصصة للإدارة فقط</h2>
+          <h2 className="text-lg font-bold text-gray-900">منطقة مخصصة للإدارة والمشرفين</h2>
           <p className="text-xs text-gray-500 leading-relaxed">
-            عذراً، هذا القسم مخصص لمدير المتجر فقط. حسابك الحالي مسجل برتبة 
-            <span className="font-bold text-gray-800 mx-1">({currentUser ? 'عميل' : 'زائر غير مسجل'})</span> 
+            عذراً، هذا القسم مخصص لمدير المتجر والمشرفين المصرح لهم فقط. حسابك الحالي مسجل برتبة 
+            <span className="font-bold text-gray-800 mx-1">({currentUser ? (currentUser.role === 'supervisor' ? 'مشرف بدون صلاحيات مفعلة' : 'عميل') : 'زائر غير مسجل'})</span> 
             ولا تملك الصلاحيات الكافية للوصول إلى لوحة التحكم.
           </p>
           <button
@@ -2449,7 +2496,7 @@ export default function AdminDashboard({
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-0.5 rounded-md font-medium border-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="leading-none">لوحة الإدارة</span>
+            <span className="leading-none">{isSuperAdmin ? '👑 مدير عام' : '🛡️ مشرف مصرح'}</span>
           </div>
         </div>
       </div>
@@ -2478,7 +2525,7 @@ export default function AdminDashboard({
           { id: 'loyalty', label: 'الولاء والمكافآت', icon: 'fa-gift' },
           { id: 'payments', label: 'الدفع', icon: 'fa-credit-card', badge: pendingTopupsCount, badgeColor: 'bg-[#7F1D1D]' },
           { id: 'cloud-backup', label: 'النسخ الاحتياطي', icon: 'fa-floppy-disk' }
-        ].map(tab => (
+        ].filter(tab => canAccessTab(tab.id)).map(tab => (
           <button
             key={tab.id}
             type="button"
@@ -2543,245 +2590,269 @@ export default function AdminDashboard({
           <div className="p-2 space-y-3">
             
             {/* المجموعة الأولى: نظرة عامة والمبيعات */}
-            <div>
-              <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                الرئيسية والمبيعات
-              </div>
-              <div className="space-y-1">
-                <button
-                  onClick={() => { setActiveTab('analytics'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'analytics' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <i className={`fa-solid fa-chart-line text-sm ${activeTab === 'analytics' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                  <span>التحليلات والمؤشرات</span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('orders'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'orders' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-bag-shopping text-sm ${activeTab === 'orders' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>الطلبات والمبيعات</span>
-                  </div>
-                  {pendingOrdersCount > 0 ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold animate-pulse">
-                      {pendingOrdersCount} جديد
-                    </span>
-                  ) : (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'orders' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                      {orders.length}
-                    </span>
+            {(canAccessTab('analytics') || canAccessTab('orders')) && (
+              <div>
+                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                  الرئيسية والمبيعات
+                </div>
+                <div className="space-y-1">
+                  {canAccessTab('analytics') && (
+                    <button
+                      onClick={() => { setActiveTab('analytics'); setMobileMenuOpen(false); }}
+                      className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                        activeTab === 'analytics' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <i className={`fa-solid fa-chart-line text-sm ${activeTab === 'analytics' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      <span>التحليلات والمؤشرات</span>
+                    </button>
                   )}
-                </button>
+
+                  {canAccessTab('orders') && (
+                    <button
+                      onClick={() => { setActiveTab('orders'); setMobileMenuOpen(false); }}
+                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                        activeTab === 'orders' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <i className={`fa-solid fa-bag-shopping text-sm ${activeTab === 'orders' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                        <span>الطلبات والمبيعات</span>
+                      </div>
+                      {pendingOrdersCount > 0 ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold animate-pulse">
+                          {pendingOrdersCount} جديد
+                        </span>
+                      ) : (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'orders' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                          {orders.length}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* المجموعة الثانية: الكتالوج والمنتجات */}
-            <div>
-              <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                المنتجات والكتالوج
-              </div>
-              <div className="space-y-1">
-                <button
-                  onClick={() => { setActiveTab('products'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'products' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-boxes-stacked text-sm ${activeTab === 'products' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>المنتجات والمخزون</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'products' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                    {products.length}
-                  </span>
-                </button>
+            {(canAccessTab('products') || canAccessTab('categories')) && (
+              <div>
+                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                  المنتجات والكتالوج
+                </div>
+                <div className="space-y-1">
+                  {canAccessTab('products') && (
+                    <button
+                      onClick={() => { setActiveTab('products'); setMobileMenuOpen(false); }}
+                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                        activeTab === 'products' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <i className={`fa-solid fa-boxes-stacked text-sm ${activeTab === 'products' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                        <span>المنتجات والمخزون</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'products' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                        {products.length}
+                      </span>
+                    </button>
+                  )}
 
-                <button
-                  onClick={() => { setActiveTab('categories'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'categories' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-folder-tree text-sm ${activeTab === 'categories' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>أقسام المتجر</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'categories' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                    {categories.length}
-                  </span>
-                </button>
+                  {canAccessTab('categories') && (
+                    <button
+                      onClick={() => { setActiveTab('categories'); setMobileMenuOpen(false); }}
+                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                        activeTab === 'categories' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <i className={`fa-solid fa-folder-tree text-sm ${activeTab === 'categories' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                        <span>أقسام المتجر</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'categories' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                        {categories.length}
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* المجموعة الثالثة: العملاء والتسويق */}
-            <div>
-              <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                العملاء والتسويق
-              </div>
-              <div className="space-y-1">
-                <button
-                  onClick={() => { setActiveTab('customers'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'customers' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-users text-sm ${activeTab === 'customers' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>قاعدة العملاء</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'customers' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                    {customers.length}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('coupons'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'coupons' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-tags text-sm ${activeTab === 'coupons' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>كوبونات الخصم</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'coupons' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                    {coupons.length}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* المجموعة الرابعة: إعدادات المتجر والتخصيص */}
-            <div>
-              <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                التخصيص والإعدادات
-              </div>
-              <div className="space-y-1">
-                <button
-                  onClick={() => { setActiveTab('store-design'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'store-design' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-paintbrush text-sm ${activeTab === 'store-design' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>تصميم المتجر</span>
-                  </div>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                    جديد
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('announcements'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'announcements' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-bullhorn text-sm ${activeTab === 'announcements' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>أشرطة الإعلانات</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'announcements' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                    {storeConfig.announcements?.length || 1}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('fonts'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'fonts' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <i className={`fa-solid fa-palette text-sm ${activeTab === 'fonts' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                  <span>مظهر المتجر: الخطوط والألوان</span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('features'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'features' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-bolt text-sm ${activeTab === 'features' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>مميزات المنتج</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                    storeConfig.productFeatures?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {storeConfig.productFeatures?.enabled !== false ? 'مفعل' : 'معطل'}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('loyalty'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'loyalty' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-gift text-sm ${activeTab === 'loyalty' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>نقاط الولاء والمكافآت</span>
-                  </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                    storeConfig.loyaltyConfig?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {storeConfig.loyaltyConfig?.enabled !== false ? 'مفعل' : 'معطل'}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => { setActiveTab('payments'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'payments' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-credit-card text-sm ${activeTab === 'payments' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>وسائل الدفع والباركود</span>
-                  </div>
-                  {pendingTopupsCount > 0 && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7F1D1D] text-white font-bold animate-pulse shadow-2xs">
-                      {pendingTopupsCount} طلب شحن
-                    </span>
+            {(canAccessTab('customers') || canAccessTab('coupons')) && (
+              <div>
+                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                  العملاء والتسويق
+                </div>
+                <div className="space-y-1">
+                  {canAccessTab('customers') && (
+                    <button
+                      onClick={() => { setActiveTab('customers'); setMobileMenuOpen(false); }}
+                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                        activeTab === 'customers' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <i className={`fa-solid fa-users text-sm ${activeTab === 'customers' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                        <span>قاعدة العملاء</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'customers' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                        {customers.length}
+                      </span>
+                    </button>
                   )}
-                </button>
 
-                <button
-                  onClick={() => { setActiveTab('cloud-backup'); setMobileMenuOpen(false); }}
-                  className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                    activeTab === 'cloud-backup' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <i className={`fa-solid fa-floppy-disk text-sm ${activeTab === 'cloud-backup' ? 'text-gray-950' : 'text-[#004956]'}`}></i>
-                    <span>النسخ الاحتياطي</span>
-                  </div>
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                    حماية كاملة
-                  </span>
-                </button>
+                  {canAccessTab('coupons') && (
+                    <button
+                      onClick={() => { setActiveTab('coupons'); setMobileMenuOpen(false); }}
+                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                        activeTab === 'coupons' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <i className={`fa-solid fa-tags text-sm ${activeTab === 'coupons' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                        <span>كوبونات الخصم</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'coupons' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                        {coupons.length}
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* المجموعة الرابعة: إعدادات المتجر والتخصيص (للمدير العام فقط) */}
+            {isSuperAdmin && (
+              <div>
+                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                  التخصيص والإعدادات
+                </div>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => { setActiveTab('store-design'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'store-design' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <i className={`fa-solid fa-paintbrush text-sm ${activeTab === 'store-design' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      <span>تصميم المتجر</span>
+                    </div>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                      جديد
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('announcements'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'announcements' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <i className={`fa-solid fa-bullhorn text-sm ${activeTab === 'announcements' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      <span>أشرطة الإعلانات</span>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'announcements' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                      {storeConfig.announcements?.length || 1}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('fonts'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'fonts' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <i className={`fa-solid fa-palette text-sm ${activeTab === 'fonts' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                    <span>مظهر المتجر: الخطوط والألوان</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('features'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'features' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <i className={`fa-solid fa-bolt text-sm ${activeTab === 'features' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      <span>مميزات المنتج</span>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      storeConfig.productFeatures?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {storeConfig.productFeatures?.enabled !== false ? 'مفعل' : 'معطل'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('loyalty'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'loyalty' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <i className={`fa-solid fa-gift text-sm ${activeTab === 'loyalty' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      <span>نقاط الولاء والمكافآت</span>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      storeConfig.loyaltyConfig?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {storeConfig.loyaltyConfig?.enabled !== false ? 'مفعل' : 'معطل'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('payments'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'payments' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <i className={`fa-solid fa-credit-card text-sm ${activeTab === 'payments' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      <span>وسائل الدفع والباركود</span>
+                    </div>
+                    {pendingTopupsCount > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7F1D1D] text-white font-bold animate-pulse shadow-2xs">
+                        {pendingTopupsCount} طلب شحن
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('cloud-backup'); setMobileMenuOpen(false); }}
+                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'cloud-backup' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <i className={`fa-solid fa-floppy-disk text-sm ${activeTab === 'cloud-backup' ? 'text-gray-950' : 'text-[#004956]'}`}></i>
+                      <span>النسخ الاحتياطي</span>
+                    </div>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                      حماية كاملة
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
 
-        {/* بطاقة معلومات المتجر السريعة أسفل القائمة */}
+        {/* بطاقة معلومات المتجر والصلاحيات أسفل القائمة */}
         <div className="p-3.5 m-2.5 bg-emerald-50/70 border border-emerald-200/60 rounded-xl hidden md:block">
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span className="text-xs font-semibold text-emerald-950">النظام متصل ونشط</span>
+            <span className="text-xs font-semibold text-emerald-950">
+              {isSuperAdmin ? '👑 مدير عام المتجر' : '🛡️ مشرف مصرح'}
+            </span>
           </div>
           <p className="text-[11px] text-emerald-800 leading-relaxed">
-            المنتجات الرقمية جاهزة للتسليم الفوري عند تأكيد الدفع.
+            {isSuperAdmin 
+              ? 'تتمتع بكامل الصلاحيات الإدارية وتخصيص النظام.'
+              : `الحساب: ${currentUser?.name || 'مشرف'} — ملتزم بالصلاحيات الممنوحة من المدير.`}
           </p>
         </div>
       </aside>
@@ -2794,8 +2865,30 @@ export default function AdminDashboard({
         }}
       >
 
+        {/* رسالة منع الوصول في حال محاولة فتح قسم غير مصرح به للمشرف */}
+        {!canAccessTab(activeTab) && (
+          <div className="min-h-[50vh] flex items-center justify-center p-6" dir="rtl">
+            <div className="max-w-md w-full bg-white rounded-3xl border border-gray-200 shadow-sm p-8 text-center space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl shadow-2xs">
+                <i className="fa-solid fa-user-shield"></i>
+              </div>
+              <h3 className="text-base font-bold text-gray-900">قسم غير مصرح به</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                عذراً، حسابك الإشرافي الحالي لا يملك صلاحية للوصول إلى هذا القسم. الصلاحيات محددة ومخصصة من قبل المدير العام.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab(getDefaultTab())}
+                className="py-2 px-4 bg-[#004956] hover:bg-[#00343D] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+              >
+                الانتقال إلى الأقسام المصرح لك بها
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* شريط حفظ الإعدادات الثابت أعلى محتوى لوحة التحكم دائماً (Sticky Top Save Bar) */}
-        {['store-design', 'announcements', 'fonts', 'features', 'loyalty', 'payments'].includes(activeTab) && (
+        {isSuperAdmin && ['store-design', 'announcements', 'fonts', 'features', 'loyalty', 'payments'].includes(activeTab) && (
           <div className="sticky top-0 z-30 mb-4 sm:mb-6 px-3 sm:px-6 py-2.5 sm:py-3 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-xs flex items-center justify-between gap-3 transition-all" dir="rtl">
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
@@ -3794,27 +3887,29 @@ export default function AdminDashboard({
                 <i className="fa-solid fa-bullhorn text-[12px]"></i>
                 <span className="leading-none">إرسال إشعار للعملاء</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCustomer(null);
-                  setNewCustomerForm({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    role: 'customer',
-                    status: 'نشط',
-                    tier: 'bronze',
-                    notes: '',
-                    permissions: { canManageOrders: false, canManageProducts: false, canViewReports: false, canManageCoupons: false }
-                  });
-                  setShowAddCustomerModal(true);
-                }}
-                className="w-fit px-3 py-1.5 bg-[#004956] text-white text-[13px] font-bold rounded-xl shadow-2xs hover:opacity-95 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-              >
-                <i className="fa-solid fa-user-plus text-[12px]"></i>
-                <span className="leading-none">إضافة عميل / مشرف</span>
-              </button>
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCustomer(null);
+                    setNewCustomerForm({
+                      name: '',
+                      email: '',
+                      phone: '',
+                      role: 'customer',
+                      status: 'نشط',
+                      tier: 'bronze',
+                      notes: '',
+                      permissions: { canManageOrders: false, canManageProducts: false, canViewReports: false, canManageCoupons: false }
+                    });
+                    setShowAddCustomerModal(true);
+                  }}
+                  className="w-fit px-3 py-1.5 bg-[#004956] text-white text-[13px] font-bold rounded-xl shadow-2xs hover:opacity-95 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                >
+                  <i className="fa-solid fa-user-plus text-[12px]"></i>
+                  <span className="leading-none">إضافة عميل / مشرف</span>
+                </button>
+              )}
             </div>
 
             {/* بطاقات المؤشرات بجانب بعضها في صف واحد بدون حدود وبدون خلفية وكل عنصر تحته رقمه */}
@@ -4152,39 +4247,45 @@ export default function AdminDashboard({
                                   <i className="fa-solid fa-eye text-xs"></i>
                                 </button>
 
-                                {/* زر تعديل الحساب */}
-                                <button
-                                  type="button"
-                                  onClick={() => openEditCustomerModal(c)}
-                                  className="text-gray-500 hover:text-black transition cursor-pointer p-1"
-                                  title="تعديل البيانات والصلاحيات"
-                                >
-                                  <i className="fa-solid fa-pen-to-square text-xs"></i>
-                                </button>
+                                {/* زر تعديل الحساب والصلاحيات (للمدير العام فقط) */}
+                                {isSuperAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditCustomerModal(c)}
+                                    className="text-gray-500 hover:text-black transition cursor-pointer p-1"
+                                    title="تعديل البيانات والصلاحيات"
+                                  >
+                                    <i className="fa-solid fa-pen-to-square text-xs"></i>
+                                  </button>
+                                )}
 
-                                {/* زر حظر / إلغاء الحظر */}
-                                <button
-                                  type="button"
-                                  onClick={() => toggleCustomerStatus(c.id)}
-                                  className={`transition cursor-pointer p-1 ${
-                                    isBlocked 
-                                      ? 'text-emerald-600 hover:text-emerald-700' 
-                                      : 'text-gray-500 hover:text-red-600'
-                                  }`}
-                                  title={isBlocked ? 'إلغاء الحظر' : 'حظر الحساب'}
-                                >
-                                  <i className={`fa-solid ${isBlocked ? 'fa-lock-open' : 'fa-ban'} text-xs`}></i>
-                                </button>
+                                {/* زر حظر / إلغاء الحظر (للمدير العام فقط) */}
+                                {isSuperAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleCustomerStatus(c.id)}
+                                    className={`transition cursor-pointer p-1 ${
+                                      isBlocked 
+                                        ? 'text-emerald-600 hover:text-emerald-700' 
+                                        : 'text-gray-500 hover:text-red-600'
+                                    }`}
+                                    title={isBlocked ? 'إلغاء الحظر' : 'حظر الحساب'}
+                                  >
+                                    <i className={`fa-solid ${isBlocked ? 'fa-lock-open' : 'fa-ban'} text-xs`}></i>
+                                  </button>
+                                )}
 
-                                {/* زر حذف الحساب */}
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteCustomer(c.id)}
-                                  className="text-gray-400 hover:text-red-600 transition cursor-pointer p-1"
-                                  title="حذف نهائي"
-                                >
-                                  <i className="fa-solid fa-trash-can text-xs"></i>
-                                </button>
+                                {/* زر حذف الحساب (للمدير العام فقط) */}
+                                {isSuperAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteCustomer(c.id)}
+                                    className="text-gray-400 hover:text-red-600 transition cursor-pointer p-1"
+                                    title="حذف نهائي"
+                                  >
+                                    <i className="fa-solid fa-trash-can text-xs"></i>
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -4482,20 +4583,22 @@ export default function AdminDashboard({
                           <span className="font-mono font-black text-sm text-indigo-700">
                             {parseFloat(selectedCustomerForView.balance || 0).toLocaleString('en-US')} {activeCurrency === 'IQD' ? 'د.ع' : '$'}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const c = selectedCustomerForView;
-                              setWalletModalCustomer(c);
-                              setWalletAmountInput('');
-                              setWalletActionType('deposit');
-                              setWalletNoteInput('');
-                            }}
-                            className="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
-                          >
-                            <i className="fa-solid fa-plus text-[9px]"></i>
-                            <span>شحن</span>
-                          </button>
+                          {isSuperAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const c = selectedCustomerForView;
+                                setWalletModalCustomer(c);
+                                setWalletAmountInput('');
+                                setWalletActionType('deposit');
+                                setWalletNoteInput('');
+                              }}
+                              className="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
+                            >
+                              <i className="fa-solid fa-plus text-[9px]"></i>
+                              <span>شحن</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
