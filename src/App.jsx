@@ -2685,19 +2685,21 @@ export default function App() {
     >
       {/* شاشة انتظار سريعة وأنيقة عند التشغيل لأول مرة فقط لحين جلب أحدث بيانات السحابة */}
       {isInitialSyncing && (
-        <div className="fixed inset-0 z-[999999] bg-[#002f37] flex flex-col items-center justify-center p-6 text-white select-none animate-in fade-in duration-200">
-          <div className="relative flex items-center justify-center mb-6">
-            {/* حلقة نبض متوهجة */}
-            <div className="absolute w-28 h-28 rounded-full bg-[#76e5d0]/20 animate-ping duration-1000"></div>
-            {/* دائرة مؤشر التحميل الدوارة */}
-            <div className="w-16 h-16 rounded-full border-3 border-white/10 border-t-[#76e5d0] border-r-[#76e5d0] animate-spin"></div>
-            {/* الشعار أو الحرف في المنتصف */}
-            <div className="absolute w-10 h-10 rounded-full bg-[#004956] border border-[#76e5d0]/40 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              {storeConfig.logoText || 'د'}
+        <div className="fixed inset-0 z-[999999] bg-[#00242B] flex flex-col items-center justify-center p-6 text-white select-none animate-in fade-in duration-300">
+          {/* لودر المربعات الحركي الاحترافي (Uiverse: ZacharyCrespin/grumpy-stingray-26) */}
+          <div className="flex items-center justify-center my-8 scale-90 sm:scale-100">
+            <div className="uiverse-loader">
+              <div className="uiverse-loader-square"></div>
+              <div className="uiverse-loader-square"></div>
+              <div className="uiverse-loader-square"></div>
+              <div className="uiverse-loader-square"></div>
+              <div className="uiverse-loader-square"></div>
+              <div className="uiverse-loader-square"></div>
+              <div className="uiverse-loader-square"></div>
             </div>
           </div>
 
-          <h2 className="text-xl font-bold tracking-wide text-white mb-2">
+          <h2 className="text-xl font-bold tracking-wide text-white mb-2 mt-4">
             {storeConfig.name || 'متجر دكان هاي داي'}
           </h2>
           <div className="flex items-center gap-2 text-xs font-medium text-[#76e5d0]">
