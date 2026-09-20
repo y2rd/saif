@@ -336,24 +336,23 @@ export default function ProductDetailPage({
 
                 {/* د. الحقول المخصصة التي يضيفها المدير (لجميع أنواع المنتجات) */}
                 {Array.isArray(product.customFields) && product.customFields.filter(f => f.label?.trim()).length > 0 && (
-                  <div className="mb-3 space-y-2 text-right">
+                  <div className="mb-4 space-y-3.5 text-right">
                     {product.customFields.filter(f => f.label?.trim()).map((field) => (
-                      <div key={field.id} className="flex items-center gap-2">
-                        {/* اسم الحقل ثابت */}
-                        <span className="text-xs font-bold text-gray-800 shrink-0">
-                          {field.label}
-                          {field.required && <span className="text-red-500 font-normal text-[10px] mr-0.5">*</span>}
-                        </span>
-                        <span className="text-gray-400 text-xs font-medium">:</span>
-                        {/* خانة الكتابة */}
+                      <div key={field.id} className="space-y-1.5">
+                        {/* اسم الحقل بالأعلى مع النجمة الحمراء للمطلوب */}
+                        <label className="block text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight">
+                          <span>{field.label}</span>
+                          {field.required && <span className="text-red-500 font-bold mr-1 text-xs">*</span>}
+                        </label>
+                        {/* حقل الإدخال بتصميم مستطيل منحني الحواف متطابق مع الصورة */}
                         <input
                           type="text"
                           value={customFieldValues?.[field.id] || ''}
                           onChange={(e) => {
                             setCustomFieldValues(prev => ({ ...(prev || {}), [field.id]: e.target.value }));
                           }}
-                          placeholder="اكتب هنا..."
-                          className="flex-1 bg-transparent text-xs text-gray-900 outline-none border-b border-gray-300 focus:border-black py-0.5 transition"
+                          placeholder=""
+                          className="w-full h-11 px-3.5 bg-white border border-gray-300 rounded-2xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs"
                         />
                       </div>
                     ))}
@@ -362,21 +361,21 @@ export default function ProductDetailPage({
 
                 {/* هـ. منتج مبادلة: بوكسات مخصصة (اسم الخانة ثابت محدد من قبل المدير والعميل يكتب في الخانة الفارغة فقط) */}
                 {isExchange && (
-                  <div className="mb-3 space-y-2 text-right">
+                  <div className="mb-4 space-y-3.5 text-right">
                     {customBoxes.map((box) => (
-                      <div key={box.id} className="flex items-center gap-2">
+                      <div key={box.id} className="space-y-1.5">
                         {/* اسم البوكس ثابت غير قابل للتعديل من قبل العميل */}
-                        <span className="text-xs font-bold text-gray-800 shrink-0">
-                          {box.name}
-                        </span>
-                        <span className="text-gray-400 text-xs font-medium">:</span>
-                        {/* الخانة الفارغة بجانبه ليكتب العميل بياناته */}
+                        <label className="block text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight">
+                          <span>{box.name}</span>
+                          <span className="text-red-500 font-bold mr-1 text-xs">*</span>
+                        </label>
+                        {/* حقل الإدخال بتصميم مستطيل منحني الحواف متطابق مع الصورة */}
                         <input
                           type="text"
                           value={box.value}
                           onChange={(e) => handleUpdateCustomBox(box.id, 'value', e.target.value)}
-                          placeholder="اكتب هنا..."
-                          className="flex-1 bg-transparent text-xs text-gray-900 outline-none border-b border-gray-300 focus:border-black py-0.5 transition"
+                          placeholder=""
+                          className="w-full h-11 px-3.5 bg-white border border-gray-300 rounded-2xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs"
                         />
                       </div>
                     ))}
