@@ -1631,33 +1631,40 @@ export default function AdminDashboard({
   };
 
   // حذف طلب مفرد
-  const handleDeleteOrder = (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
     if (!window.confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) return;
-    // ✅ تسجيل الـ ID في القائمة المحلية لمنع إعادة ظهوره من Firebase قبل اكتمال الحذف
+    const strId = String(orderId).trim();
+    // ✅ تسجيل الـ ID في القائمة المحلية وحفظها فورياً في localStorage لمنع عودته بعد الريفرش أو من Firebase
     if (deletedOrderIdsRef) {
-      deletedOrderIdsRef.current.add(String(orderId));
+      deletedOrderIdsRef.current.add(strId);
+      try {
+        localStorage.setItem('haider_deleted_order_ids', JSON.stringify(Array.from(deletedOrderIdsRef.current)));
+      } catch (e) {}
     }
-    const updated = orders.filter(o => o.id !== orderId);
+    const updated = orders.filter(o => String(o.id) !== strId);
     setOrders(updated);
     try {
       localStorage.setItem('haider_store_orders', JSON.stringify(updated));
     } catch (e) {}
-    deleteOrderFromCloud(String(orderId));
-    if (selectedOrderDetails && selectedOrderDetails.id === orderId) {
+    if (selectedOrderDetails && String(selectedOrderDetails.id) === strId) {
       setSelectedOrderDetails(null);
     }
     showToast('تم حذف الطلب بنجاح');
+    await deleteOrderFromCloud(strId);
   };
 
   // مسح جميع الطلبات
-  const handleClearAllOrders = () => {
+  const handleClearAllOrders = async () => {
     if (orders.length === 0) return;
     if (!window.confirm('تحذير: هل أنت متأكد من رغبتك في حذف جميع الطلبات الحالية؟')) return;
-    // ✅ تسجيل جميع الـ IDs في القائمة المحلية لمنع إعادة ظهورها من Firebase
+    const allIds = orders.map(o => String(o.id).trim());
+    // ✅ تسجيل جميع الـ IDs في القائمة المحلية وحفظها فورياً في localStorage
     if (deletedOrderIdsRef) {
-      orders.forEach(o => deletedOrderIdsRef.current.add(String(o.id)));
+      allIds.forEach(id => deletedOrderIdsRef.current.add(id));
+      try {
+        localStorage.setItem('haider_deleted_order_ids', JSON.stringify(Array.from(deletedOrderIdsRef.current)));
+      } catch (e) {}
     }
-    clearAllOrdersFromCloud(orders.map(o => String(o.id)));
     setOrders([]);
     try {
       localStorage.setItem('haider_store_orders', JSON.stringify([]));
@@ -1665,6 +1672,7 @@ export default function AdminDashboard({
     } catch (e) {}
     setSelectedOrderDetails(null);
     showToast('تم حذف جميع الطلبات بنجاح');
+    await clearAllOrdersFromCloud(allIds);
   };
 
   // إضافة قسم جديد للمتجر

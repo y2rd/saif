@@ -496,7 +496,8 @@ export async function syncOrderToCloud(order) {
 export async function deleteOrderFromCloud(orderId) {
   if (!db || !orderId) return;
   try {
-    const docRef = doc(db, 'orders', orderId);
+    const cleanId = String(orderId).trim();
+    const docRef = doc(db, 'orders', cleanId);
     await deleteDoc(docRef);
   } catch (err) {
     console.warn("خطأ في حذف الطلب سحابياً:", err);
@@ -507,10 +508,20 @@ export async function deleteOrderFromCloud(orderId) {
 export async function clearAllOrdersFromCloud(orderIds = []) {
   if (!db) return;
   try {
-    for (const id of orderIds) {
-      if (id) {
-        await deleteDoc(doc(db, 'orders', id));
-      }
+    // 1. حذف الطلبات المحددة بالمعرفات أولاً
+    if (Array.isArray(orderIds) && orderIds.length > 0) {
+      await Promise.allSettled(
+        orderIds.map(id => id ? deleteDoc(doc(db, 'orders', String(id).trim())) : Promise.resolve())
+      );
+    }
+    // 2. جلب وحذف أي وثائق متبقية في مجموعة orders لضمان مسحها تماماً
+    const querySnapshot = await getDocs(collection(db, 'orders'));
+    if (!querySnapshot.empty) {
+      const deletePromises = [];
+      querySnapshot.forEach((docSnap) => {
+        deletePromises.push(deleteDoc(docSnap.ref));
+      });
+      await Promise.allSettled(deletePromises);
     }
   } catch (err) {
     console.warn("خطأ في مسح الطلبات سحابياً:", err);

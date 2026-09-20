@@ -640,7 +640,14 @@ export default function App() {
   const [cartItems, setCartItems] = useState([]);
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
   const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
-  const deletedOrderIdsRef = useRef(new Set()); // تتبع الطلبات المحذوفة محلياً لمنع إعادة ظهورها من Firebase
+  const deletedOrderIdsRef = useRef(new Set((() => {
+    try {
+      const saved = localStorage.getItem('haider_deleted_order_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  })())); // تتبع الطلبات المحذوفة محلياً ومزامنتها عبر الريفرش لمنع إعادة ظهورها من Firebase
   const readNotifIdsRef = useRef(new Set((() => {
     try {
       const saved = localStorage.getItem('haider_read_notif_ids');
@@ -1054,10 +1061,18 @@ export default function App() {
         localStorage.setItem('haider_orders_dummy_cleared_v1', 'true');
         return [];
       }
+      let deletedIds = new Set();
+      try {
+        const savedDeleted = localStorage.getItem('haider_deleted_order_ids');
+        if (savedDeleted) deletedIds = new Set(JSON.parse(savedDeleted));
+      } catch {}
+
       const saved = localStorage.getItem('haider_store_orders');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(o => !deletedIds.has(String(o.id)));
+        }
       }
     } catch {}
     return [];
