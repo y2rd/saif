@@ -628,6 +628,7 @@ export default function App() {
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
   const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
   const deletedOrderIdsRef = useRef(new Set()); // تتبع الطلبات المحذوفة محلياً لمنع إعادة ظهورها من Firebase
+  const readNotifIdsRef = useRef(new Set()); // تتبع الإشعارات المقروءة محلياً لمنع إعادة ظهورها كجديدة من Firebase
   const [wishlist, setWishlist] = useState([]);
   const [cartBump, setCartBump] = useState(false); // موشن اهتزاز وتكبير السلة عند إضافة منتج
   const [cartToastMessage, setCartToastMessage] = useState(''); // رسالة صغيرة تحت في منتصف الشاشة بالخط الأسود
@@ -1277,19 +1278,14 @@ export default function App() {
                   setCurrentUser(prev => {
                     const base = prev || parsedCur;
 
-                    // ✅ إصلاح: دمج حالة قراءة الإشعارات المحلية مع الإشعارات الواردة من السحابة
-                    // لمنع إعادة ظهور الإشعارات المقروءة كجديدة بعد تحديث السحابة
+                    // ✅ إصلاح: استخدام readNotifIdsRef (Set ثابت) لمنع إعادة ظهور الإشعارات المقروءة
+                    // readNotifIdsRef يحتفظ بـ IDs الإشعارات المقروءة حتى لو تأخّر Firebase في الحفظ
                     const cloudNotifs = match.notifications || [];
                     const localNotifs = base.notifications || [];
-                    // بناء خريطة للإشعارات المقروءة محلياً باستخدام المعرّف
-                    const localReadMap = {};
-                    localNotifs.forEach(n => {
-                      if (n.id && n.read) localReadMap[n.id] = true;
-                    });
-                    // تطبيق حالة القراءة المحلية على الإشعارات القادمة من السحابة
                     const mergedNotifs = cloudNotifs.map(n => ({
                       ...n,
-                      read: localReadMap[n.id] ? true : n.read
+                      // إذا كان الـ ID مسجّلاً كمقروء في الـ ref، نُبقيه مقروءاً دائماً
+                      read: readNotifIdsRef.current.has(String(n.id)) ? true : n.read
                     }));
 
                     const merged = {
@@ -3728,6 +3724,10 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => {
+                                  // ✅ تسجيل جميع الـ IDs فوراً في الـ ref لمنع إعادة ظهورها من Firebase
+                                  userNotifs.forEach(n => {
+                                    if (n.id) readNotifIdsRef.current.add(String(n.id));
+                                  });
                                   const updatedNotifs = userNotifs.map(n => ({ ...n, read: true }));
                                   const updatedUser = { ...currentUser, notifications: updatedNotifs };
                                   setCurrentUser(updatedUser);
