@@ -5807,9 +5807,9 @@ export default function App() {
                               </div>
 
                               {/* 2. محتوى البطاقة: العنوان مع مسافات مقلصة ومضبوطة */}
-                              <div className="p-2 sm:p-2.5 pb-0.5 text-right w-full">
+                              <div className="p-3 sm:p-3.5 pb-1 sm:pb-1.5 text-right w-full">
                                 <h3
-                                  className="text-[12.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                                  className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                                   title={item.title}
                                 >
                                   {item.title}
@@ -5818,20 +5818,20 @@ export default function App() {
                             </div>
 
                             {/* 3. أسفل البطاقة: السعر وبمحاذاته التقييم مباشرة في نفس السطر */}
-                            <div className="p-2 sm:p-2.5 pt-1">
+                            <div className="p-3 sm:p-3.5 pt-1.5 sm:pt-2">
                               <div className="flex items-center justify-between gap-1.5 mb-2">
                                 {/* السعر أو متطلبات المبادلة والسعر القديم */}
                                 <div className="flex items-baseline gap-1">
                                   {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                     <div className="flex items-center text-right">
-                                      <span className="text-[9.5px] sm:text-[10.5px] font-semibold text-teal-900 tracking-tight">
+                                      <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
                                         مبادلة
                                       </span>
                                     </div>
                                   ) : (
                                     <>
                                       <span 
-                                        className={`text-[9.5px] sm:text-[10.5px] font-bold font-price tracking-tight ${
+                                        className={`text-[11px] sm:text-xs font-bold font-price tracking-tight ${
                                           hasDiscount ? 'text-red-700' : 'text-black'
                                         }`}
                                       >
@@ -5866,7 +5866,7 @@ export default function App() {
                                     setViewMode('product-detail');
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                   }}
-                                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                                 >
                                   <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
                                   <span>طلب المبادلة</span>
@@ -5880,7 +5880,7 @@ export default function App() {
                                     setViewMode('product-detail');
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                   }}
-                                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                                  className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                                 >
                                   <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-[9px]"></i>
                                   <span>تحديد البيانات</span>
@@ -5892,7 +5892,7 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
+                                  className="btn-add-to-cart w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[10px] sm:text-[11px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                                 >
                                   <i className="fa-solid fa-bag-shopping text-[9px]"></i>
                                   <span>{buttonText || 'إضافة للسلة'}</span>
@@ -6108,9 +6108,9 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-2 sm:p-2.5 pb-0.5 text-right w-full">
+                          <div className="p-3 sm:p-3.5 pb-1 sm:pb-1.5 text-right w-full">
                             <h3
-                              className="text-[12.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                              className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                               title={item.title}
                             >
                               {item.title}
@@ -6125,14 +6125,14 @@ export default function App() {
                             <div className="flex items-baseline gap-1">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
-                                  <span className="text-[9.5px] sm:text-[10.5px] font-semibold text-teal-900 tracking-tight">
+                                  <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
                                     مبادلة
                                   </span>
                                 </div>
                               ) : (
                                 <>
                                   <span 
-                                    className={`text-[9.5px] sm:text-[10.5px] font-bold font-price tracking-tight ${
+                                    className={`text-[11px] sm:text-xs font-bold font-price tracking-tight ${
                                       hasDiscount ? 'text-red-700' : 'text-black'
                                     }`}
                                   >
@@ -6167,7 +6167,7 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
                               <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
                               <span>طلب المبادلة</span>
@@ -6181,7 +6181,7 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
                               <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-[9px]"></i>
                               <span>تحديد البيانات</span>
@@ -6193,7 +6193,7 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
+                                  className="btn-add-to-cart w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[10px] sm:text-[11px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                                 >
                                   <i className="fa-solid fa-bag-shopping text-[9px]"></i>
                                   <span>إضافة للسلة</span>
@@ -6355,9 +6355,9 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-2 sm:p-2.5 pb-0.5 text-right w-full">
+                          <div className="p-3 sm:p-3.5 pb-1 sm:pb-1.5 text-right w-full">
                             <h3
-                              className="text-[12.5px] sm:text-[11.5px] md:text-xs font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                              className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                               title={item.title}
                             >
                               {item.title}
@@ -6371,14 +6371,14 @@ export default function App() {
                             <div className="flex items-baseline gap-1">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
-                                  <span className="text-[9.5px] sm:text-[10.5px] font-semibold text-teal-900 tracking-tight">
+                                  <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
                                     مبادلة
                                   </span>
                                 </div>
                               ) : (
                                 <>
                                   <span 
-                                    className={`text-[9.5px] sm:text-[10.5px] font-bold font-price tracking-tight ${
+                                    className={`text-[11px] sm:text-xs font-bold font-price tracking-tight ${
                                       hasDiscount ? 'text-red-700' : 'text-black'
                                     }`}
                                   >
@@ -6412,7 +6412,7 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
                               <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
                               <span>طلب المبادلة</span>
@@ -6426,7 +6426,7 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-gray-200 hover:border-gray-900 bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
                               <i className="fa-solid fa-pen-to-square text-gray-700 group-hover/btn:text-black text-[9px]"></i>
                               <span>تحديد البيانات</span>
@@ -6438,7 +6438,7 @@ export default function App() {
                                 e.stopPropagation();
                                 handleAddToCart(item, null, '', 1);
                               }}
-                              className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
+                              className="btn-add-to-cart w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[10px] sm:text-[11px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                             >
                               <i className="fa-solid fa-bag-shopping text-[9px]"></i>
                               <span>إضافة للسلة</span>
@@ -7391,9 +7391,9 @@ function AutoMovingProductsCarousel({
               </div>
 
               {/* 2. عنوان المنتج ممركز أو في اليمين بشكل أنيق ومدمج */}
-              <div className="p-2 pb-0.5 text-center">
+              <div className="p-2.5 pb-1 text-center">
                 <h3
-                  className="text-[12px] sm:text-[11px] font-medium text-gray-800 line-clamp-1 leading-snug"
+                  className="text-[13px] sm:text-[12px] font-medium text-gray-800 line-clamp-1 leading-snug"
                   title={p.title}
                 >
                   {p.title}
@@ -7402,7 +7402,7 @@ function AutoMovingProductsCarousel({
             </div>
 
             {/* 3. أسفل البطاقة: السعر وزر إضافة للسلة المطابق لـ سلة */}
-            <div className="p-2 pt-0.5">
+            <div className="p-2.5 pt-1">
               <div className="flex flex-col items-center justify-center gap-0.5 mb-1.5 text-center">
                 <div className="flex items-center gap-1 justify-center">
                   <span className="text-[9.5px] sm:text-[10px] font-bold text-gray-900 font-price">
@@ -7433,7 +7433,7 @@ function AutoMovingProductsCarousel({
                     setViewMode('product-detail');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
+                  className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
                 >
                   <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
                   <span>طلب المبادلة</span>
@@ -7447,7 +7447,7 @@ function AutoMovingProductsCarousel({
                     setViewMode('product-detail');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-md border border-gray-200 hover:border-black bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
+                  className="w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-gray-200 hover:border-black bg-white hover:bg-gray-50 active:scale-98 text-gray-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
                 >
                   <i className="fa-solid fa-pen-to-square text-gray-700 text-[9px]"></i>
                   <span>تحديد البيانات</span>
@@ -7459,7 +7459,7 @@ function AutoMovingProductsCarousel({
                     e.stopPropagation();
                     handleAddToCart(p, null, '', 1);
                   }}
-                  className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
+                  className="btn-add-to-cart w-full py-1 sm:py-1.5 h-7 sm:h-8 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[10px] sm:text-[11px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                 >
                   <i className="fa-solid fa-bag-shopping text-[9px]"></i>
                   <span>أضف إلى السلة</span>
