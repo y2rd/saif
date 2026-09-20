@@ -482,9 +482,10 @@ export async function atomicRefundOrderBalance(customerId, orderId, refundAmount
 export async function syncOrderToCloud(order) {
   if (!db || !order) return;
   try {
-    const docRef = doc(db, 'orders', order.id);
+    const docRef = doc(db, 'orders', String(order.id).trim());
     await setDoc(docRef, {
       ...order,
+      isDeleted: false,
       updatedAt: Date.now()
     }, { merge: true });
   } catch (err) {
@@ -492,37 +493,80 @@ export async function syncOrderToCloud(order) {
   }
 }
 
-// حذف طلب من السحابة
+// حذف طلب من السحابة (شامل سحابياً عبر الأجهزة: تحديث كـ isDeleted + تسجيل بالمعرفات المحذوفة سحابياً + محاولة الحذف الفيزيائي)
 export async function deleteOrderFromCloud(orderId) {
   if (!db || !orderId) return;
+  const cleanId = String(orderId).trim();
   try {
-    const cleanId = String(orderId).trim();
+    // 1. تحديث الطلب فوراً في Firestore بعلامة isDeleted: true لكي تتجاهله جميع الأجهزة فوراً
     const docRef = doc(db, 'orders', cleanId);
-    await deleteDoc(docRef);
+    await setDoc(docRef, { isDeleted: true, status: 'محذوف', updatedAt: Date.now() }, { merge: true }).catch(() => {});
+
+    // 2. تسجيل المعرف في وثيقة المعرفات المحذوفة سحابياً settings/deletedOrders لتطبيقها على كافة الأجهزة تلقائياً
+    try {
+      const deletedOrdersRef = doc(db, 'settings', 'deletedOrders');
+      const snap = await getDoc(deletedOrdersRef);
+      const currentList = snap.exists() && Array.isArray(snap.data()?.list) ? snap.data().list : [];
+      if (!currentList.includes(cleanId)) {
+        await setDoc(deletedOrdersRef, {
+          list: [...currentList, cleanId].slice(-2000),
+          updatedAt: Date.now()
+        }, { merge: true });
+      }
+    } catch (e) {
+      console.warn("تعذر تحديث سجل الطلبات المحذوفة سحابياً:", e);
+    }
+
+    // 3. محاولة حذف الوثيقة بالكامل إن كانت الصلاحيات السحابية تسمح بالحذف الفيزيائي
+    await deleteDoc(docRef).catch(() => {});
   } catch (err) {
     console.warn("خطأ في حذف الطلب سحابياً:", err);
   }
 }
 
-// مسح جميع الطلبات من السحابة
+// مسح جميع الطلبات من السحابة (شامل سحابياً عبر كافة الأجهزة)
 export async function clearAllOrdersFromCloud(orderIds = []) {
   if (!db) return;
   try {
-    // 1. حذف الطلبات المحددة بالمعرفات أولاً
-    if (Array.isArray(orderIds) && orderIds.length > 0) {
-      await Promise.allSettled(
-        orderIds.map(id => id ? deleteDoc(doc(db, 'orders', String(id).trim())) : Promise.resolve())
-      );
-    }
-    // 2. جلب وحذف أي وثائق متبقية في مجموعة orders لضمان مسحها تماماً
-    const querySnapshot = await getDocs(collection(db, 'orders'));
-    if (!querySnapshot.empty) {
-      const deletePromises = [];
+    const cleanIds = Array.isArray(orderIds) ? orderIds.map(id => String(id).trim()).filter(Boolean) : [];
+
+    // 1. جلب أي وثائق إضافية من Firestore لجمع كل المعرفات الحالية
+    let allDocIds = [...cleanIds];
+    try {
+      const querySnapshot = await getDocs(collection(db, 'orders'));
       querySnapshot.forEach((docSnap) => {
-        deletePromises.push(deleteDoc(docSnap.ref));
+        if (!allDocIds.includes(docSnap.id)) {
+          allDocIds.push(docSnap.id);
+        }
       });
-      await Promise.allSettled(deletePromises);
+    } catch (e) {}
+
+    // 2. تسجيل كافة المعرفات في وثيقة settings/deletedOrders السحابية
+    try {
+      const deletedOrdersRef = doc(db, 'settings', 'deletedOrders');
+      const snap = await getDoc(deletedOrdersRef);
+      const currentList = snap.exists() && Array.isArray(snap.data()?.list) ? snap.data().list : [];
+      const combined = Array.from(new Set([...currentList, ...allDocIds])).slice(-2000);
+      await setDoc(deletedOrdersRef, {
+        list: combined,
+        updatedAt: Date.now()
+      }, { merge: true });
+    } catch (e) {
+      console.warn("تعذر تحديث قائمة الطلبات المحذوفة سحابياً:", e);
     }
+
+    // 3. تحديث كل وثيقة طلب إلى isDeleted: true لضمان اختفائها من أي جهاز فوراً
+    await Promise.allSettled(
+      allDocIds.map(id => {
+        const orderRef = doc(db, 'orders', id);
+        return setDoc(orderRef, { isDeleted: true, status: 'محذوف', updatedAt: Date.now() }, { merge: true });
+      })
+    );
+
+    // 4. محاولة الحذف الفيزيائي إن كانت الصلاحيات السحابية تدعم deleteDoc
+    await Promise.allSettled(
+      allDocIds.map(id => deleteDoc(doc(db, 'orders', id)).catch(() => {}))
+    );
   } catch (err) {
     console.warn("خطأ في مسح الطلبات سحابياً:", err);
   }
@@ -906,13 +950,41 @@ export function subscribeToStoreData({ onConfigUpdate, onProductsUpdate, onCateg
     }, (err) => console.warn("مشكلة في جلب العملاء:", err));
   }
 
+  // الاستماع للطلبات المحذوفة سحابياً وتصفيتها لجميع الأجهزة
+  let cloudDeletedOrderIds = new Set();
+  let latestRawOrders = [];
+
+  const filterAndEmitOrders = () => {
+    if (!onOrdersUpdate) return;
+    const orderList = [];
+    latestRawOrders.forEach(({ id, data }) => {
+      const strId = String(id);
+      if (data.isDeleted === true || data.status === 'محذوف' || cloudDeletedOrderIds.has(strId)) {
+        return;
+      }
+      orderList.push({ id: strId, ...data });
+    });
+    orderList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    onOrdersUpdate(orderList);
+  };
+
+  const unsubDeletedOrders = onSnapshot(doc(db, 'settings', 'deletedOrders'), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      const list = Array.isArray(data?.list) ? data.list : [];
+      cloudDeletedOrderIds = new Set(list.map(String));
+      filterAndEmitOrders();
+    }
+  }, (err) => console.warn("مشكلة في جلب سجل الطلبات المحذوفة:", err));
+
   let unsubOrders = () => {};
   if (onOrdersUpdate) {
     unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
-      const orderList = [];
-      snapshot.forEach(docSnap => orderList.push({ id: docSnap.id, ...docSnap.data() }));
-      orderList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      onOrdersUpdate(orderList);
+      latestRawOrders = [];
+      snapshot.forEach(docSnap => {
+        latestRawOrders.push({ id: docSnap.id, data: docSnap.data() });
+      });
+      filterAndEmitOrders();
     }, (err) => console.warn("مشكلة في جلب الطلبات:", err));
   }
 
@@ -943,6 +1015,7 @@ export function subscribeToStoreData({ onConfigUpdate, onProductsUpdate, onCateg
     unsubCoupons();
     unsubTopups();
     unsubCustomers();
+    unsubDeletedOrders();
     unsubOrders();
   };
 }
