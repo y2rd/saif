@@ -1050,14 +1050,12 @@ export default function App() {
         let parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           // استبعاد التصنيفات التجريبية التلقائية القديمة
-          parsed = parsed.filter(c => c && !['cat-1', 'cat-2', 'cat-3', 'cat-4'].includes(c.id));
+          parsed = parsed.filter(c => c && !['cat-1', 'cat-2', 'cat-3', 'cat-4'].includes(c.id) && c.name !== 'الكل' && c.id !== 'all');
           if (parsed.length > 0) return parsed;
         }
       }
     } catch {}
-    return [
-      { id: 'all', name: 'الكل', icon: 'fa-solid fa-layer-group', imageUrl: '' }
-    ];
+    return [];
   });
 
   const [selectedCat, setSelectedCat] = useState('الكل');
