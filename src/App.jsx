@@ -627,6 +627,7 @@ export default function App() {
   const [cartItems, setCartItems] = useState([]);
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
   const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
+  const deletedOrderIdsRef = useRef(new Set()); // تتبع الطلبات المحذوفة محلياً لمنع إعادة ظهورها من Firebase
   const [wishlist, setWishlist] = useState([]);
   const [cartBump, setCartBump] = useState(false); // موشن اهتزاز وتكبير السلة عند إضافة منتج
   const [cartToastMessage, setCartToastMessage] = useState(''); // رسالة صغيرة تحت في منتصف الشاشة بالخط الأسود
@@ -1313,12 +1314,12 @@ export default function App() {
         }
       },
       onOrdersUpdate: (cloudOrders) => {
-        // نتحقق فقط أن cloudOrders مصفوفة صالحة، بدون شرط length > 0
-        // حتى عند حذف جميع الطلبات يتم تصفير القائمة تلقائياً من السحابة
         if (Array.isArray(cloudOrders)) {
-          setOrders(cloudOrders);
+          // تصفية الطلبات التي حُذفت محلياً لمنع إعادة ظهورها من Firebase
+          const filtered = cloudOrders.filter(o => !deletedOrderIdsRef.current.has(String(o.id)));
+          setOrders(filtered);
           try {
-            localStorage.setItem('haider_store_orders', JSON.stringify(cloudOrders));
+            localStorage.setItem('haider_store_orders', JSON.stringify(filtered));
           } catch (e) {}
         }
       },
@@ -4919,6 +4920,7 @@ export default function App() {
               topupRequests={topupRequests}
               setTopupRequests={setTopupRequests}
               sendNotification={sendNotification}
+              deletedOrderIdsRef={deletedOrderIdsRef}
             />
           </div>
         ) : (

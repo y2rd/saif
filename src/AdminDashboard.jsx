@@ -41,7 +41,8 @@ export default function AdminDashboard({
   setCurrentUser,
   topupRequests: propTopupRequests = [],
   setTopupRequests: propSetTopupRequests,
-  sendNotification
+  sendNotification,
+  deletedOrderIdsRef
 }) {
   const formatPrice = propFormatPrice || ((price) => `$${Number(price || 0).toFixed(2)}`);
   const [activeTab, setActiveTab] = useState(initialTab || 'store-design'); // analytics, products, orders, customers, coupons, store-design, settings
@@ -1593,12 +1594,16 @@ export default function AdminDashboard({
   // حذف طلب مفرد
   const handleDeleteOrder = (orderId) => {
     if (!window.confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) return;
+    // ✅ تسجيل الـ ID في القائمة المحلية لمنع إعادة ظهوره من Firebase قبل اكتمال الحذف
+    if (deletedOrderIdsRef) {
+      deletedOrderIdsRef.current.add(String(orderId));
+    }
     const updated = orders.filter(o => o.id !== orderId);
     setOrders(updated);
     try {
       localStorage.setItem('haider_store_orders', JSON.stringify(updated));
     } catch (e) {}
-    deleteOrderFromCloud(orderId);
+    deleteOrderFromCloud(String(orderId));
     if (selectedOrderDetails && selectedOrderDetails.id === orderId) {
       setSelectedOrderDetails(null);
     }
@@ -1609,7 +1614,11 @@ export default function AdminDashboard({
   const handleClearAllOrders = () => {
     if (orders.length === 0) return;
     if (!window.confirm('تحذير: هل أنت متأكد من رغبتك في حذف جميع الطلبات الحالية؟')) return;
-    clearAllOrdersFromCloud(orders.map(o => o.id));
+    // ✅ تسجيل جميع الـ IDs في القائمة المحلية لمنع إعادة ظهورها من Firebase
+    if (deletedOrderIdsRef) {
+      orders.forEach(o => deletedOrderIdsRef.current.add(String(o.id)));
+    }
+    clearAllOrdersFromCloud(orders.map(o => String(o.id)));
     setOrders([]);
     try {
       localStorage.setItem('haider_store_orders', JSON.stringify([]));
