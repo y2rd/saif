@@ -7351,11 +7351,11 @@ function AutoMovingProductsCarousel({
               setViewMode('product-detail');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="w-40 sm:w-44 shrink-0 bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+            className="w-44 sm:w-48 md:w-56 lg:w-[230px] shrink-0 bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
           >
             <div>
               {/* 1. حاوية صورة المنتج تغطي الحاوية بالكامل بدون حواف أو حدود رمادية */}
-              <div className="relative pt-[85%] bg-white overflow-hidden flex items-center justify-center">
+              <div className="relative pt-[75%] bg-white overflow-hidden flex items-center justify-center">
                 <img
                   src={p.imageUrl}
                   alt={p.title}
