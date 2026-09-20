@@ -5922,10 +5922,10 @@ export default function App() {
                 if (activeFeatures.length === 0) return null;
 
                 return (
-                  <div key={section.id} className="mt-8 sm:mt-16 pt-6 sm:pt-10 border-t border-gray-100/80">
-                    {/* بطاقات المميزات: إجبار العرض في صف واحد دائماً على الجوال والشاشات كافة (Single Row) */}
+                  <div key={section.id} className="mt-6 sm:mt-12 pt-6 sm:pt-10 border-t border-gray-100/80">
+                    {/* بطاقات المميزات: إجبار العرض في صف واحد دائماً */}
                     <div
-                      className="grid grid-cols-3 gap-1.5 sm:gap-6 max-w-5xl mx-auto px-1 sm:px-4"
+                      className="grid grid-cols-3 gap-2 sm:gap-6 max-w-5xl mx-auto px-2 sm:px-4"
                       style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -5936,25 +5936,24 @@ export default function App() {
                         <div
                           key={feat.id || fIndex}
                           style={{ minWidth: 0 }}
-                          className="store-feature-card relative overflow-hidden py-3 sm:py-9 px-1 sm:px-8 rounded-xl sm:rounded-2xl bg-white border card-soft-blur transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
+                          className="relative overflow-hidden py-5 sm:py-8 px-2 sm:px-6 rounded-2xl sm:rounded-[24px] bg-white border border-gray-100 hover:border-gray-300 shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
                         >
-                          {/* أيقونة الميزة المودرن الدائرية المصغرة والأنيقة مع inline-styles لضمان التطبيق الفوري */}
+                          {/* أيقونة سوداء مع حركة ارتداد عند التمرير */}
                           <div 
-                            className="store-feature-icon-wrapper rounded-full bg-[#0b1220] text-white flex items-center justify-center mb-1 sm:mb-2.5 shadow-xs group-hover:scale-105 transition-transform duration-300 shrink-0"
-                            style={{ width: '26px', height: '26px', minWidth: '26px', minHeight: '26px' }}
+                            className="rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mb-2.5 sm:mb-4 transition-colors duration-300 shrink-0 w-10 h-10 sm:w-14 sm:h-14 group-hover:-translate-y-1.5 group-hover:scale-110"
                           >
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" style={{ width: '13px', height: '13px' }} className="object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="object-contain brightness-0 w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 group-hover:animate-pulse" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white`} style={{ fontSize: '10px' }}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-sm sm:text-xl transition-all duration-300 group-hover:animate-bounce`}></i>
                             )}
                           </div>
 
                           {/* نصوص الميزة */}
-                          <h4 className="font-bold text-gray-900 text-[10px] sm:text-xs tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 text-center">
+                          <h4 className="font-bold text-gray-900 text-[11px] sm:text-[14px] tracking-tight truncate w-full group-hover:text-black transition-colors mb-1 text-center">
                             {feat.title}
                           </h4>
-                          <p className="text-[8px] sm:text-[11px] text-gray-400 font-normal leading-tight sm:leading-relaxed line-clamp-2 w-full text-center">
+                          <p className="text-[9px] sm:text-xs text-gray-400 font-medium leading-relaxed line-clamp-2 w-full text-center">
                             {feat.subtitle}
                           </p>
                         </div>
