@@ -1272,16 +1272,32 @@ export default function App() {
                 });
 
                 if (match) {
-                  // نحدث فقط البيانات التراكمية (الرصيد، الإشعارات، النقاط) دون استبدال هوية المستخدم الأساسية إذا كانت مختلفة
+                  // نحدث فقط البيانات التراكمية (الرصيد، النقاط) دون استبدال هوية المستخدم الأساسية إذا كانت مختلفة
                   setCurrentUser(prev => {
                     const base = prev || parsedCur;
+
+                    // ✅ إصلاح: دمج حالة قراءة الإشعارات المحلية مع الإشعارات الواردة من السحابة
+                    // لمنع إعادة ظهور الإشعارات المقروءة كجديدة بعد تحديث السحابة
+                    const cloudNotifs = match.notifications || [];
+                    const localNotifs = base.notifications || [];
+                    // بناء خريطة للإشعارات المقروءة محلياً باستخدام المعرّف
+                    const localReadMap = {};
+                    localNotifs.forEach(n => {
+                      if (n.id && n.read) localReadMap[n.id] = true;
+                    });
+                    // تطبيق حالة القراءة المحلية على الإشعارات القادمة من السحابة
+                    const mergedNotifs = cloudNotifs.map(n => ({
+                      ...n,
+                      read: localReadMap[n.id] ? true : n.read
+                    }));
+
                     const merged = {
                       ...base,
                       balance: match.balance !== undefined ? match.balance : base.balance,
                       points: match.points !== undefined ? match.points : base.points,
                       tier: match.tier || base.tier,
                       status: match.status || base.status,
-                      notifications: match.notifications || base.notifications,
+                      notifications: mergedNotifs.length > 0 ? mergedNotifs : localNotifs,
                       walletTransactions: match.walletTransactions || base.walletTransactions,
                       role: match.role || base.role
                     };
@@ -1297,7 +1313,9 @@ export default function App() {
         }
       },
       onOrdersUpdate: (cloudOrders) => {
-        if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+        // نتحقق فقط أن cloudOrders مصفوفة صالحة، بدون شرط length > 0
+        // حتى عند حذف جميع الطلبات يتم تصفير القائمة تلقائياً من السحابة
+        if (Array.isArray(cloudOrders)) {
           setOrders(cloudOrders);
           try {
             localStorage.setItem('haider_store_orders', JSON.stringify(cloudOrders));
