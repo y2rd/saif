@@ -237,7 +237,7 @@ export async function atomicDeductWalletBalance(customerId, amountToDeduct, tran
     const serverBal = parseFloat(custData.balance || 0);
 
     if (isNaN(serverBal) || serverBal < deductAmount) {
-      throw new Error(`الرصيد الفعلي في السحابة ($${(isNaN(serverBal) ? 0 : serverBal).toFixed(2)}) غير كافٍ لتنفيذ هذه العملية ($${deductAmount.toFixed(2)})`);
+      throw new Error(`الرصيد الفعلي ($${(isNaN(serverBal) ? 0 : serverBal).toFixed(2)}) غير كافٍ لتنفيذ هذه العملية ($${deductAmount.toFixed(2)})`);
     }
 
     const newBalance = parseFloat((serverBal - deductAmount).toFixed(2));

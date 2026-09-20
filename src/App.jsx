@@ -2537,7 +2537,12 @@ export default function App() {
           txResult = await atomicDeductWalletBalance(targetCustId, orderCost, newTx);
         } catch (atomicErr) {
           console.error("فشل الخصم الذري من المحفظة:", atomicErr);
-          alert(atomicErr.message || 'تعذر إتمام عملية الدفع من المحفظة. يرجى التحقق من اتصالك والمحاولة لاحقاً.');
+          showAppModal({
+            title: 'تنبيه الدفع',
+            message: atomicErr.message || 'تعذر إتمام عملية الدفع من المحفظة. يرجى التحقق من اتصالك والمحاولة لاحقاً.',
+            type: 'error',
+            confirmText: 'حسناً',
+          });
           return;
         }
 
