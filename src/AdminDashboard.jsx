@@ -2210,16 +2210,21 @@ export default function AdminDashboard({
       read: false
     };
 
+    if (sendNotification) {
+      sendNotification(broadcastTarget, notif);
+    }
+
     if (broadcastTarget === 'all') {
-      if (sendNotification) {
-        sendNotification('all', notif);
-      }
       showToast('📢 تم إرسال الإشعار لجميع العملاء بنجاح!');
+    } else if (broadcastTarget === 'group-customers') {
+      showToast('📢 تم إرسال الإشعار لجميع المشترين فقط!');
+    } else if (broadcastTarget === 'group-supervisors') {
+      showToast('🛡️ تم إرسال الإشعار لفريق المشرفين فقط!');
+    } else if (broadcastTarget === 'group-tier-vip') {
+      showToast('⭐ تم إرسال الإشعار لكبار العملاء (VIP) فقط!');
     } else {
-      if (sendNotification) {
-        sendNotification(broadcastTarget, notif);
-      }
-      showToast('📢 تم إرسال الإشعار للعميل المحدد بنجاح!');
+      const targetUser = customers.find(c => c.id === broadcastTarget);
+      showToast(`📢 تم إرسال الإشعار للعميل (${targetUser?.name || 'المحدد'}) فقط!`);
     }
 
     setShowBroadcastModal(false);
@@ -4246,6 +4251,20 @@ export default function AdminDashboard({
                                 >
                                   <i className="fa-solid fa-eye text-xs"></i>
                                 </button>
+                                {/* زر إرسال إشعار مباشر لهذا الشخص فقط */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setBroadcastTarget(c.id);
+                                    setBroadcastTitle('');
+                                    setBroadcastMessage('');
+                                    setShowBroadcastModal(true);
+                                  }}
+                                  className="text-indigo-600 hover:text-indigo-800 transition cursor-pointer p-1"
+                                  title={`إرسال إشعار خاص إلى ${c.name}`}
+                                >
+                                  <i className="fa-solid fa-paper-plane text-xs"></i>
+                                </button>
 
                                 {/* زر تعديل الحساب والصلاحيات (للمدير العام فقط) */}
                                 {isSuperAdmin && (
@@ -4668,34 +4687,58 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const c = selectedCustomerForView;
-                        setWalletModalCustomer(c);
-                        setWalletAmountInput('');
-                        setWalletActionType('deposit');
-                        setWalletNoteInput('');
-                      }}
-                      className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-                    >
-                      <i className="fa-solid fa-wallet text-xs"></i>
-                      <span>شحن رصيد المحفظة</span>
-                    </button>
-
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      {/* زر إرسال إشعار مباشر لهذا العميل فقط */}
                       <button
                         type="button"
                         onClick={() => {
                           const target = selectedCustomerForView;
                           setSelectedCustomerForView(null);
-                          openEditCustomerModal(target);
+                          setBroadcastTarget(target.id);
+                          setBroadcastTitle('');
+                          setBroadcastMessage('');
+                          setShowBroadcastModal(true);
                         }}
-                        className="px-3 py-2 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
                       >
-                        <i className="fa-solid fa-pen-to-square text-xs"></i>
-                        <span>تعديل</span>
+                        <i className="fa-solid fa-paper-plane text-xs"></i>
+                        <span>إرسال إشعار خاص</span>
                       </button>
+
+                      {/* شحن المحفظة (للمدير العام فقط) */}
+                      {isSuperAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const c = selectedCustomerForView;
+                            setWalletModalCustomer(c);
+                            setWalletAmountInput('');
+                            setWalletActionType('deposit');
+                            setWalletNoteInput('');
+                          }}
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                        >
+                          <i className="fa-solid fa-wallet text-xs"></i>
+                          <span>شحن</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isSuperAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const target = selectedCustomerForView;
+                            setSelectedCustomerForView(null);
+                            openEditCustomerModal(target);
+                          }}
+                          className="px-3 py-2 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <i className="fa-solid fa-pen-to-square text-xs"></i>
+                          <span>تعديل</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => setSelectedCustomerForView(null)}
@@ -4906,87 +4949,7 @@ export default function AdminDashboard({
               </div>
             )}
 
-            {/* نافذة إرسال إشعار لحظي للعملاء (Broadcast In-App Notification) */}
-            {showBroadcastModal && (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-3xl border border-gray-100 max-w-md w-full p-4 shadow-xl space-y-4 text-right" dir="rtl">
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">
-                        <i className="fa-solid fa-bullhorn"></i>
-                      </div>
-                      <h3 className="font-bold text-gray-900 text-sm">إرسال إشعار فوري للعملاء</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowBroadcastModal(false)}
-                      className="text-gray-400 hover:text-black w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
 
-                  <form onSubmit={handleSendBroadcastNotification} className="space-y-3 text-xs">
-                    <div>
-                      <label className="block font-bold text-gray-700 mb-1">المستلمون:</label>
-                      <select
-                        value={broadcastTarget}
-                        onChange={(e) => setBroadcastTarget(e.target.value)}
-                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-xl outline-none"
-                      >
-                        <option value="all">📢 جميع العملاء المسجلين ({customers.length})</option>
-                        {customers.map(c => (
-                          <option key={c.id} value={c.id}>
-                            👤 {c.name} ({c.phone || c.email || c.identifier || c.id})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-gray-700 mb-1">عنوان الإشعار:</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="مثال: خصومات حصرية لليوم فقط! 🔥"
-                        value={broadcastTitle}
-                        onChange={(e) => setBroadcastTitle(e.target.value)}
-                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-gray-700 mb-1">نص الرسالة / التفاصيل:</label>
-                      <textarea
-                        rows={3}
-                        required
-                        placeholder="اكتب تفاصيل الإعلان أو التنبيه الذي سيصل للعميل في تبويب الإشعارات..."
-                        value={broadcastMessage}
-                        onChange={(e) => setBroadcastMessage(e.target.value)}
-                        className="w-full p-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white resize-none"
-                      ></textarea>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-                      <button
-                        type="button"
-                        onClick={() => setShowBroadcastModal(false)}
-                        className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-xl font-bold"
-                      >
-                        إلغاء
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs flex items-center gap-1.5"
-                      >
-                        <i className="fa-solid fa-paper-plane text-xs"></i>
-                        <span>إرسال الإشعار الآن</span>
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
 
           </div>
         )}
@@ -11347,11 +11310,17 @@ service cloud.firestore {
                   onChange={(e) => setBroadcastTarget(e.target.value)}
                   className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-600 focus:bg-white"
                 >
-                  <option value="all">📢 إرسال لجميع العملاء ({customers.length} مستخدم)</option>
-                  <optgroup label="أو اختر عميل محدد:">
+                  <optgroup label="📢 الفئات والمجموعات:">
+                    <option value="all">📢 جميع المستخدمين والعملاء ({customers.length} حساب)</option>
+                    <option value="group-customers">🛒 المشترين فقط (استثناء المشرفين والإدارة)</option>
+                    <option value="group-supervisors">🛡️ فريق المشرفين فقط ({customers.filter(c => c.role === 'supervisor').length} مشرف)</option>
+                    <option value="group-active">🟢 الحسابات النشطة فقط ({customers.filter(c => c.status !== 'محظور').length} حساب)</option>
+                    <option value="group-tier-vip">⭐ كبار العملاء VIP والذهبيين</option>
+                  </optgroup>
+                  <optgroup label="👤 إرسال لشخص واحد محدد:">
                     {customers.map(c => (
                       <option key={c.id} value={c.id}>
-                        👤 {c.name} ({c.identifier || c.phone || c.email || 'بدون معرف'})
+                        👤 {c.name} ({c.role === 'supervisor' ? 'مشرف' : c.role === 'admin' ? 'مدير' : 'عميل'}) - {c.phone || c.email || c.identifier || c.id}
                       </option>
                     ))}
                   </optgroup>

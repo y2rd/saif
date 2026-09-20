@@ -2079,43 +2079,30 @@ export default function App() {
       read: false
     };
 
-    if (targetIdentifierOrId === 'all') {
-      setCustomers(prev => {
-        const updated = prev.map(c => {
-          const currentList = Array.isArray(c.notifications) ? c.notifications : [];
-          // منع تكرار نفس الإشعار إذا كان موجوداً
-          if (currentList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
-            return c;
-          }
-          const u = {
-            ...c,
-            notifications: [newNotif, ...currentList]
-          };
-          syncCustomerToCloud(u);
-          return u;
-        });
-        try {
-          localStorage.setItem('haider_store_customers', JSON.stringify(updated));
-        } catch (e) {}
-        return updated;
-      });
-      if (currentUser) {
-        const curList = Array.isArray(currentUser.notifications) ? currentUser.notifications : [];
-        if (!curList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
-          const merged = { ...currentUser, notifications: [newNotif, ...curList] };
-          setCurrentUser(merged);
-          try {
-            localStorage.setItem('haider_current_user', JSON.stringify(merged));
-          } catch (e) {}
-        }
-      }
-      showNotificationBanner(newNotif.title, newNotif.message, newNotif.type || 'info');
-      return;
-    }
+    // دالة مساعدة لتحديد ما إذا كان المستخدم يطابق الفئة أو المعرف المستهدف
+    const matchesTarget = (user) => {
+      if (!user) return false;
+      if (targetIdentifierOrId === 'all') return true;
+      if (targetIdentifierOrId === 'group-customers') return user.role === 'customer' || !user.role;
+      if (targetIdentifierOrId === 'group-supervisors') return user.role === 'supervisor';
+      if (targetIdentifierOrId === 'group-admins') return user.role === 'admin';
+      if (targetIdentifierOrId === 'group-active') return user.status === 'نشط' || !user.status;
+      if (targetIdentifierOrId === 'group-tier-vip') return user.tier === 'vip' || user.tier === 'gold';
+      // مطابقة فردية بالـ id أو الهاتف أو البريد أو المعرف
+      return (
+        user.id === targetIdentifierOrId ||
+        user.identifier === targetIdentifierOrId ||
+        user.phone === targetIdentifierOrId ||
+        user.email === targetIdentifierOrId ||
+        user.name === targetIdentifierOrId
+      );
+    };
 
     setCustomers(prev => {
+      let anyMatched = false;
       const updated = prev.map(c => {
-        if (c.id === targetIdentifierOrId || c.identifier === targetIdentifierOrId || c.phone === targetIdentifierOrId || c.name === targetIdentifierOrId) {
+        if (matchesTarget(c)) {
+          anyMatched = true;
           const currentList = Array.isArray(c.notifications) ? c.notifications : [];
           if (currentList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
             return c;
@@ -2135,12 +2122,15 @@ export default function App() {
       return updated;
     });
 
-    if (currentUser && (currentUser.id === targetIdentifierOrId || currentUser.identifier === targetIdentifierOrId || currentUser.phone === targetIdentifierOrId || currentUser.name === targetIdentifierOrId || targetIdentifierOrId === 'all')) {
-      const merged = { ...currentUser, notifications: [newNotif, ...(currentUser.notifications || [])] };
-      setCurrentUser(merged);
-      try {
-        localStorage.setItem('haider_current_user', JSON.stringify(merged));
-      } catch (e) {}
+    if (currentUser && matchesTarget(currentUser)) {
+      const curList = Array.isArray(currentUser.notifications) ? currentUser.notifications : [];
+      if (!curList.some(n => n.id === newNotif.id || (n.title === newNotif.title && n.message === newNotif.message && Date.now() - new Date(n.date).getTime() < 5000))) {
+        const merged = { ...currentUser, notifications: [newNotif, ...curList] };
+        setCurrentUser(merged);
+        try {
+          localStorage.setItem('haider_current_user', JSON.stringify(merged));
+        } catch (e) {}
+      }
       showNotificationBanner(newNotif.title, newNotif.message, newNotif.type || 'info');
     }
   };
