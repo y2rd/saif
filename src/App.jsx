@@ -5681,7 +5681,7 @@ export default function App() {
                                   className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                                 >
                                   <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                                  <span>{buttonText || 'إضافة للسلة'}</span>
+                                  <span className="text-gray-900 group-hover/btn:text-white transition-colors">{buttonText || 'إضافة للسلة'}</span>
                                 </button>
                               )}
                             </div>
@@ -5982,7 +5982,7 @@ export default function App() {
                                   className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                                 >
                                   <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                                  <span>إضافة للسلة</span>
+                                  <span className="text-gray-900 group-hover/btn:text-white transition-colors">إضافة للسلة</span>
                                 </button>
                               )}
                         </div>
@@ -6227,7 +6227,7 @@ export default function App() {
                               className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
                               <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                              <span>إضافة للسلة</span>
+                              <span className="text-gray-900 group-hover/btn:text-white transition-colors">إضافة للسلة</span>
                             </button>
                           )}
                         </div>
@@ -7248,7 +7248,7 @@ function AutoMovingProductsCarousel({
                   className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                 >
                   <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                  <span>أضف إلى السلة</span>
+                  <span className="text-gray-900 group-hover/btn:text-white transition-colors">أضف إلى السلة</span>
                 </button>
               )}
             </div>
