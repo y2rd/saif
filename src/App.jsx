@@ -452,7 +452,12 @@ export default function App() {
 
         setAuthLoading(false);
         closeAuthModal();
-        alert(`مرحباً بك مجدداً يا ${loggedUser.name || 'عميلنا العزيز'}!`);
+        showAppModal({
+          title: 'تسجيل الدخول ناجح',
+          message: `مرحباً بك مجدداً يا ${loggedUser.name || 'عميلنا العزيز'}!`,
+          type: 'success',
+          confirmText: 'متابعة'
+        });
       } else {
         // حالة إنشاء حساب جديد:
         if (existingUser) {
@@ -562,7 +567,12 @@ export default function App() {
 
       setAuthLoading(false);
       closeAuthModal();
-      alert(`🎉 أهلاً بك يا ${newCustomer.name}! تم تأكيد حسابك وتسجيل دخولك كعميل في المتجر.`);
+      showAppModal({
+        title: 'تم إنشاء الحساب بنجاح',
+        message: `أهلاً بك يا ${newCustomer.name}! تم تأكيد حسابك وتسجيل دخولك كعميل في المتجر.`,
+        type: 'success',
+        confirmText: 'تصفح المتجر'
+      });
     } catch (err) {
       console.error(err);
       setAuthError('تعذر تأكيد الرمز حالياً، يرجى المحاولة مجدداً');
