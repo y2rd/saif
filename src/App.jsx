@@ -1329,12 +1329,13 @@ export default function App() {
       },
       onCategoriesUpdate: (cloudCategories, cloudUpdatedAt) => {
         if (Array.isArray(cloudCategories) && cloudCategories.length > 0) {
+          const filteredCloudCategories = cloudCategories.filter(c => c && c.name !== 'الكل' && c.id !== 'all');
           const now = typeof cloudUpdatedAt === 'number' ? cloudUpdatedAt : Date.now();
           try {
-            localStorage.setItem('haider_store_categories', JSON.stringify(cloudCategories));
+            localStorage.setItem('haider_store_categories', JSON.stringify(filteredCloudCategories));
             localStorage.setItem('haider_store_categories_updatedAt', String(now));
           } catch (e) {}
-          setCategories(cloudCategories);
+          setCategories(filteredCloudCategories);
         }
       },
       onCustomersUpdate: (cloudCustomers) => {
