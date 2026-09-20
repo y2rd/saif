@@ -3147,8 +3147,8 @@ export default function App() {
               {categories.length > 6 && (
                 <li className="relative group">
                   <div className="cursor-pointer transition text-gray-700 hover:text-black flex items-center gap-1.5 font-medium">
-                    <i className="fa-solid fa-angle-up group-hover:rotate-180 transition-transform duration-200 text-[10px]"></i>
                     <span>المزيد</span>
+                    <i className="fa-solid fa-angle-down group-hover:rotate-180 transition-transform duration-200 text-[10px]"></i>
                   </div>
                   <div className="absolute top-full right-0 mt-5 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="absolute -top-1.5 right-6 w-3 h-3 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
