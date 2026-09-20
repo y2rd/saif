@@ -637,7 +637,20 @@ export default function App() {
   // سلة المشتريات والموشن
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartAnimating, setCartAnimating] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('haider_cart_items');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('haider_cart_items', JSON.stringify(cartItems));
+    } catch (e) {}
+  }, [cartItems]);
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
   const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
   const deletedOrderIdsRef = useRef(new Set((() => {
