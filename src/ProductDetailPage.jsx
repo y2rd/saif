@@ -413,40 +413,44 @@ export default function ProductDetailPage({
                   </div>
                 )}
 
-                {/* 4. خيارات باقات الكميات المتعددة فائقة الصغر */}
+                {/* 4. خيارات باقات الكميات المتعددة */}
                 {!isExchange && product.hasQuantityTiers && product.quantityTiers && product.quantityTiers.length > 0 && (
-                  <div className="mb-2.5 space-y-1">
-                    <label className="text-[9px] sm:text-[10px] font-normal text-gray-800 flex items-center gap-1">
-                      <i className="fa-solid fa-tags text-black text-[8px]"></i>
-                      <span>الباقات:</span>
+                  <div className="mb-4">
+                    <label className="text-xs font-bold text-gray-900 mb-2.5 block">
+                      الباقات المتوفرة:
                     </label>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 sm:gap-1.5">
-                      {product.quantityTiers.map((tier, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => handleSelectTier(tier)}
-                          className={`p-1.5 rounded-lg border text-right cursor-pointer transition-all duration-200 active:scale-97 relative flex items-center justify-between ${
-                            selectedTier?.minQuantity === tier.minQuantity
-                              ? 'border-gray-800 bg-gray-50/80 shadow-2xs'
-                              : 'border-gray-200 bg-white hover:bg-gray-50/80 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 min-w-0 pr-0.5">
-                            {selectedTier?.minQuantity === tier.minQuantity ? (
-                              <span className="text-black text-[9px] font-normal shrink-0">✓</span>
-                            ) : (
-                              <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"></span>
-                            )}
-                            <div className="truncate">
-                              <span className="block text-[9px] sm:text-[11px] font-normal text-black truncate leading-tight">{tier.label}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {product.quantityTiers.map((tier, idx) => {
+                        const isSelected = selectedTier?.minQuantity === tier.minQuantity;
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => handleSelectTier(tier)}
+                            className={`p-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between group ${
+                              isSelected
+                                ? 'border-gray-900 bg-gray-50/80 shadow-sm'
+                                : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected ? 'border-gray-900 bg-gray-900' : 'border-gray-300 bg-white group-hover:border-gray-400'
+                              }`}>
+                                {isSelected && <i className="fa-solid fa-check text-white text-[9px]"></i>}
+                              </div>
+                              <div className="truncate text-right">
+                                <span className={`block text-xs sm:text-sm truncate ${isSelected ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                                  {tier.label}
+                                </span>
+                              </div>
+                            </div>
+                            <div className={`text-xs sm:text-sm font-bold font-price shrink-0 pl-1 ${isSelected ? 'text-gray-900' : 'text-gray-500'}`}>
+                              {formatPrice(tier.price, activeCurrency)}
                             </div>
                           </div>
-                          <div className="text-[9px] sm:text-[10px] font-bold text-red-700 font-price shrink-0 pl-1">
-                            {formatPrice(tier.price, activeCurrency)}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
