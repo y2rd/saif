@@ -3109,7 +3109,7 @@ export default function App() {
 
           {/* الجانب الأوسط (للكمبيوتر/التابلت): روابط الأقسام مباشرة في الهيدر كما في الصورة */}
           <nav className="hidden md:flex flex-1 items-center justify-center px-4 overflow-visible">
-            <ul className="flex items-center gap-4 lg:gap-7 text-xs lg:text-[13px] font-bold">
+            <ul className="flex items-center gap-4 lg:gap-7 text-[12px] font-bold">
               {categories.slice(0, 6).map(cat => (
                 <li key={cat.id || cat.name}>
                   <button
