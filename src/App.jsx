@@ -2782,14 +2782,23 @@ export default function App() {
   };
 
   const handleCategoryClick = (catName) => {
+    setViewMode('store');
+    setActiveProductForPage(null);
+    setActiveCustomPage(null);
     setSelectedCat(catName);
+    
     const targetHash = catName === 'الكل' ? '#/' : `#/category/${encodeURIComponent(catName)}`;
     if (window.location.hash !== targetHash) {
       isUpdatingHashRef.current = true;
       window.location.hash = targetHash;
       setTimeout(() => { isUpdatingHashRef.current = false; }, 50);
     }
-    smoothScrollToElement(productsSectionRef.current, 900);
+    
+    setTimeout(() => {
+      if (productsSectionRef.current) {
+        smoothScrollToElement(productsSectionRef.current, 900);
+      }
+    }, 100);
   };
 
   const handleSelectVariant = (productId, variant) => {
