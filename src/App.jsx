@@ -5938,14 +5938,14 @@ export default function App() {
                           style={{ minWidth: 0 }}
                           className="relative overflow-hidden py-5 sm:py-8 px-2 sm:px-6 rounded-2xl sm:rounded-[24px] bg-white border border-gray-100 hover:border-gray-300 shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
                         >
-                          {/* أيقونة سوداء مع حركة ارتداد عند التمرير */}
+                          {/* أيقونة سوداء مع حركة ناعمة عند التمرير */}
                           <div 
-                            className="rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mb-2.5 sm:mb-4 transition-colors duration-300 shrink-0 w-10 h-10 sm:w-14 sm:h-14 group-hover:-translate-y-1.5 group-hover:scale-110"
+                            className="rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mb-2.5 sm:mb-4 transition-all duration-500 ease-out shrink-0 w-10 h-10 sm:w-14 sm:h-14 group-hover:-translate-y-1 group-hover:shadow-sm"
                           >
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="object-contain brightness-0 w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 group-hover:animate-pulse" />
+                              <img src={feat.customIconUrl} alt="" className="object-contain brightness-0 w-4 h-4 sm:w-6 sm:h-6 transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-sm sm:text-xl transition-all duration-300 group-hover:animate-bounce`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-sm sm:text-xl transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3`}></i>
                             )}
                           </div>
 
