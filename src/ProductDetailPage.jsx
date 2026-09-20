@@ -230,57 +230,86 @@ export default function ProductDetailPage({
 
                 {/* 2. السعر أو مقابل المبادلة تحت العنوان مباشرة */}
                 {isExchange ? (
-                  <div className="mb-3 space-y-2">
-                    <div className="grid grid-cols-2 gap-2 text-center">
-                      {/* خانة: المنتج المطلوب (الاسم محدد من الإعدادات والكمية قابلة للكتابة) */}
-                      <div className="p-2.5 bg-gray-50/80 rounded-xl border border-gray-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
-                        <span className="text-[10px] text-gray-500 font-bold">المنتج المطلوب</span>
-                        <span className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-1" title={product.exchangeRequiredProductName || product.title}>
+                  <div className="mb-4 space-y-3">
+                    <div className="relative flex flex-col sm:flex-row items-stretch justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                      
+                      {/* السهم المتبادل لتوضيح المبادلة */}
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center z-10 hidden sm:flex">
+                        <i className="fa-solid fa-right-left text-gray-400 text-xs"></i>
+                      </div>
+
+                      {/* القسم الأول: المنتج المطلوب (تدفعه) */}
+                      <div className="flex-1 flex flex-col p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                          <span className="text-[11px] text-gray-500 font-medium">المنتج المطلوب تسليمه</span>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-gray-900 mb-3" title={product.exchangeRequiredProductName || product.title}>
                           {product.exchangeRequiredProductName || product.title}
                         </span>
-                        <div className="w-full flex flex-col items-center justify-center gap-1 pt-1 border-t border-gray-200/60 text-xs font-price">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <span className="text-gray-500 text-[10px] font-sans">الكمية:</span>
-                            <input
-                              type="number"
-                              min={minQty}
-                              value={quantity}
-                              dir="ltr"
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === '') {
-                                  setQuantity('');
-                                } else {
-                                  const parsed = parseInt(val);
-                                  setQuantity(isNaN(parsed) ? minQty : Math.max(1, parsed));
-                                }
-                              }}
-                              onBlur={() => {
-                                if (!quantity || quantity < minQty) setQuantity(minQty);
-                              }}
-                              className="w-16 text-center py-0.5 px-1 bg-white border border-gray-300 focus:border-black rounded text-xs font-bold text-black font-english-num outline-none"
-                              placeholder={String(minQty)}
-                            />
+                        
+                        <div className="mt-auto">
+                          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                            <span className="text-xs text-gray-500">الكمية</span>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={minQty}
+                                value={quantity}
+                                dir="ltr"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === '') {
+                                    setQuantity('');
+                                  } else {
+                                    const parsed = parseInt(val);
+                                    setQuantity(isNaN(parsed) ? minQty : Math.max(1, parsed));
+                                  }
+                                }}
+                                onBlur={() => {
+                                  if (!quantity || quantity < minQty) setQuantity(minQty);
+                                }}
+                                className="w-16 text-center py-1 bg-white border border-gray-200 focus:border-black focus:ring-1 focus:ring-black rounded-lg text-sm font-bold text-black font-english-num outline-none transition-all shadow-2xs"
+                                placeholder={String(minQty)}
+                              />
+                            </div>
                           </div>
                           {minQty > 1 && (parseInt(quantity) || 0) <= minQty && (
-                            <span className="text-[9px] text-amber-700 font-sans">الحد الأدنى: <span dir="ltr" className="font-english-num font-bold">{(minQty).toLocaleString('en-US')}</span></span>
+                            <div className="text-[10px] text-amber-600 mt-1.5 font-medium flex items-center gap-1">
+                              <i className="fa-solid fa-circle-info text-[9px]"></i>
+                              <span>الحد الأدنى: <span dir="ltr" className="font-english-num font-bold">{(minQty).toLocaleString('en-US')}</span></span>
+                            </div>
                           )}
                         </div>
                       </div>
 
-                      {/* خانة: المنتج اللي نسلمك (الاسم من الإعدادات والكمية تُحسب تلقائياً حسب كمية المطلوب) */}
-                      <div className="p-2.5 bg-teal-50/80 rounded-xl border border-teal-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
-                        <span className="text-[10px] text-teal-800 font-bold">المنتج اللي نسلمك</span>
-                        <span className="text-xs sm:text-sm font-black text-teal-950 line-clamp-1" title={product.exchangeCurrencyName || 'مبادلة'}>
-                          {product.exchangeCurrencyName || 'مبادلة'}
-                        </span>
-                        <div className="w-full flex items-center justify-center gap-1.5 pt-1 border-t border-teal-200/60 text-xs">
-                          <span className="text-teal-700 text-[10px] font-sans">الكمية:</span>
-                          <span dir="ltr" className="text-xs sm:text-sm font-black text-teal-950 font-english-num">
-                            {((parseFloat(product.exchangeAmount) || 1) * (parseInt(quantity) || 1)).toLocaleString('en-US')}
-                          </span>
+                      {/* أيقونة المبادلة في الجوال */}
+                      <div className="flex justify-center sm:hidden -my-2 relative z-10">
+                        <div className="w-7 h-7 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center">
+                          <i className="fa-solid fa-arrow-down text-gray-400 text-[10px]"></i>
                         </div>
                       </div>
+
+                      {/* القسم الثاني: المنتج المستلم (تحصل عليه) */}
+                      <div className="flex-1 flex flex-col p-3 rounded-xl bg-teal-50/30 hover:bg-teal-50/50 border border-teal-50/50 transition-colors">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                          <span className="text-[11px] text-teal-700 font-medium">المنتج الذي ستحصل عليه</span>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-teal-900 mb-3" title={product.exchangeCurrencyName || 'مبادلة'}>
+                          {product.exchangeCurrencyName || 'مبادلة'}
+                        </span>
+                        
+                        <div className="mt-auto">
+                          <div className="flex items-center justify-between border-t border-teal-100 pt-3">
+                            <span className="text-xs text-teal-700">الكمية الإجمالية</span>
+                            <span dir="ltr" className="text-base sm:text-lg font-black text-teal-700 font-english-num drop-shadow-sm">
+                              {((parseFloat(product.exchangeAmount) || 1) * (parseInt(quantity) || 1)).toLocaleString('en-US')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 ) : isFlashSaleActive && product.flashSalePrice ? (
