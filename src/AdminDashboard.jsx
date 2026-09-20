@@ -1425,8 +1425,19 @@ export default function AdminDashboard({
           const savedCur = localStorage.getItem('haider_current_user');
           if (savedCur) {
             const parsedCur = JSON.parse(savedCur);
-            if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
-              const mergedUser = { ...parsedCur, ...updatedCust };
+            const isMatch = parsedCur && (
+              (parsedCur.id && updatedCust.id && String(parsedCur.id) === String(updatedCust.id)) ||
+              (parsedCur.email && updatedCust.email && String(parsedCur.email).toLowerCase() === String(updatedCust.email).toLowerCase()) ||
+              (parsedCur.identifier && updatedCust.identifier && String(parsedCur.identifier).toLowerCase() === String(updatedCust.identifier).toLowerCase()) ||
+              (parsedCur.phone && updatedCust.phone && String(parsedCur.phone).length >= 7 && String(parsedCur.phone) === String(updatedCust.phone))
+            );
+            if (isMatch) {
+              const mergedUser = {
+                ...parsedCur,
+                balance: updatedCust.balance !== undefined ? updatedCust.balance : parsedCur.balance,
+                points: updatedCust.points !== undefined ? updatedCust.points : parsedCur.points,
+                notifications: updatedCust.notifications || parsedCur.notifications
+              };
               localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
               if (setCurrentUser) setCurrentUser(mergedUser);
             }
@@ -1569,8 +1580,18 @@ export default function AdminDashboard({
       const savedCur = localStorage.getItem('haider_current_user');
       if (savedCur) {
         const parsedCur = JSON.parse(savedCur);
-        if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
-          const mergedUser = { ...parsedCur, ...updatedCust };
+        const isMatch = parsedCur && (
+          (parsedCur.id && updatedCust.id && String(parsedCur.id) === String(updatedCust.id)) ||
+          (parsedCur.email && updatedCust.email && String(parsedCur.email).toLowerCase() === String(updatedCust.email).toLowerCase()) ||
+          (parsedCur.identifier && updatedCust.identifier && String(parsedCur.identifier).toLowerCase() === String(updatedCust.identifier).toLowerCase()) ||
+          (parsedCur.phone && updatedCust.phone && String(parsedCur.phone).length >= 7 && String(parsedCur.phone) === String(updatedCust.phone))
+        );
+        if (isMatch) {
+          const mergedUser = {
+            ...parsedCur,
+            balance: updatedCust.balance !== undefined ? updatedCust.balance : parsedCur.balance,
+            walletTransactions: updatedCust.walletTransactions || parsedCur.walletTransactions
+          };
           localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
           if (setCurrentUser) setCurrentUser(mergedUser);
         }
@@ -2060,8 +2081,18 @@ export default function AdminDashboard({
       const savedCur = localStorage.getItem('haider_current_user');
       if (savedCur) {
         const parsedCur = JSON.parse(savedCur);
-        if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
-          const mergedUser = { ...parsedCur, ...updatedCust };
+        const isMatch = parsedCur && (
+          (parsedCur.id && updatedCust.id && String(parsedCur.id) === String(updatedCust.id)) ||
+          (parsedCur.email && updatedCust.email && String(parsedCur.email).toLowerCase() === String(updatedCust.email).toLowerCase()) ||
+          (parsedCur.identifier && updatedCust.identifier && String(parsedCur.identifier).toLowerCase() === String(updatedCust.identifier).toLowerCase()) ||
+          (parsedCur.phone && updatedCust.phone && String(parsedCur.phone).length >= 7 && String(parsedCur.phone) === String(updatedCust.phone))
+        );
+        if (isMatch) {
+          const mergedUser = {
+            ...parsedCur,
+            balance: updatedCust.balance !== undefined ? updatedCust.balance : parsedCur.balance,
+            walletTransactions: updatedCust.walletTransactions || parsedCur.walletTransactions
+          };
           localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
           if (setCurrentUser) setCurrentUser(mergedUser);
         }
@@ -2078,20 +2109,29 @@ export default function AdminDashboard({
     showToast(`✅ تم تحديث رصيد ${updatedCust.name} بنجاح: ${newBal} ${activeCurrency === 'IQD' ? 'د.ع' : '$'}`);
   };
 
-  // الموافقة على طلب شحن المحفظة
+  // قبول طلب شحن رصيد المحفظة وإيداع المبلغ فوراً في حساب العميل
   const handleApproveTopup = async (topup) => {
-    if (!window.confirm(`هل أنت متأكد من الموافقة على شحن $${topup.amountUsd} لمحفظة ${topup.customerName}؟`)) return;
+    if (!window.confirm(`هل أنت متأكد من قبول شحن رصيد بقيمة $${topup.amountUsd} للعميل ${topup.customerName || topup.customerIdentifier}؟`)) {
+      return;
+    }
 
-    const targetCust = customers.find(c =>
-      (topup.customerId && c.id === topup.customerId) ||
-      (topup.customerIdentifier && (c.identifier === topup.customerIdentifier || c.phone === topup.customerIdentifier || c.email === topup.customerIdentifier)) ||
-      c.name === topup.customerName
+    const updatedTopups = topupRequests.map(t => t.id === topup.id ? { ...t, status: 'مقبول', approvedAt: new Date().toISOString() } : t);
+    setTopupRequests(updatedTopups);
+    syncTopupsToCloud(updatedTopups);
+    try {
+      localStorage.setItem('haider_store_topups', JSON.stringify(updatedTopups));
+    } catch (e) {}
+
+    // البحث عن العميل المستهدف
+    const targetCustId = topup.customerId || topup.customerIdentifier;
+    const targetCust = customers.find(c => 
+      c.id === targetCustId || 
+      c.identifier === targetCustId || 
+      c.phone === targetCustId ||
+      c.email === targetCustId
     );
 
     if (targetCust) {
-      const targetCustId = targetCust.id || targetCust.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
-      const updatedTopups = (topupRequests || []).map(t => t.id === topup.id ? { ...t, status: 'مقبول' } : t);
-
       let atomicSuccess = false;
       try {
         const res = await atomicApproveTopup(targetCustId, topup.id, topup.amountUsd, updatedTopups);
@@ -2103,8 +2143,18 @@ export default function AdminDashboard({
             const savedCur = localStorage.getItem('haider_current_user');
             if (savedCur) {
               const parsed = JSON.parse(savedCur);
-              if (parsed && (parsed.id === updatedCust.id || parsed.identifier === updatedCust.identifier)) {
-                const merged = { ...parsed, ...updatedCust };
+              const isMatch = parsed && (
+                (parsed.id && updatedCust.id && String(parsed.id) === String(updatedCust.id)) ||
+                (parsed.email && updatedCust.email && String(parsed.email).toLowerCase() === String(updatedCust.email).toLowerCase()) ||
+                (parsed.identifier && updatedCust.identifier && String(parsed.identifier).toLowerCase() === String(updatedCust.identifier).toLowerCase()) ||
+                (parsed.phone && updatedCust.phone && String(parsed.phone).length >= 7 && String(parsed.phone) === String(updatedCust.phone))
+              );
+              if (isMatch) {
+                const merged = {
+                  ...parsed,
+                  balance: updatedCust.balance !== undefined ? updatedCust.balance : parsed.balance,
+                  walletTransactions: updatedCust.walletTransactions || parsed.walletTransactions
+                };
                 localStorage.setItem('haider_current_user', JSON.stringify(merged));
                 if (setCurrentUser) setCurrentUser(merged);
               }

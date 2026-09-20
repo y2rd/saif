@@ -1184,12 +1184,26 @@ export default function App() {
   // مزامنة حالة العميل المسجل حالياً مع قائمة العملاء عند تحديث الرصيد أو البيانات فورياً
   useEffect(() => {
     if (currentUser && Array.isArray(customers) && customers.length > 0) {
-      const matched = customers.find(c =>
-        c.id === currentUser.id ||
-        (c.identifier && currentUser.identifier && c.identifier === currentUser.identifier) ||
-        (c.phone && currentUser.phone && c.phone === currentUser.phone) ||
-        (c.email && currentUser.email && c.email === currentUser.email)
-      );
+      const curId = String(currentUser.id || '').trim();
+      const curEmail = String(currentUser.email || '').trim().toLowerCase();
+      const curPhone = String(currentUser.phone || '').trim();
+      const curIdent = String(currentUser.identifier || '').trim().toLowerCase();
+
+      const matched = customers.find(c => {
+        if (!c || typeof c !== 'object') return false;
+        const cId = String(c.id || '').trim();
+        const cEmail = String(c.email || '').trim().toLowerCase();
+        const cPhone = String(c.phone || '').trim();
+        const cIdent = String(c.identifier || '').trim().toLowerCase();
+
+        // مطابقة صارمة بحقول غير فارغة فقط لمنع خلط الحسابات التي تشترك في نصوص فارغة
+        if (curId && cId && curId === cId) return true;
+        if (curEmail && cEmail && curEmail === cEmail) return true;
+        if (curPhone && cPhone && curPhone.length >= 7 && curPhone === cPhone) return true;
+        if (curIdent && cIdent && curIdent.length >= 3 && curIdent === cIdent) return true;
+        return false;
+      });
+
       if (matched) {
         // نضمن دائماً تطبيق readNotifIdsRef على إشعارات matched قبل المقارنة والدمج
         const normalizedMatchedNotifs = (matched.notifications || []).map(n => ({
@@ -1199,8 +1213,8 @@ export default function App() {
 
         if (
           matched.balance !== currentUser.balance || 
-          matched.name !== currentUser.name || 
           matched.points !== currentUser.points ||
+          (matched.role && matched.role !== currentUser.role) ||
           JSON.stringify(normalizedMatchedNotifs) !== JSON.stringify(currentUser.notifications || [])
         ) {
           // إذا وصل إشعار جديد فعلياً (وليس تم فقط تحديث حالته كمقروء)، أطلق إشعار النظام والبانر المباشر فوراً
@@ -1213,7 +1227,17 @@ export default function App() {
             }
           }
 
-          const merged = { ...currentUser, ...matched, notifications: normalizedMatchedNotifs };
+          // نحافظ على هوية العميل الحالي (الاسم، المعرف، البريد، الهاتف) ونحدث فقط الحقول التراكمية
+          const merged = {
+            ...currentUser,
+            balance: matched.balance !== undefined ? matched.balance : currentUser.balance,
+            points: matched.points !== undefined ? matched.points : currentUser.points,
+            tier: matched.tier || currentUser.tier,
+            status: matched.status || currentUser.status,
+            role: matched.role || currentUser.role,
+            walletTransactions: matched.walletTransactions || currentUser.walletTransactions,
+            notifications: normalizedMatchedNotifs
+          };
           setCurrentUser(merged);
           try {
             localStorage.setItem('haider_current_user', JSON.stringify(merged));
