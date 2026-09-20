@@ -1916,6 +1916,39 @@ export default function App() {
     setCartItems(cartItems.filter(item => item.cartItemId !== cartItemId));
   };
 
+  const updateCartItemTier = (oldCartItemId, originalProduct, newTier) => {
+    setCartItems(prevItems => {
+      const itemToUpdate = prevItems.find(item => item.cartItemId === oldCartItemId);
+      if (!itemToUpdate) return prevItems;
+
+      const tierId = newTier.id || newTier.label;
+      const noteKey = itemToUpdate.userNote ? '-' + btoa(unescape(encodeURIComponent(itemToUpdate.userNote))).substring(0, 8) : '';
+      const newCartItemId = `${originalProduct.id}-${tierId}${noteKey}`;
+
+      if (newCartItemId === oldCartItemId) return prevItems;
+
+      const targetIndex = prevItems.findIndex(item => item.cartItemId === newCartItemId && item.cartItemId !== oldCartItemId);
+      
+      let newItems = [...prevItems];
+      if (targetIndex !== -1) {
+        newItems[targetIndex] = {
+          ...newItems[targetIndex],
+          quantity: newItems[targetIndex].quantity + itemToUpdate.quantity
+        };
+        newItems = newItems.filter(item => item.cartItemId !== oldCartItemId);
+      } else {
+        const itemIndex = prevItems.findIndex(item => item.cartItemId === oldCartItemId);
+        newItems[itemIndex] = {
+          ...itemToUpdate,
+          cartItemId: newCartItemId,
+          tierLabel: newTier.label,
+          priceUsd: newTier.price,
+        };
+      }
+      return newItems;
+    });
+  };
+
   // حساب وتدقيق إجمالي السلة بالتحقق من مصفوفة المنتجات الحقيقية لمنع التلاعب بالأسعار
   const calculateValidatedCartTotal = (items) => {
     if (!Array.isArray(items)) return 0;
@@ -4553,11 +4586,39 @@ export default function App() {
                           <img src={item.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover border border-gray-100" />
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xs text-gray-800 truncate font-medium">{item.title}</h4>
-                            {item.tierLabel && (
-                              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded block mt-0.5 w-fit">
-                                {item.tierLabel}
-                              </span>
-                            )}
+                            {(() => {
+                              const originalProd = products.find(p => p.id === item.productId);
+                              const hasTiers = originalProd && originalProd.hasQuantityTiers && Array.isArray(originalProd.quantityTiers) && originalProd.quantityTiers.length > 0;
+                              
+                              if (hasTiers && item.tierLabel) {
+                                return (
+                                  <div className="mt-1">
+                                    <select
+                                      value={originalProd.quantityTiers.find(t => t.label === item.tierLabel)?.id || item.tierLabel}
+                                      onChange={(e) => {
+                                        const selected = originalProd.quantityTiers.find(t => String(t.id || t.label) === e.target.value);
+                                        if (selected) {
+                                          updateCartItemTier(item.cartItemId, originalProd, selected);
+                                        }
+                                      }}
+                                      className="text-[10px] sm:text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 focus:border-emerald-400 px-2 py-1 rounded-lg w-full max-w-[160px] outline-none cursor-pointer shadow-2xs transition-colors appearance-none relative"
+                                      style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27%23065f46%27%3E%3Cpath d=%27M7 10l5 5 5-5z%27/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'left 4px center', backgroundSize: '14px', paddingLeft: '22px' }}
+                                    >
+                                      {originalProd.quantityTiers.map((t, idx) => (
+                                        <option key={idx} value={t.id || t.label}>{t.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                );
+                              } else if (item.tierLabel) {
+                                return (
+                                  <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded block mt-0.5 w-fit">
+                                    {item.tierLabel}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                             {item.productType === 'exchange' && (
                               <span className="text-[9px] text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded flex items-center gap-1 mt-0.5 w-fit font-bold border border-teal-200">
                                 <i className="fa-solid fa-right-left text-teal-700 text-[8.5px]"></i>
