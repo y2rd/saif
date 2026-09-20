@@ -5735,7 +5735,7 @@ export default function App() {
                         <p className="text-[11px] text-gray-400">يمكنك البدء بإضافة منتجاتك وأقسامك عبر لوحة التحكم.</p>
                       </div>
                     ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
                       {filteredProducts.map((item) => {
                         const isInWishlist = wishlist.includes(item.id);
                         const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -6039,7 +6039,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
                   {categoryProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -6286,7 +6286,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
                   {sectionProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
