@@ -5807,7 +5807,7 @@ export default function App() {
                               </div>
 
                               {/* 2. محتوى البطاقة: العنوان مع مسافات مقلصة ومضبوطة */}
-                              <div className="p-3 sm:p-3.5 pb-1 sm:pb-1.5 text-right w-full">
+                              <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full">
                                 <h3
                                   className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                                   title={item.title}
@@ -6108,7 +6108,7 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-3 sm:p-3.5 pb-1 sm:pb-1.5 text-right w-full">
+                          <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full">
                             <h3
                               className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                               title={item.title}
@@ -6355,7 +6355,7 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-3 sm:p-3.5 pb-1 sm:pb-1.5 text-right w-full">
+                          <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full">
                             <h3
                               className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
                               title={item.title}
@@ -7391,7 +7391,7 @@ function AutoMovingProductsCarousel({
               </div>
 
               {/* 2. عنوان المنتج ممركز أو في اليمين بشكل أنيق ومدمج */}
-              <div className="p-2.5 pb-1 text-center">
+              <div className="p-2.5 pt-4 sm:pt-5 pb-1 text-center">
                 <h3
                   className="text-[13px] sm:text-[12px] font-medium text-gray-800 line-clamp-1 leading-snug"
                   title={p.title}
