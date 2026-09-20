@@ -336,15 +336,15 @@ export default function ProductDetailPage({
 
                 {/* د. الحقول المخصصة التي يضيفها المدير (لجميع أنواع المنتجات) */}
                 {Array.isArray(product.customFields) && product.customFields.filter(f => f.label?.trim()).length > 0 && (
-                  <div className="mb-3.5 space-y-2.5 text-right">
+                  <div className="mb-4 space-y-3 text-right">
                     {product.customFields.filter(f => f.label?.trim()).map((field) => (
-                      <div key={field.id} className="flex items-center justify-between gap-3 bg-white/60 p-1.5 px-2 rounded-2xl border border-gray-100">
+                      <div key={field.id} className="flex items-center justify-between gap-3 bg-white p-2 px-3 rounded-2xl border border-gray-200 shadow-2xs">
                         {/* اسم الخانة في نفس الصف على اليمين مع النجمة */}
-                        <label className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight shrink-0 flex items-center">
+                        <label className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight shrink-0 flex items-center">
                           <span>{field.label}</span>
                           {field.required && <span className="text-red-500 font-bold mr-1 text-xs">*</span>}
                         </label>
-                        {/* حقل الإدخال بعرض أكبر ومريح */}
+                        {/* حقل الإدخال كبير وواسع */}
                         <input
                           type="text"
                           value={customFieldValues?.[field.id] || ''}
@@ -352,7 +352,7 @@ export default function ProductDetailPage({
                             setCustomFieldValues(prev => ({ ...(prev || {}), [field.id]: e.target.value }));
                           }}
                           placeholder=""
-                          className="w-36 sm:w-44 h-9 sm:h-9.5 px-3 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs text-right"
+                          className="flex-1 max-w-[260px] sm:max-w-[340px] h-10 sm:h-11 px-3.5 bg-gray-50/50 hover:bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900 transition text-right shadow-2xs"
                         />
                       </div>
                     ))}
@@ -361,21 +361,21 @@ export default function ProductDetailPage({
 
                 {/* هـ. منتج مبادلة: بوكسات مخصصة (اسم الخانة ثابت محدد من قبل المدير والعميل يكتب في الخانة الفارغة فقط) */}
                 {isExchange && (
-                  <div className="mb-3.5 space-y-2.5 text-right">
+                  <div className="mb-4 space-y-3 text-right">
                     {customBoxes.map((box) => (
-                      <div key={box.id} className="flex items-center justify-between gap-3 bg-white/60 p-1.5 px-2 rounded-2xl border border-gray-100">
+                      <div key={box.id} className="flex items-center justify-between gap-3 bg-white p-2 px-3 rounded-2xl border border-gray-200 shadow-2xs">
                         {/* اسم البوكس ثابت في نفس الصف على اليمين */}
-                        <label className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight shrink-0 flex items-center">
+                        <label className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight shrink-0 flex items-center">
                           <span>{box.name}</span>
                           <span className="text-red-500 font-bold mr-1 text-xs">*</span>
                         </label>
-                        {/* حقل الإدخال بعرض أكبر ومريح */}
+                        {/* حقل الإدخال كبير وواسع */}
                         <input
                           type="text"
                           value={box.value}
                           onChange={(e) => handleUpdateCustomBox(box.id, 'value', e.target.value)}
                           placeholder=""
-                          className="w-36 sm:w-44 h-9 sm:h-9.5 px-3 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs text-right"
+                          className="flex-1 max-w-[260px] sm:max-w-[340px] h-10 sm:h-11 px-3.5 bg-gray-50/50 hover:bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900 transition text-right shadow-2xs"
                         />
                       </div>
                     ))}
