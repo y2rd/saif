@@ -595,24 +595,26 @@ export default function App() {
     const configuredPin = storeConfig?.adminPin ? String(storeConfig.adminPin).trim() : '';
     const inputPin = adminPinInput.trim();
 
-    // يجب تعيين رمز إدارة في الإعدادات أو استخدام الرمز الخاص
-    const isValidPin = (configuredPin && inputPin === configuredPin) || (!configuredPin && inputPin === 'haider2026');
+    if (!configuredPin) {
+      setAdminAuthError('لم يتم تعيين رمز مرور للإدارة في إعدادات المتجر بعد.');
+      return;
+    }
+
+    const isValidPin = inputPin === configuredPin;
 
     if (isValidPin) {
       setIsAdminAuthModalOpen(false);
       setAdminPinInput('');
       setAdminAuthError('');
-      // ترقية جلسة الدخول الحالية لتشمل صلاحية الإدارة
-      const adminUser = currentUser ? { ...currentUser, role: 'admin' } : {
-        name: 'المدير العام',
-        identifier: 'admin@dokkan.store',
-        role: 'admin',
-        tier: 'مالك المتجر'
-      };
-      setCurrentUser(adminUser);
-      try {
-        localStorage.setItem('haider_current_user', JSON.stringify(adminUser));
-      } catch (e) {}
+      
+      if (currentUser) {
+        // إذا كان المستخدم مسجل دخول بالفعل، تتم ترقية حسابه الحقيقي
+        const updatedAdmin = { ...currentUser, role: 'admin' };
+        setCurrentUser(updatedAdmin);
+        try {
+          localStorage.setItem('haider_current_user', JSON.stringify(updatedAdmin));
+        } catch (e) {}
+      }
       setViewMode('admin');
     } else {
       setAdminAuthError('رمز مرور الإدارة غير صحيح!');
