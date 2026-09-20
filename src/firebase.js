@@ -793,7 +793,7 @@ export async function sendOtpEmailNotification(email, code, userName = '') {
         to_email: email,
         to_name: userName || 'عميلنا العزيز',
         otp_code: code,
-        store_name: 'متجر حيدر هاي داي'
+        store_name: 'متجر دكان هاي داي'
       }
     };
 
@@ -812,7 +812,7 @@ export async function sendOtpEmailNotification(email, code, userName = '') {
       if (db) {
         await setDoc(doc(db, 'email_queue', `${email.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`), {
           to: email,
-          subject: `كود التحقق الخاص بك في متجر حيدر هاي داي: ${code}`,
+          subject: `كود التحقق الخاص بك في متجر دكان هاي داي: ${code}`,
           code: code,
           createdAt: Date.now(),
           status: 'queued'

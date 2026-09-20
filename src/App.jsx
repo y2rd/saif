@@ -92,7 +92,7 @@ async function triggerDeviceNotification(title, body, id = Math.floor(Math.rando
         notifications: [
           {
             id: Number(id) || Math.floor(Math.random() * 100000),
-            title: title || 'متجر حيدر',
+            title: title || 'متجر دكان هاي داي',
             body: body || '',
             smallIcon: 'ic_launcher_round',
             iconColor: '#004956',
@@ -604,8 +604,8 @@ export default function App() {
       setAdminAuthError('');
       // ترقية جلسة الدخول الحالية لتشمل صلاحية الإدارة
       const adminUser = currentUser ? { ...currentUser, role: 'admin' } : {
-        name: 'حيدر (المدير)',
-        identifier: 'admin@haider.store',
+        name: 'المدير العام',
+        identifier: 'admin@dokkan.store',
         role: 'admin',
         tier: 'مالك المتجر'
       };
@@ -819,9 +819,9 @@ export default function App() {
       }
     } catch {}
     return {
-    name: 'متجر حيدر هاي داي',
+    name: 'متجر دكان هاي داي',
     subTitle: '',
-    logoText: 'ح',
+    logoText: 'د',
     logoUrl: '', // صورة الشعار المرفوعة
     primaryColor: '#004956',
     accentColor: '#76e5d0',
@@ -829,7 +829,7 @@ export default function App() {
     fontFamily: 'Tajawal',
     usdToIqdRate: 1500,
     whatsapp: '966500000000',
-    telegram: 'haider_store',
+    telegram: 'dokkan_store',
     telegramBotToken: '', // توكن بوت تيليجرام لتنبيهات الطلبات المباشرة
     telegramChatId: '',   // معرف شات المدير لاستلام الإشعارات
     enableFloatingSupport: true, // زر الدعم السريع العائم (واتساب/تيليجرام)
@@ -2667,12 +2667,12 @@ export default function App() {
             <div className="w-16 h-16 rounded-full border-3 border-white/10 border-t-[#76e5d0] border-r-[#76e5d0] animate-spin"></div>
             {/* الشعار أو الحرف في المنتصف */}
             <div className="absolute w-10 h-10 rounded-full bg-[#004956] border border-[#76e5d0]/40 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              {storeConfig.logoText || 'ح'}
+              {storeConfig.logoText || 'د'}
             </div>
           </div>
 
           <h2 className="text-xl font-bold tracking-wide text-white mb-2">
-            {storeConfig.name || 'متجر حيدر هاي داي'}
+            {storeConfig.name || 'متجر دكان هاي داي'}
           </h2>
           <div className="flex items-center gap-2 text-xs font-medium text-[#76e5d0]">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#76e5d0] animate-bounce"></span>
@@ -4748,7 +4748,7 @@ export default function App() {
                             <span className="text-xs font-bold text-sky-900">التأكيد عبر تطبيق تيليجرام</span>
                           </div>
                           <p className="text-xs text-gray-600 leading-relaxed">
-                            سيتم تسجيل طلبك في النظام فوراً وتوجيهك إلى حساب الدعم على تيليجرام (@{storeConfig.telegram || 'haider_store'}) مع نص الطلب كاملاً لتأكيد الاستلام والتنفيذ.
+                            سيتم تسجيل طلبك في النظام فوراً وتوجيهك إلى حساب الدعم على تيليجرام (@{storeConfig.telegram || 'dokkan_store'}) مع نص الطلب كاملاً لتأكيد الاستلام والتنفيذ.
                           </p>
                         </div>
                       )}
