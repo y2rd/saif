@@ -745,5 +745,16 @@ h1, h2, h3, h4, h5, h6,
  animation-delay: -10s;
 }
 
-
-
+/* تنسيق أزرار إضافة للسلة لضمان تحول لون النص والأيقونة للأبيض الصريح عند التمرير */
+.btn-add-to-cart {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.btn-add-to-cart:hover {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}
+.btn-add-to-cart:hover * {
+  color: #ffffff !important;
+}

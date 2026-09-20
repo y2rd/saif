@@ -5678,10 +5678,10 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                                  className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                                 >
-                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                                  <span className="text-gray-900 group-hover/btn:text-white transition-colors">{buttonText || 'إضافة للسلة'}</span>
+                                  <i className="fa-solid fa-bag-shopping text-[9px]"></i>
+                                  <span>{buttonText || 'إضافة للسلة'}</span>
                                 </button>
                               )}
                             </div>
@@ -5979,10 +5979,10 @@ export default function App() {
                                     e.stopPropagation();
                                     handleAddToCart(item, null, '', 1);
                                   }}
-                                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                                  className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                                 >
-                                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                                  <span className="text-gray-900 group-hover/btn:text-white transition-colors">إضافة للسلة</span>
+                                  <i className="fa-solid fa-bag-shopping text-[9px]"></i>
+                                  <span>إضافة للسلة</span>
                                 </button>
                               )}
                         </div>
@@ -6224,10 +6224,10 @@ export default function App() {
                                 e.stopPropagation();
                                 handleAddToCart(item, null, '', 1);
                               }}
-                              className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                             >
-                              <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                              <span className="text-gray-900 group-hover/btn:text-white transition-colors">إضافة للسلة</span>
+                              <i className="fa-solid fa-bag-shopping text-[9px]"></i>
+                              <span>إضافة للسلة</span>
                             </button>
                           )}
                         </div>
@@ -7245,10 +7245,10 @@ function AutoMovingProductsCarousel({
                     e.stopPropagation();
                     handleAddToCart(p, null, '', 1);
                   }}
-                  className="w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 hover:bg-gray-900 hover:text-white bg-white active:scale-98 text-gray-900 font-bold text-[9px] sm:text-[10px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                  className="btn-add-to-cart w-full py-0.5 sm:py-1 h-6 sm:h-7 rounded-[7px] border border-gray-900 active:scale-98 font-bold text-[9px] sm:text-[10px] flex items-center justify-center gap-1 cursor-pointer shadow-2xs group"
                 >
-                  <i className="fa-solid fa-bag-shopping text-gray-700 group-hover/btn:text-white text-[9px] transition-colors"></i>
-                  <span className="text-gray-900 group-hover/btn:text-white transition-colors">أضف إلى السلة</span>
+                  <i className="fa-solid fa-bag-shopping text-[9px]"></i>
+                  <span>أضف إلى السلة</span>
                 </button>
               )}
             </div>
