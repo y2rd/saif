@@ -3130,7 +3130,7 @@ export default function App() {
                   <a
                     href={`#/category/${encodeURIComponent(cat.name)}`}
                     onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
-                    className={`cursor-pointer transition ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c] hover:opacity-70' : 'text-gray-600 hover:text-gray-900'} ${selectedCat === cat.name ? 'text-gray-900 font-extrabold' : ''}`}
+                    className={`cursor-pointer transition ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c] hover:opacity-70' : 'text-gray-700 hover:text-black'} ${selectedCat === cat.name ? 'text-black font-extrabold' : ''}`}
                   >
                     {cat.name}
                   </a>
@@ -3138,7 +3138,7 @@ export default function App() {
               ))}
               {categories.length > 6 && (
                 <li className="relative group">
-                  <div className="cursor-pointer transition text-gray-600 hover:text-gray-900 flex items-center gap-1.5 font-medium">
+                  <div className="cursor-pointer transition text-gray-700 hover:text-black flex items-center gap-1.5 font-medium">
                     <i className="fa-solid fa-angle-up group-hover:rotate-180 transition-transform duration-200 text-[10px]"></i>
                     <span>المزيد</span>
                   </div>
