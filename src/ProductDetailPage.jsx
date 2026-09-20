@@ -344,7 +344,7 @@ export default function ProductDetailPage({
                           <span>{field.label}</span>
                           {field.required && <span className="text-red-500 font-bold mr-1 text-xs">*</span>}
                         </label>
-                        {/* حقل الإدخال بحجم محدود ومستطيل منحني الحواف */}
+                        {/* حقل الإدخال بنصف العرض السابق */}
                         <input
                           type="text"
                           value={customFieldValues?.[field.id] || ''}
@@ -352,7 +352,7 @@ export default function ProductDetailPage({
                             setCustomFieldValues(prev => ({ ...(prev || {}), [field.id]: e.target.value }));
                           }}
                           placeholder=""
-                          className="w-44 sm:w-56 h-9 sm:h-9.5 px-3 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs text-right"
+                          className="w-24 sm:w-28 h-8 sm:h-8.5 px-2.5 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs text-center"
                         />
                       </div>
                     ))}
@@ -369,13 +369,13 @@ export default function ProductDetailPage({
                           <span>{box.name}</span>
                           <span className="text-red-500 font-bold mr-1 text-xs">*</span>
                         </label>
-                        {/* حقل الإدخال بحجم محدود ومستطيل منحني الحواف */}
+                        {/* حقل الإدخال بنصف العرض السابق */}
                         <input
                           type="text"
                           value={box.value}
                           onChange={(e) => handleUpdateCustomBox(box.id, 'value', e.target.value)}
                           placeholder=""
-                          className="w-44 sm:w-56 h-9 sm:h-9.5 px-3 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs text-right"
+                          className="w-24 sm:w-28 h-8 sm:h-8.5 px-2.5 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-gray-800 focus:ring-1 focus:ring-gray-800 transition shadow-2xs text-center"
                         />
                       </div>
                     ))}
