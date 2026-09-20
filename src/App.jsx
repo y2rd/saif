@@ -2783,6 +2783,12 @@ export default function App() {
 
   const handleCategoryClick = (catName) => {
     setSelectedCat(catName);
+    const targetHash = catName === 'الكل' ? '#/' : `#/category/${encodeURIComponent(catName)}`;
+    if (window.location.hash !== targetHash) {
+      isUpdatingHashRef.current = true;
+      window.location.hash = targetHash;
+      setTimeout(() => { isUpdatingHashRef.current = false; }, 50);
+    }
     smoothScrollToElement(productsSectionRef.current, 900);
   };
 
@@ -3109,34 +3115,36 @@ export default function App() {
 
           {/* الجانب الأوسط (للكمبيوتر/التابلت): روابط الأقسام مباشرة في الهيدر كما في الصورة */}
           <nav className="hidden md:flex flex-1 items-center justify-center px-4 overflow-visible">
-            <ul className="flex items-center gap-4 lg:gap-7 text-[11px] font-bold">
+            <ul className="flex items-center gap-3 lg:gap-5 text-[11px] font-bold">
               {categories.slice(0, 6).map(cat => (
                 <li key={cat.id || cat.name}>
-                  <button
-                    onClick={() => { handleCategoryClick(cat.name); }}
+                  <a
+                    href={`#/category/${encodeURIComponent(cat.name)}`}
+                    onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
                     className={`cursor-pointer transition hover:opacity-70 ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c]' : 'text-gray-900'} ${selectedCat === cat.name ? 'border-b-2 border-gray-900 pb-1' : ''}`}
                   >
                     {cat.name}
-                  </button>
+                  </a>
                 </li>
               ))}
               {categories.length > 6 && (
                 <li className="relative group">
-                  <button className="cursor-pointer transition text-gray-900 hover:opacity-70 flex items-center gap-1.5 font-bold">
+                  <div className="cursor-pointer transition text-gray-900 hover:opacity-70 flex items-center gap-1.5 font-bold">
                     <i className="fa-solid fa-angle-up group-hover:rotate-180 transition-transform duration-200 text-[10px]"></i>
                     <span>المزيد</span>
-                  </button>
+                  </div>
                   <div className="absolute top-full right-0 mt-5 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="absolute -top-1.5 right-6 w-3 h-3 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
                     <div className="relative bg-white z-10 flex flex-col rounded-xl overflow-hidden">
                       {categories.slice(6).map(cat => (
-                        <button
+                        <a
                           key={cat.id || cat.name}
-                          onClick={() => { handleCategoryClick(cat.name); }}
-                          className={`w-full text-right px-4 py-2.5 hover:bg-gray-50 text-[11px] font-semibold cursor-pointer ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c]' : 'text-gray-700'} ${selectedCat === cat.name ? 'bg-gray-50 text-black' : ''}`}
+                          href={`#/category/${encodeURIComponent(cat.name)}`}
+                          onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
+                          className={`block w-full text-right px-4 py-2.5 hover:bg-gray-50 text-[11px] font-semibold cursor-pointer ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c]' : 'text-gray-700'} ${selectedCat === cat.name ? 'bg-gray-50 text-black' : ''}`}
                         >
                           {cat.name}
-                        </button>
+                        </a>
                       ))}
                     </div>
                   </div>
