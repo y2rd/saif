@@ -10465,9 +10465,9 @@ service cloud.firestore {
                         type="button"
                         title="عريض (Bold) - Ctrl+B"
                         onClick={() => execFormat('bold')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded font-black text-black flex items-center justify-center cursor-pointer shadow-2xs"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        B
+                        <i className="fa-solid fa-bold text-gray-800"></i>
                       </button>
 
                       {/* مائل Italic */}
@@ -10475,9 +10475,9 @@ service cloud.firestore {
                         type="button"
                         title="مائل (Italic) - Ctrl+I"
                         onClick={() => execFormat('italic')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded italic font-serif text-black flex items-center justify-center cursor-pointer shadow-2xs"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        I
+                        <i className="fa-solid fa-italic text-gray-800"></i>
                       </button>
 
                       {/* تسطير Underline */}
@@ -10485,9 +10485,9 @@ service cloud.firestore {
                         type="button"
                         title="تسطير (Underline) - Ctrl+U"
                         onClick={() => execFormat('underline')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded underline text-black flex items-center justify-center cursor-pointer shadow-2xs font-semibold"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        U
+                        <i className="fa-solid fa-underline text-gray-800"></i>
                       </button>
 
                       {/* يتوسطه خط Strike */}
@@ -10495,9 +10495,9 @@ service cloud.firestore {
                         type="button"
                         title="يتوسطه خط (Strike)"
                         onClick={() => execFormat('strikeThrough')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded line-through text-black flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        S
+                        <i className="fa-solid fa-strikethrough text-gray-800"></i>
                       </button>
 
                       <div className="h-5 w-px bg-gray-300 mx-0.5"></div>
@@ -10606,10 +10606,9 @@ service cloud.firestore {
                         type="button"
                         title="قائمة نقطية"
                         onClick={() => execFormat('insertUnorderedList')}
-                        className="px-2 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] font-medium"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        <i className="fa-solid fa-list-ul text-gray-800 text-[10px]"></i>
-                        <span>قائمة</span>
+                        <i className="fa-solid fa-list-ul text-gray-800"></i>
                       </button>
 
                       {/* قائمة رقمية */}
@@ -10617,10 +10616,9 @@ service cloud.firestore {
                         type="button"
                         title="قائمة رقمية"
                         onClick={() => execFormat('insertOrderedList')}
-                        className="px-2 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] font-medium"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        <i className="fa-solid fa-list-ol text-gray-800 text-[10px]"></i>
-                        <span>ترقيم</span>
+                        <i className="fa-solid fa-list-ol text-gray-800"></i>
                       </button>
 
                       {/* خط فاصل أفقي Horizontal Rule */}
@@ -10628,9 +10626,9 @@ service cloud.firestore {
                         type="button"
                         title="إدراج خط فاصل أفقي"
                         onClick={() => execFormat('insertHorizontalRule')}
-                        className="px-2 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] font-medium"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        <span>— فاصل</span>
+                        <i className="fa-solid fa-minus text-gray-800"></i>
                       </button>
 
                       {/* إدراج رابط */}
@@ -10641,10 +10639,9 @@ service cloud.firestore {
                           const url = prompt('أدخل رابط الموقع الإلكتروني (URL):', 'https://');
                           if (url) execFormat('createLink', url);
                         }}
-                        className="px-2 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] font-medium text-blue-700"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        <i className="fa-solid fa-link text-[10px]"></i>
-                        <span>رابط</span>
+                        <i className="fa-solid fa-link text-blue-700"></i>
                       </button>
 
                       {/* إدراج جدول بسيط مثل المنتديات */}
@@ -10674,10 +10671,9 @@ service cloud.firestore {
                           `;
                           execFormat('insertHTML', tableHtml);
                         }}
-                        className="px-2 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] font-medium text-emerald-700"
+                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
                       >
-                        <i className="fa-solid fa-table text-[10px]"></i>
-                        <span>جدول</span>
+                        <i className="fa-solid fa-table text-emerald-700"></i>
                       </button>
 
                       {/* مسح التنسيق */}
@@ -10685,9 +10681,9 @@ service cloud.firestore {
                         type="button"
                         title="إزالة كافة التنسيقات عن النص المحدد"
                         onClick={() => execFormat('removeFormat')}
-                        className="px-2 h-7 bg-white hover:bg-red-50 border border-gray-300 hover:border-red-200 rounded text-gray-500 hover:text-red-600 cursor-pointer shadow-2xs text-[10px] mr-auto transition"
+                        className="w-7 h-7 bg-white hover:bg-red-50 border border-gray-300 hover:border-red-200 rounded flex items-center justify-center text-gray-500 hover:text-red-600 cursor-pointer shadow-2xs text-[11px] mr-auto transition"
                       >
-                        🧹 مسح التنسيق
+                        <i className="fa-solid fa-eraser"></i>
                       </button>
                     </div>
 
