@@ -3086,60 +3086,69 @@ export default function AdminDashboard({
                 </div>
 
                 {/* قائمة المنتجات الأكثر طلباً */}
-                <div className="space-y-3 divide-y divide-gray-50/80">
-                  {topDemandedProducts.map((p, idx) => (
-                    <div
-                      key={p.id || idx}
-                      onClick={() => handleOpenEditProduct(p)}
-                      className="pt-3 first:pt-0 flex items-center justify-between gap-3 hover:bg-gray-50/70 p-2 rounded-xl transition cursor-pointer group"
-                    >
-                      {/* معلومات المنتج */}
-                      <div className="flex items-center gap-3 min-w-0">
+                {topDemandedProducts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                    <i className="fa-solid fa-box-open text-3xl text-gray-300 mb-3"></i>
+                    <p className="text-sm font-semibold text-gray-500">لا يوجد طلبات حالياً</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+                    {topDemandedProducts.map((p, idx) => (
+                      <div
+                        key={p.id || idx}
+                        onClick={() => handleOpenEditProduct(p)}
+                        className="flex flex-col bg-white border border-gray-100 hover:border-emerald-200 p-4 rounded-2xl shadow-xs hover:shadow-md transition cursor-pointer group relative overflow-hidden"
+                      >
                         {/* الترتيب */}
-                        <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold font-mono shrink-0 ${
-                          idx === 0 ? 'bg-amber-100 text-amber-800' : idx === 1 ? 'bg-slate-100 text-slate-800' : idx === 2 ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-600'
-                        }`}>
+                        <div className="absolute top-0 right-0 bg-gradient-to-bl from-gray-100 to-white border-b border-l border-gray-100 text-[10px] font-bold px-2 py-1 rounded-bl-xl font-mono text-gray-600 group-hover:from-emerald-50 group-hover:to-white group-hover:border-emerald-100 group-hover:text-emerald-700 transition z-10">
                           #{idx + 1}
-                        </span>
-
-                        {/* صورة المنتج المصغرة */}
-                        <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200/80 overflow-hidden shrink-0 flex items-center justify-center">
-                          {p.imageUrl ? (
-                            <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
-                          ) : (
-                            <i className="fa-solid fa-box text-gray-400 text-sm"></i>
-                          )}
                         </div>
 
-                        {/* اسم وقسم المنتج */}
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-bold text-gray-900 truncate group-hover:text-[#004956] transition">{p.title}</h4>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[8px] sm:text-[9px] text-gray-400 truncate font-medium">
+                        {/* معلومات المنتج */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                            ) : (
+                              <i className="fa-solid fa-box text-gray-300 text-lg"></i>
+                            )}
+                          </div>
+                          
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-xs font-bold text-gray-900 truncate group-hover:text-[#004956] transition leading-tight">{p.title}</h4>
+                            <span className="text-[10px] text-gray-400 font-medium block mt-1 truncate">
                               {p.category || 'عام'}
                             </span>
-                            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-600 font-mono">
-                              ${p.price}
+                          </div>
+                        </div>
+
+                        <div className="h-px w-full bg-gray-50 mb-3"></div>
+
+                        {/* إحصائيات الطلب والمبيعات */}
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+                              <i className="fa-solid fa-cart-shopping text-emerald-600 text-[10px]"></i>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-gray-400">الطلبات</span>
+                              <div className="flex items-center gap-1 font-mono text-xs font-bold text-gray-900">
+                                {p.salesCount}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col text-left" dir="ltr">
+                            <span className="text-[9px] text-gray-400">الإيرادات</span>
+                            <span className="font-mono text-xs font-bold text-emerald-600">
+                              ${p.totalSalesRevenue}
                             </span>
                           </div>
                         </div>
                       </div>
-
-                      {/* إحصائيات الطلب والمبيعات */}
-                      <div className="flex items-center shrink-0 text-left" dir="ltr">
-                        <div>
-                          <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-gray-900 font-mono">
-                            <span>{p.salesCount}</span>
-                            <span className="text-[11px] font-normal text-gray-500 font-sans">طلب</span>
-                          </div>
-                          <div className="text-[10px] text-gray-400 font-mono font-medium mt-0.5">
-                            ${p.totalSalesRevenue}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
