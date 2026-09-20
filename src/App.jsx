@@ -2782,23 +2782,33 @@ export default function App() {
   };
 
   const handleCategoryClick = (catName) => {
-    setViewMode('store');
     setActiveProductForPage(null);
     setActiveCustomPage(null);
     setSelectedCat(catName);
     
-    const targetHash = catName === 'الكل' ? '#/' : `#/category/${encodeURIComponent(catName)}`;
-    if (window.location.hash !== targetHash) {
-      isUpdatingHashRef.current = true;
-      window.location.hash = targetHash;
-      setTimeout(() => { isUpdatingHashRef.current = false; }, 50);
-    }
-    
-    setTimeout(() => {
-      if (productsSectionRef.current) {
-        smoothScrollToElement(productsSectionRef.current, 900);
+    if (catName === 'الكل') {
+      setViewMode('store');
+      const targetHash = '#/';
+      if (window.location.hash !== targetHash) {
+        isUpdatingHashRef.current = true;
+        window.location.hash = targetHash;
+        setTimeout(() => { isUpdatingHashRef.current = false; }, 50);
       }
-    }, 100);
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    } else {
+      setViewMode('category');
+      const targetHash = `#/category/${encodeURIComponent(catName)}`;
+      if (window.location.hash !== targetHash) {
+        isUpdatingHashRef.current = true;
+        window.location.hash = targetHash;
+        setTimeout(() => { isUpdatingHashRef.current = false; }, 50);
+      }
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    }
   };
 
   const handleSelectVariant = (productId, variant) => {
