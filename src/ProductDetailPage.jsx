@@ -344,7 +344,7 @@ export default function ProductDetailPage({
                           <span>{field.label}</span>
                           {field.required && <span className="text-red-500 font-bold mr-1 text-xs">*</span>}
                         </label>
-                        {/* حقل الإدخال بالأبعاد الدقيقة: الارتفاع 30 والعرض 180 */}
+                        {/* حقل الإدخال ممتد بكامل المساحة المتاحة وبارتفاع 30 */}
                         <input
                           type="text"
                           value={customFieldValues?.[field.id] || ''}
@@ -352,8 +352,8 @@ export default function ProductDetailPage({
                             setCustomFieldValues(prev => ({ ...(prev || {}), [field.id]: e.target.value }));
                           }}
                           placeholder=""
-                          style={{ width: '180px', height: '30px' }}
-                          className="w-[180px] h-[30px] shrink-0 px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
+                          style={{ height: '30px' }}
+                          className="flex-1 w-full h-[30px] px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
                         />
                       </div>
                     ))}
@@ -370,14 +370,14 @@ export default function ProductDetailPage({
                           <span>{box.name}</span>
                           <span className="text-red-500 font-bold mr-1 text-xs">*</span>
                         </label>
-                        {/* حقل الإدخال بالأبعاد الدقيقة: الارتفاع 30 والعرض 180 */}
+                        {/* حقل الإدخال ممتد بكامل المساحة المتاحة وبارتفاع 30 */}
                         <input
                           type="text"
                           value={box.value}
                           onChange={(e) => handleUpdateCustomBox(box.id, 'value', e.target.value)}
                           placeholder=""
-                          style={{ width: '180px', height: '30px' }}
-                          className="w-[180px] h-[30px] shrink-0 px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
+                          style={{ height: '30px' }}
+                          className="flex-1 w-full h-[30px] px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
                         />
                       </div>
                     ))}
