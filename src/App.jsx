@@ -625,6 +625,8 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartAnimating, setCartAnimating] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
+  const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
   const [wishlist, setWishlist] = useState([]);
   const [cartBump, setCartBump] = useState(false); // موشن اهتزاز وتكبير السلة عند إضافة منتج
   const [cartToastMessage, setCartToastMessage] = useState(''); // رسالة صغيرة تحت في منتصف الشاشة بالخط الأسود
@@ -2369,36 +2371,51 @@ export default function App() {
   };
 
   const handleConfirmOrderWithProof = async (methodName) => {
-    // 1. الدفع المباشر من رصيد المحفظة
-    if (methodName === 'wallet') {
-      if (!currentUser) {
-        alert('يرجى تسجيل الدخول أولاً لإتمام الدفع من رصيد المحفظة.');
-        setIsAuthModalOpen(true);
-        return;
-      }
+    // فحص القفل المتزامن الفوري لمنع أي نقرات مزدوجة قبل انتهاء المعاملة السابقة
+    if (isCheckingOutRef.current || isCheckingOut) {
+      return;
+    }
 
-      const orderCost = totalCartPriceUsd;
-      const targetCustId = currentUser.id || currentUser.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
-      const newOrderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+    // تفعيل القفل فوراً
+    isCheckingOutRef.current = true;
+    setIsCheckingOut(true);
 
-      // سجل المعاملة المالية المبدئي
-      const newTx = {
-        id: `tx_${Date.now()}`,
-        type: 'withdraw',
-        amount: orderCost,
-        title: `دفع للطلب رقم #${newOrderId}`
-      };
+    try {
+      // 1. الدفع المباشر من رصيد المحفظة
+      if (methodName === 'wallet') {
+        if (!currentUser) {
+          alert('يرجى تسجيل الدخول أولاً لإتمام الدفع من رصيد المحفظة.');
+          setIsAuthModalOpen(true);
+          return;
+        }
 
-      // تنفيذ المعاملة الذرية (Atomic Transaction) في Firestore
-      // هذه العملية تقفل سجل العميل في السحابة وتضمن عدم إمكانية الشراء المزدوج
-      let txResult;
-      try {
-        txResult = await atomicDeductWalletBalance(targetCustId, orderCost, newTx);
-      } catch (atomicErr) {
-        console.error("فشل الخصم الذري من المحفظة:", atomicErr);
-        alert(atomicErr.message || 'تعذر إتمام عملية الدفع من المحفظة. يرجى التحقق من اتصالك والمحاولة لاحقاً.');
-        return;
-      }
+        if (!cartItems || cartItems.length === 0) {
+          alert('سلة المشتريات فارغة بالفعل!');
+          return;
+        }
+
+        const orderCost = totalCartPriceUsd;
+        const targetCustId = currentUser.id || currentUser.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
+        const newOrderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+        // سجل المعاملة المالية المبدئي
+        const newTx = {
+          id: `tx_${Date.now()}`,
+          type: 'withdraw',
+          amount: orderCost,
+          title: `دفع للطلب رقم #${newOrderId}`
+        };
+
+        // تنفيذ المعاملة الذرية (Atomic Transaction) في Firestore
+        // هذه العملية تقفل سجل العميل في السحابة وتضمن عدم إمكانية الشراء المزدوج
+        let txResult;
+        try {
+          txResult = await atomicDeductWalletBalance(targetCustId, orderCost, newTx);
+        } catch (atomicErr) {
+          console.error("فشل الخصم الذري من المحفظة:", atomicErr);
+          alert(atomicErr.message || 'تعذر إتمام عملية الدفع من المحفظة. يرجى التحقق من اتصالك والمحاولة لاحقاً.');
+          return;
+        }
 
       const newBal = txResult.newBalance;
       const currentBal = txResult.previousBalance;
@@ -2541,10 +2558,17 @@ export default function App() {
     alert(`تم تسجيل طلبك بنجاح (${newOrderId}) وهو الآن "قيد المراجعة"! سيتم فتح واتساب للتأكيد.`);
     window.open(`https://wa.me/${storeConfig.whatsapp}?text=${encodeURIComponent(`طلب جديد رقم: ${newOrderId} بمبلغ ${primaryTotal}`)}`, '_blank');
 
-    setCartItems([]);
-    setPaymentTxProof('');
-    setPaymentTxId('');
-    closeCartWithMotion();
+      setCartItems([]);
+      setPaymentTxProof('');
+      setPaymentTxId('');
+      closeCartWithMotion();
+    } finally {
+      // إتاحة النقر مجدداً بعد انتهاء العملية بالكامل وبفارق زمني أمان 600ms
+      setTimeout(() => {
+        isCheckingOutRef.current = false;
+        setIsCheckingOut(false);
+      }, 600);
+    }
   };
 
   const handleSaveProduct = (e) => {
@@ -4801,7 +4825,9 @@ export default function App() {
                   </div>
 
                   <button
+                    disabled={isCheckingOut}
                     onClick={() => {
+                      if (isCheckingOut) return;
                       if (paymentMethod === 'whatsapp') {
                         handleWhatsAppCheckout();
                       } else if (paymentMethod === 'telegram') {
@@ -4810,13 +4836,20 @@ export default function App() {
                         handleConfirmOrderWithProof(paymentMethod);
                       }
                     }}
-                    className={`w-full py-3 text-white font-medium rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 ${
-                      paymentMethod === 'wallet'
-                        ? 'bg-emerald-700 hover:bg-emerald-800'
-                        : 'bg-[#004956] hover:bg-[#00343D]'
+                    className={`w-full py-3 text-white font-medium rounded-xl shadow-xs transition flex items-center justify-center gap-2 ${
+                      isCheckingOut
+                        ? 'opacity-60 cursor-not-allowed bg-gray-400'
+                        : paymentMethod === 'wallet'
+                        ? 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer active:scale-98'
+                        : 'bg-[#004956] hover:bg-[#00343D] cursor-pointer active:scale-98'
                     }`}
                   >
-                    {paymentMethod === 'wallet' ? (
+                    {isCheckingOut ? (
+                      <>
+                        <i className="fa-solid fa-circle-notch animate-spin text-sm"></i>
+                        <span>جاري معالجة الطلب بأمان...</span>
+                      </>
+                    ) : paymentMethod === 'wallet' ? (
                       <>
                         <i className="fa-solid fa-wallet text-xs"></i>
                         <span>تأكيد ودفع من المحفظة (${totalCartPriceUsd.toFixed(2)})</span>
