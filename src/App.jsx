@@ -191,7 +191,20 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('haider_current_user');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.notifications)) {
+        let readIds = new Set();
+        try {
+          const savedReadIds = localStorage.getItem('haider_read_notif_ids');
+          if (savedReadIds) readIds = new Set(JSON.parse(savedReadIds));
+        } catch {}
+        parsed.notifications = parsed.notifications.map(n => ({
+          ...n,
+          read: (n.read || readIds.has(String(n.id)) || (n.topupId && readIds.has(`topup-${n.topupId}`))) ? true : false
+        }));
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -628,7 +641,14 @@ export default function App() {
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
   const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
   const deletedOrderIdsRef = useRef(new Set()); // تتبع الطلبات المحذوفة محلياً لمنع إعادة ظهورها من Firebase
-  const readNotifIdsRef = useRef(new Set()); // تتبع الإشعارات المقروءة محلياً لمنع إعادة ظهورها كجديدة من Firebase
+  const readNotifIdsRef = useRef(new Set((() => {
+    try {
+      const saved = localStorage.getItem('haider_read_notif_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  })())); // تتبع الإشعارات المقروءة محلياً ودائماً عبر الريفرش لمنع إعادة ظهورها كجديدة من Firebase
   const [wishlist, setWishlist] = useState([]);
   const [cartBump, setCartBump] = useState(false); // موشن اهتزاز وتكبير السلة عند إضافة منتج
   const [cartToastMessage, setCartToastMessage] = useState(''); // رسالة صغيرة تحت في منتصف الشاشة بالخط الأسود
@@ -694,16 +714,21 @@ export default function App() {
     return (topupRequests || []).filter(t => t.status === 'معلق').length;
   }, [topupRequests]);
 
-  // إجمالي الإشعارات غير المقروءة الخاصة بالمدير (طلبات الشحن المعلقة + الإشعارات الإدارية غير المقروءة)
+  // إجمالي الإشعارات غير المقروءة الخاصة بالمدير (طلبات الشحن المعلقة غير المقروءة + الإشعارات الإدارية غير المقروءة)
   const managerNotificationsCount = useMemo(() => {
     if (!currentUser) return 0;
     const unreadCount = (currentUser.notifications || []).filter(n => !n.read).length;
     if (isManager) {
-      // للمدير: نضمن إظهار كل طلبات الشحن المعلقة حتى لو لم تُدرج كإشعار نصي بعد
-      return Math.max(unreadCount, pendingTopupsCount);
+      // للمدير: نحسب فقط طلبات الشحن المعلقة التي لم يتم تحديدها كمقروءة بعد
+      const unreadPendingTopups = (topupRequests || []).filter(t => 
+        t.status === 'معلق' && 
+        !readNotifIdsRef.current.has(`topup-${t.id}`) && 
+        !readNotifIdsRef.current.has(`virtual-topup-${t.id}`)
+      ).length;
+      return Math.max(unreadCount, unreadPendingTopups);
     }
     return unreadCount;
-  }, [currentUser, isManager, pendingTopupsCount]);
+  }, [currentUser, isManager, topupRequests]);
 
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [topupAmountUsd, setTopupAmountUsd] = useState('');
@@ -1150,27 +1175,35 @@ export default function App() {
         (c.phone && currentUser.phone && c.phone === currentUser.phone) ||
         (c.email && currentUser.email && c.email === currentUser.email)
       );
-      if (matched && (
-        matched.balance !== currentUser.balance || 
-        matched.name !== currentUser.name || 
-        matched.points !== currentUser.points ||
-        JSON.stringify(matched.notifications || []) !== JSON.stringify(currentUser.notifications || [])
-      )) {
-        // إذا وصل إشعار جديد في قائمة إشعارات العميل، أطلق إشعار النظام والبانر المباشر فوراً
-        const newNotifs = Array.isArray(matched.notifications) ? matched.notifications : [];
-        const oldNotifs = Array.isArray(currentUser.notifications) ? currentUser.notifications : [];
-        if (newNotifs.length > oldNotifs.length) {
-          const latest = newNotifs[0];
-          if (latest) {
-            showNotificationBanner(latest.title || 'إشعار جديد', latest.message || '', latest.type || 'wallet');
-          }
-        }
+      if (matched) {
+        // نضمن دائماً تطبيق readNotifIdsRef على إشعارات matched قبل المقارنة والدمج
+        const normalizedMatchedNotifs = (matched.notifications || []).map(n => ({
+          ...n,
+          read: (n.read || readNotifIdsRef.current.has(String(n.id)) || (n.topupId && readNotifIdsRef.current.has(`topup-${n.topupId}`))) ? true : false
+        }));
 
-        const merged = { ...currentUser, ...matched };
-        setCurrentUser(merged);
-        try {
-          localStorage.setItem('haider_current_user', JSON.stringify(merged));
-        } catch (e) {}
+        if (
+          matched.balance !== currentUser.balance || 
+          matched.name !== currentUser.name || 
+          matched.points !== currentUser.points ||
+          JSON.stringify(normalizedMatchedNotifs) !== JSON.stringify(currentUser.notifications || [])
+        ) {
+          // إذا وصل إشعار جديد فعلياً (وليس تم فقط تحديث حالته كمقروء)، أطلق إشعار النظام والبانر المباشر فوراً
+          const newNotifs = normalizedMatchedNotifs;
+          const oldNotifs = Array.isArray(currentUser.notifications) ? currentUser.notifications : [];
+          if (newNotifs.length > oldNotifs.length) {
+            const latest = newNotifs[0];
+            if (latest && !latest.read) {
+              showNotificationBanner(latest.title || 'إشعار جديد', latest.message || '', latest.type || 'wallet');
+            }
+          }
+
+          const merged = { ...currentUser, ...matched, notifications: normalizedMatchedNotifs };
+          setCurrentUser(merged);
+          try {
+            localStorage.setItem('haider_current_user', JSON.stringify(merged));
+          } catch (e) {}
+        }
       }
     }
   }, [customers]);
@@ -1285,7 +1318,7 @@ export default function App() {
                     const mergedNotifs = cloudNotifs.map(n => ({
                       ...n,
                       // إذا كان الـ ID مسجّلاً كمقروء في الـ ref، نُبقيه مقروءاً دائماً
-                      read: readNotifIdsRef.current.has(String(n.id)) ? true : n.read
+                      read: (n.read || readNotifIdsRef.current.has(String(n.id)) || (n.topupId && readNotifIdsRef.current.has(`topup-${n.topupId}`))) ? true : false
                     }));
 
                     const merged = {
@@ -3695,12 +3728,41 @@ export default function App() {
                           title: 'طلب شحن محفظة جديد 💳',
                           message: `قام العميل ${t.customerName} بطلب شحن رصيد بقيمة $${t.amount} (${t.method}). يرجى مراجعة إشعار التحويل واعتماده.`,
                           date: t.date || new Date().toISOString(),
-                          read: false,
+                          read: readNotifIdsRef.current.has(`topup-${t.id}`) || readNotifIdsRef.current.has(`virtual-topup-${t.id}`),
                           _virtual: true
                         }))
                     : [];
                   const allNotifs = [...topupVirtualNotifs, ...userNotifs];
                   const unreadCount = allNotifs.filter(n => !n.read).length;
+
+                  // دالة مساعدة لتحديد إشعار واحد أو كل الإشعارات كمقروءة وحفظها محلياً وسحابياً
+                  const markAsRead = (targetNotif = null) => {
+                    const toMark = targetNotif ? [targetNotif] : allNotifs;
+                    toMark.forEach(n => {
+                      if (n.id) readNotifIdsRef.current.add(String(n.id));
+                      if (n.topupId) {
+                        readNotifIdsRef.current.add(`topup-${n.topupId}`);
+                        readNotifIdsRef.current.add(`virtual-topup-${n.topupId}`);
+                      }
+                    });
+                    try {
+                      localStorage.setItem('haider_read_notif_ids', JSON.stringify(Array.from(readNotifIdsRef.current)));
+                    } catch (e) {}
+
+                    const updatedUserNotifs = userNotifs.map(n => {
+                      if (!targetNotif || n.id === targetNotif.id || (n.topupId && targetNotif.topupId && n.topupId === targetNotif.topupId)) {
+                        return { ...n, read: true };
+                      }
+                      return n;
+                    });
+                    const updatedUser = { ...currentUser, notifications: updatedUserNotifs };
+                    setCurrentUser(updatedUser);
+                    setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
+                    try {
+                      localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
+                    } catch (e) {}
+                    syncCustomerToCloud(updatedUser);
+                  };
 
                   return (
                     <div className="space-y-3 animate-field-switch">
@@ -3710,23 +3772,10 @@ export default function App() {
                             <span className="text-xs text-gray-500 font-bold">
                               {unreadCount} إشعارات جديدة
                             </span>
-                            {userNotifs.length > 0 && (
+                            {unreadCount > 0 && (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  // ✅ تسجيل جميع الـ IDs فوراً في الـ ref لمنع إعادة ظهورها من Firebase
-                                  userNotifs.forEach(n => {
-                                    if (n.id) readNotifIdsRef.current.add(String(n.id));
-                                  });
-                                  const updatedNotifs = userNotifs.map(n => ({ ...n, read: true }));
-                                  const updatedUser = { ...currentUser, notifications: updatedNotifs };
-                                  setCurrentUser(updatedUser);
-                                  setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
-                                  try {
-                                    localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
-                                  } catch (e) {}
-                                  syncCustomerToCloud(updatedUser);
-                                }}
+                                onClick={() => markAsRead(null)}
                                 className="text-[11px] text-[#004956] hover:underline font-bold cursor-pointer"
                               >
                                 تحديد الكل كمقروء ✓
@@ -3739,7 +3788,10 @@ export default function App() {
                               return (
                                 <div
                                   key={notif.id || idx}
-                                  className={`p-3 rounded-2xl border transition text-xs space-y-1.5 ${
+                                  onClick={() => {
+                                    if (!notif.read) markAsRead(notif);
+                                  }}
+                                  className={`p-3 rounded-2xl border transition text-xs space-y-1.5 cursor-pointer ${
                                     isAdminTopup
                                       ? notif.read 
                                         ? 'bg-rose-50/50 border-rose-200 text-rose-950' 
@@ -3778,7 +3830,9 @@ export default function App() {
                                     <div className="pr-8 pt-1 flex items-center gap-2">
                                       <button
                                         type="button"
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markAsRead(notif);
                                           closeAuthModal();
                                           setViewMode('admin');
                                           setAdminSection({ tab: 'customers', ts: Date.now() });
