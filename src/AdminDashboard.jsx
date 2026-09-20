@@ -10386,305 +10386,93 @@ service cloud.firestore {
                 {descEditorMode === 'visual' ? (
                   <div>
                     {/* شريط أدوات التنسيق الشامل الاحترافي بنمط المنتديات والمحررات المتقدمة */}
-                    <div className="flex flex-wrap items-center gap-1.5 p-2 bg-gray-100 border border-gray-200 rounded-t-xl text-xs select-none">
-                      {/* 1. اختيار نوع الخط (Font Family) */}
-                      <div className="flex items-center gap-1 bg-white border border-gray-300 rounded px-1.5 h-7 shadow-2xs">
-                        <span className="text-[10px] text-gray-500 font-bold">🔤 الخط:</span>
+                    <div className="flex flex-wrap items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-t-xl text-xs select-none">
+                      {/* مجموعة الخطوط والعناوين */}
+                      <div className="flex items-center gap-1.5 bg-white border border-gray-200 p-1 rounded-lg shadow-2xs">
                         <select
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              execFormat('fontName', e.target.value);
-                              e.target.value = '';
-                            }
-                          }}
-                          defaultValue=""
-                          className="bg-transparent text-[11px] font-bold text-gray-800 cursor-pointer outline-none"
-                          title="اختر نوع الخط للنص المحدد"
+                          onChange={(e) => { if (e.target.value) { execFormat('fontName', e.target.value); e.target.value = ''; } }}
+                          defaultValue="" className="w-18 bg-transparent text-[11px] font-bold text-gray-800 cursor-pointer outline-none" title="نوع الخط"
                         >
-                          <option value="" disabled>نوع الخط</option>
-                          <option value="Tajawal">تجوال (Tajawal)</option>
-                          <option value="DIN Next LT Arabic">دين نكست (DIN Next Arabic)</option>
-                          <option value="Cairo">كايرو (Cairo)</option>
-                          <option value="Almarai">المراعي (Almarai)</option>
-                          <option value="Alexandria">الإسكندرية (Alexandria)</option>
-                          <option value="system-ui">خط النظام البسيط (System UI)</option>
+                          <option value="" disabled>الخط</option>
+                          <option value="Tajawal">تجوال</option>
+                          <option value="DIN Next LT Arabic">دين نكست</option>
+                          <option value="Cairo">كايرو</option>
+                          <option value="Almarai">المراعي</option>
+                          <option value="system-ui">النظام</option>
+                        </select>
+                        <div className="w-px h-4 bg-gray-200"></div>
+                        <select
+                          onChange={(e) => { if (e.target.value) { execFormat('fontSize', e.target.value); e.target.value = ''; } }}
+                          defaultValue="" className="w-12 bg-transparent text-[11px] font-bold text-gray-800 cursor-pointer outline-none" title="حجم الخط"
+                        >
+                          <option value="" disabled>الحجم</option>
+                          <option value="1">10px</option>
+                          <option value="2">12px</option>
+                          <option value="3">14px</option>
+                          <option value="4">16px</option>
+                          <option value="5">18px</option>
+                          <option value="6">24px</option>
+                        </select>
+                        <div className="w-px h-4 bg-gray-200"></div>
+                        <select
+                          onChange={(e) => { if (e.target.value) { execFormat('formatBlock', e.target.value); e.target.value = ''; } }}
+                          defaultValue="" className="w-16 bg-transparent text-[11px] font-bold text-gray-800 cursor-pointer outline-none" title="الترويسة"
+                        >
+                          <option value="" disabled>الترويسة</option>
+                          <option value="<h1>">عنوان H1</option>
+                          <option value="<h2>">عنوان H2</option>
+                          <option value="<h3>">عنوان H3</option>
+                          <option value="<p>">نص عادي</option>
                         </select>
                       </div>
 
-                      {/* 2. اختيار حجم الخط (Font Size) */}
-                      <div className="flex items-center gap-1 bg-white border border-gray-300 rounded px-1.5 h-7 shadow-2xs">
-                        <span className="text-[10px] text-gray-500 font-bold">📏 الحجم:</span>
-                        <select
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              execFormat('fontSize', e.target.value);
-                              e.target.value = '';
-                            }
-                          }}
-                          defaultValue=""
-                          className="bg-transparent text-[11px] font-bold text-gray-800 cursor-pointer outline-none"
-                          title="اختر حجم الخط للنص المحدد"
-                        >
-                          <option value="" disabled>حجم الخط</option>
-                          <option value="1">10px (صغير جداً)</option>
-                          <option value="2">12px (صغير)</option>
-                          <option value="3">14px (افتراضي عادي)</option>
-                          <option value="4">16px (متوسط)</option>
-                          <option value="5">18px (كبير)</option>
-                          <option value="6">24px (كبير جداً)</option>
-                          <option value="7">32px (عنوان ضخم)</option>
-                        </select>
+                      {/* مجموعة التنسيق */}
+                      <div className="flex items-center gap-0.5 bg-white border border-gray-200 p-1 rounded-lg shadow-2xs">
+                        <button type="button" title="عريض" onClick={() => execFormat('bold')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-bold text-[11px]"></i></button>
+                        <button type="button" title="مائل" onClick={() => execFormat('italic')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-italic text-[11px]"></i></button>
+                        <button type="button" title="تسطير" onClick={() => execFormat('underline')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-underline text-[11px]"></i></button>
+                        <button type="button" title="يتوسطه خط" onClick={() => execFormat('strikeThrough')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-strikethrough text-[11px]"></i></button>
                       </div>
 
-                      {/* 2. اختيار نمط الفقرة والعناوين (H1, H2, H3, H4, Quote) */}
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            execFormat('formatBlock', e.target.value);
-                            e.target.value = '';
-                          }
-                        }}
-                        defaultValue=""
-                        className="h-7 px-1.5 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-800 cursor-pointer outline-none hover:border-gray-400"
-                        title="نوع الفقرة / العنوان"
-                      >
-                        <option value="" disabled>الترويسة</option>
-                        <option value="<h1>">عنوان رئيسي H1</option>
-                        <option value="<h2>">عنوان فرعي H2</option>
-                        <option value="<h3>">عنوان H3</option>
-                        <option value="<h4>">عنوان H4</option>
-                        <option value="<p>">نص عادي فقرة</option>
-                        <option value="<blockquote>">اقتباس Blockquote</option>
-                        <option value="<pre>">كود برمجى Code</option>
-                      </select>
-
-                      <div className="h-5 w-px bg-gray-300 mx-0.5"></div>
-
-                      {/* خط عريض Bold */}
-                      <button
-                        type="button"
-                        title="عريض (Bold) - Ctrl+B"
-                        onClick={() => execFormat('bold')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-bold text-gray-800"></i>
-                      </button>
-
-                      {/* مائل Italic */}
-                      <button
-                        type="button"
-                        title="مائل (Italic) - Ctrl+I"
-                        onClick={() => execFormat('italic')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-italic text-gray-800"></i>
-                      </button>
-
-                      {/* تسطير Underline */}
-                      <button
-                        type="button"
-                        title="تسطير (Underline) - Ctrl+U"
-                        onClick={() => execFormat('underline')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-underline text-gray-800"></i>
-                      </button>
-
-                      {/* يتوسطه خط Strike */}
-                      <button
-                        type="button"
-                        title="يتوسطه خط (Strike)"
-                        onClick={() => execFormat('strikeThrough')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-strikethrough text-gray-800"></i>
-                      </button>
-
-                      <div className="h-5 w-px bg-gray-300 mx-0.5"></div>
-
-                      {/* 3. ألوان النص مع Color Picker حر وقائمة ألوان منتدى */}
-                      <div className="flex items-center gap-0.5 bg-white p-0.5 border border-gray-300 rounded shadow-2xs" title="لون النص">
-                        <span className="text-[10px] font-bold px-1 text-gray-600">🎨 لون:</span>
-                        <input
-                          type="color"
-                          defaultValue="#000000"
-                          onChange={(e) => execFormat('foreColor', e.target.value)}
-                          className="w-5 h-5 rounded cursor-pointer border-0 p-0 bg-transparent"
-                          title="اختر أي لون مخصص للنص"
-                        />
-                        {['#BA3D50', '#059669', '#2563EB', '#D97706', '#7C3AED', '#000000'].map((col, cIdx) => (
-                          <button
-                            key={cIdx}
-                            type="button"
-                            onClick={() => execFormat('foreColor', col)}
-                            className="w-4 h-4 rounded-full border border-gray-300 hover:scale-110 transition shrink-0"
-                            style={{ backgroundColor: col }}
-                            title={`تطبيق اللون ${col}`}
-                          />
-                        ))}
+                      {/* مجموعة المحاذاة */}
+                      <div className="flex items-center gap-0.5 bg-white border border-gray-200 p-1 rounded-lg shadow-2xs">
+                        <button type="button" title="يمين" onClick={() => execFormat('justifyRight')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-align-right text-[11px]"></i></button>
+                        <button type="button" title="توسيط" onClick={() => execFormat('justifyCenter')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-align-center text-[11px]"></i></button>
+                        <button type="button" title="يسار" onClick={() => execFormat('justifyLeft')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-align-left text-[11px]"></i></button>
                       </div>
 
-                      {/* 4. تمييز الخلفية / التظليل (Highlight / Background Color) */}
-                      <div className="flex items-center gap-0.5 bg-white p-0.5 border border-gray-300 rounded shadow-2xs" title="لون تمييز الخلفية">
-                        <span className="text-[10px] font-bold px-1 text-gray-600">🖍️ تظليل:</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            execFormat('hiliteColor', 'transparent');
-                            execFormat('backColor', 'transparent');
-                          }}
-                          className="px-1 py-0.5 text-[9px] bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-gray-600 font-bold shrink-0 transition"
-                          title="بدون خلفية (شفاف)"
-                        >
-                          بدون خلفية
-                        </button>
-                        <input
-                          type="color"
-                          defaultValue="#FEF08A"
-                          onChange={(e) => execFormat('hiliteColor', e.target.value)}
-                          className="w-5 h-5 rounded cursor-pointer border-0 p-0 bg-transparent"
-                          title="اختر لون تظليل مخصص"
-                        />
-                        {['#FEF08A', '#BBF7D0', '#BAE6FD', '#FED7AA', '#FBCFE8'].map((bgCol, bIdx) => (
-                          <button
-                            key={bIdx}
-                            type="button"
-                            onClick={() => execFormat('hiliteColor', bgCol)}
-                            className="w-4 h-4 rounded border border-gray-300 hover:scale-110 transition shrink-0"
-                            style={{ backgroundColor: bgCol }}
-                            title={`تظليل بلون ${bgCol}`}
-                          />
-                        ))}
+                      {/* القوائم والإضافات */}
+                      <div className="flex items-center gap-0.5 bg-white border border-gray-200 p-1 rounded-lg shadow-2xs">
+                        <button type="button" title="قائمة نقطية" onClick={() => execFormat('insertUnorderedList')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-list-ul text-[11px]"></i></button>
+                        <button type="button" title="قائمة رقمية" onClick={() => execFormat('insertOrderedList')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-list-ol text-[11px]"></i></button>
+                        <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                        <button type="button" title="رابط" onClick={() => { const url = prompt('الرابط:','https://'); if(url) execFormat('createLink',url); }} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-blue-600 transition"><i className="fa-solid fa-link text-[11px]"></i></button>
+                        <button type="button" title="جدول" onClick={() => { execFormat('insertHTML', '<table style="width:100%;border-collapse:collapse;margin:10px 0;border:1px solid #e5e7eb;"><thead><tr style="background-color:#f9fafb;"><th style="border:1px solid #e5e7eb;padding:8px;">الميزة</th><th style="border:1px solid #e5e7eb;padding:8px;">التفاصيل</th></tr></thead><tbody><tr><td style="border:1px solid #e5e7eb;padding:8px;">مثال</td><td style="border:1px solid #e5e7eb;padding:8px;">مثال</td></tr></tbody></table><p><br></p>'); }} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-emerald-600 transition"><i className="fa-solid fa-table text-[11px]"></i></button>
+                        <button type="button" title="فاصل" onClick={() => execFormat('insertHorizontalRule')} className="w-7 h-7 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 transition"><i className="fa-solid fa-minus text-[11px]"></i></button>
                       </div>
 
-                      <div className="h-5 w-px bg-gray-300 mx-0.5"></div>
-
-                      {/* محاذاة لليمين */}
-                      <button
-                        type="button"
-                        title="محاذاة لليمين"
-                        onClick={() => execFormat('justifyRight')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-align-right text-gray-800"></i>
-                      </button>
-
-                      {/* محاذاة للوسط */}
-                      <button
-                        type="button"
-                        title="توسيط"
-                        onClick={() => execFormat('justifyCenter')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-align-center text-gray-800"></i>
-                      </button>
-
-                      {/* محاذاة لليسار */}
-                      <button
-                        type="button"
-                        title="محاذاة لليسار"
-                        onClick={() => execFormat('justifyLeft')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-align-left text-gray-800"></i>
-                      </button>
-
-                      {/* ضبط المحاذاة الكاملة (Justify Full) */}
-                      <button
-                        type="button"
-                        title="ضبط ومساواة السطور (Justify)"
-                        onClick={() => execFormat('justifyFull')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-align-justify text-gray-800"></i>
-                      </button>
-
-                      <div className="h-5 w-px bg-gray-300 mx-0.5"></div>
-
-                      {/* قائمة نقطية */}
-                      <button
-                        type="button"
-                        title="قائمة نقطية"
-                        onClick={() => execFormat('insertUnorderedList')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-list-ul text-gray-800"></i>
-                      </button>
-
-                      {/* قائمة رقمية */}
-                      <button
-                        type="button"
-                        title="قائمة رقمية"
-                        onClick={() => execFormat('insertOrderedList')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-list-ol text-gray-800"></i>
-                      </button>
-
-                      {/* خط فاصل أفقي Horizontal Rule */}
-                      <button
-                        type="button"
-                        title="إدراج خط فاصل أفقي"
-                        onClick={() => execFormat('insertHorizontalRule')}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-minus text-gray-800"></i>
-                      </button>
-
-                      {/* إدراج رابط */}
-                      <button
-                        type="button"
-                        title="إدراج رابط URL"
-                        onClick={() => {
-                          const url = prompt('أدخل رابط الموقع الإلكتروني (URL):', 'https://');
-                          if (url) execFormat('createLink', url);
-                        }}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-link text-blue-700"></i>
-                      </button>
-
-                      {/* إدراج جدول بسيط مثل المنتديات */}
-                      <button
-                        type="button"
-                        title="إدراج جدول مقارنة / مواصفات"
-                        onClick={() => {
-                          const tableHtml = `
-                            <table style="width:100%; border-collapse:collapse; margin:10px 0; border:1px solid #e5e7eb;">
-                              <thead>
-                                <tr style="background-color:#f9fafb;">
-                                  <th style="border:1px solid #e5e7eb; padding:8px; text-align:right; font-weight:bold;">المواصفة / الميزة</th>
-                                  <th style="border:1px solid #e5e7eb; padding:8px; text-align:right; font-weight:bold;">التفاصيل</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td style="border:1px solid #e5e7eb; padding:8px;">طريقة التسليم</td>
-                                  <td style="border:1px solid #e5e7eb; padding:8px;">فوري وتلقائي ⚡</td>
-                                </tr>
-                                <tr>
-                                  <td style="border:1px solid #e5e7eb; padding:8px;">الضمان</td>
-                                  <td style="border:1px solid #e5e7eb; padding:8px;">ضمان ذهبي كامل 🛡️</td>
-                                </tr>
-                              </tbody>
-                            </table><p><br></p>
-                          `;
-                          execFormat('insertHTML', tableHtml);
-                        }}
-                        className="w-7 h-7 bg-white hover:bg-gray-200 border border-gray-300 rounded flex items-center justify-center cursor-pointer shadow-2xs text-[11px]"
-                      >
-                        <i className="fa-solid fa-table text-emerald-700"></i>
-                      </button>
+                      {/* مجموعة الألوان */}
+                      <div className="flex items-center gap-2 bg-white border border-gray-200 p-1.5 rounded-lg shadow-2xs">
+                        <div className="flex items-center gap-1 cursor-pointer" title="لون النص">
+                          <i className="fa-solid fa-palette text-gray-400 text-[10px]"></i>
+                          <input type="color" defaultValue="#000000" onChange={(e) => execFormat('foreColor', e.target.value)} className="w-5 h-5 p-0 border-0 rounded cursor-pointer" />
+                        </div>
+                        <div className="w-px h-4 bg-gray-200"></div>
+                        <div className="flex items-center gap-1 cursor-pointer" title="لون التظليل (الخلفية)">
+                          <i className="fa-solid fa-highlighter text-gray-400 text-[10px]"></i>
+                          <input type="color" defaultValue="#FEF08A" onChange={(e) => execFormat('hiliteColor', e.target.value)} className="w-5 h-5 p-0 border-0 rounded cursor-pointer" />
+                          <button type="button" onClick={() => { execFormat('hiliteColor', 'transparent'); execFormat('backColor', 'transparent'); }} className="w-5 h-5 hover:bg-gray-100 rounded flex items-center justify-center text-gray-400 transition" title="بدون خلفية">
+                            <i className="fa-solid fa-droplet-slash text-[9px]"></i>
+                          </button>
+                        </div>
+                      </div>
 
                       {/* مسح التنسيق */}
-                      <button
-                        type="button"
-                        title="إزالة كافة التنسيقات عن النص المحدد"
-                        onClick={() => execFormat('removeFormat')}
-                        className="w-7 h-7 bg-white hover:bg-red-50 border border-gray-300 hover:border-red-200 rounded flex items-center justify-center text-gray-500 hover:text-red-600 cursor-pointer shadow-2xs text-[11px] mr-auto transition"
-                      >
-                        <i className="fa-solid fa-eraser"></i>
-                      </button>
+                      <div className="flex items-center bg-white border border-gray-200 p-1 rounded-lg shadow-2xs mr-auto">
+                        <button type="button" title="مسح التنسيق" onClick={() => execFormat('removeFormat')} className="w-7 h-7 hover:bg-red-50 hover:text-red-600 rounded flex items-center justify-center text-gray-500 transition">
+                          <i className="fa-solid fa-eraser text-[11px]"></i>
+                        </button>
+                      </div>
                     </div>
 
                     {/* صندوق الكتابة والتعديل الحي المباشر (contentEditable) */}
