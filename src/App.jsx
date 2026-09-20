@@ -2838,7 +2838,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-[#F9FAFB] text-gray-700 font-normal leading-normal text-sm relative"
+      className="min-h-screen bg-[#FCFCFC] text-gray-700 font-normal leading-normal text-sm relative"
       dir="rtl"
       style={{
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
@@ -5244,7 +5244,7 @@ export default function App() {
         <div key="store-view-container" className="animate-page-view">
           <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal space-y-6">
             {Array.isArray(storeConfig.homeLayout) && storeConfig.homeLayout.filter(s => s.enabled !== false).length === 0 ? (
-              <div className="text-center py-20 px-4 bg-[#F9FAFB] rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
+              <div className="text-center py-20 px-4 bg-[#FCFCFC] rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-[#004956] text-2xl">
                   <i className="fa-solid fa-store"></i>
                 </div>
@@ -5367,7 +5367,7 @@ export default function App() {
               if (section.type === 'itemsList') {
                 const ilData = section.data || storeConfig.homeSections?.itemsList || {};
                 return (
-                  <div key={section.id} className="bg-[#F9FAFB] rounded-2xl border border-gray-200/80 p-3 sm:p-4 shadow-2xs">
+                  <div key={section.id} className="bg-[#FCFCFC] rounded-2xl border border-gray-200/80 p-3 sm:p-4 shadow-2xs">
                     <div className="flex items-center justify-between mb-3 px-1">
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-layer-group text-xs text-gray-400"></i>
@@ -5452,7 +5452,7 @@ export default function App() {
                         <div
                           key={item.id || idx}
                           onClick={() => handleItemClick(item)}
-                          className="group relative rounded-2xl overflow-hidden border border-gray-200/80 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all duration-300 cursor-pointer bg-[#F9FAFB] flex flex-col justify-between"
+                          className="group relative rounded-2xl overflow-hidden border border-gray-200/80 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all duration-300 cursor-pointer bg-[#FCFCFC] flex flex-col justify-between"
                         >
                           <div className="relative pt-[100%] overflow-hidden bg-gray-50">
                             <img
@@ -5723,7 +5723,7 @@ export default function App() {
                 const buttonText = (rawBtn && !rawBtn.includes('قسم المبادلة') && !rawBtn.includes('المبادلة')) ? rawBtn : 'إضافة للسلة';
 
                 return (
-                  <div key={section.id} ref={productsSectionRef} className="rounded-2xl border border-gray-200/80 p-2.5 sm:p-6 bg-[#F9FAFB] shadow-2xs">
+                  <div key={section.id} ref={productsSectionRef} className="rounded-2xl border border-gray-200/80 p-2.5 sm:p-6 bg-[#FCFCFC] shadow-2xs">
                     <div className="flex items-center justify-between mb-4 sm:mb-6 pb-2.5 sm:pb-3 border-b border-gray-200/60 px-1">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-black rounded-full"></span>
@@ -6023,7 +6023,7 @@ export default function App() {
         });
 
         return (
-          <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#F9FAFB] pb-16 animate-page-view" dir="rtl">
+          <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#FCFCFC] pb-16 animate-page-view" dir="rtl">
             {/* محتوى صفحة القسم: المنتجات فقط */}
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {categoryProducts.length === 0 ? (
@@ -6225,7 +6225,7 @@ export default function App() {
           });
 
         return (
-          <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#F9FAFB] pb-16 animate-page-view" dir="rtl">
+          <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#FCFCFC] pb-16 animate-page-view" dir="rtl">
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {/* شريط التنقل والترويسة */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-200/80 bg-white p-4 rounded-2xl border shadow-2xs">
@@ -7599,7 +7599,7 @@ function SallaReviewsWidget({ reviews = [], title = '', subtitle = '' }) {
         onTouchEnd={() => setIsPaused(false)}
       >
         {/* بطاقة التقييم الرئيسية النشطة مع حواف راديوس 2px */}
-        <div className="w-full bg-[#F9FAFB] rounded-[2px] border border-gray-200/80 px-4 py-2.5 sm:px-5 sm:py-3 relative shadow-xs transition-all" style={{ borderRadius: '2px' }}>
+        <div className="w-full bg-[#FCFCFC] rounded-[2px] border border-gray-200/80 px-4 py-2.5 sm:px-5 sm:py-3 relative shadow-xs transition-all" style={{ borderRadius: '2px' }}>
           <div
             className={`transition-all duration-200 ease-out ${
               fadeAnim ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
