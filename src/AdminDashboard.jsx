@@ -9915,22 +9915,77 @@ service cloud.firestore {
 
               {/* 2. حقول خاصة بـ (منتج رقمي): بدون شحن وتسليم مباشر */}
               {productForm.productType === 'digital' && (
-                <div className="p-3 bg-emerald-50/60 border border-emerald-200/70 rounded-2xl space-y-2">
+                <div className="p-3 bg-emerald-50/60 border border-emerald-200/70 rounded-2xl space-y-3">
                   <label className="block font-semibold text-emerald-950 text-xs">
                     ⚡ منتج رقمي (بدون شحن - تسليم مباشر للعميل):
                   </label>
+                  
                   <div>
-                    <label className="block text-[11px] text-emerald-900 mb-1">تعليمات التسليم أو رابط مباشر للعميل (اختياري):</label>
-                    <input
-                      type="text"
-                      value={productForm.deliveryInstructions || ''}
-                      onChange={(e) => setProductForm({ ...productForm, deliveryInstructions: e.target.value })}
-                      placeholder="مثال: سيتم إرسال رابط التفعيل أو الحساب فوراً عبر الواتساب أو البريد"
-                      className="w-full p-2.5 bg-white border border-emerald-300 rounded-xl text-xs outline-none"
-                    />
+                    <label className="block text-[11px] font-bold text-emerald-900 mb-1">نوع بيانات التسليم:</label>
+                    <select
+                      value={productForm.digitalDeliveryType || 'text'}
+                      onChange={(e) => setProductForm({ ...productForm, digitalDeliveryType: e.target.value })}
+                      className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs outline-none focus:border-emerald-500"
+                    >
+                      <option value="text">رسالة نصية / تعليمات</option>
+                      <option value="link">رابط مباشر</option>
+                      <option value="credentials">إيميل وباسوورد (حساب)</option>
+                    </select>
                   </div>
-                  <p className="text-[10px] text-emerald-800">
-                    * هذا المنتج رقمي خالص لا يتطلب عنوان شحن أو تكلفة توصيل.
+
+                  {(!productForm.digitalDeliveryType || productForm.digitalDeliveryType === 'text') && (
+                    <div>
+                      <label className="block text-[11px] text-emerald-900 mb-1">النص / التعليمات (تظهر للعميل بعد الشراء):</label>
+                      <textarea
+                        rows="3"
+                        value={productForm.digitalDeliveryText || ''}
+                        onChange={(e) => setProductForm({ ...productForm, digitalDeliveryText: e.target.value })}
+                        placeholder="اكتب هنا التعليمات، الكود، أو النص الذي سيستلمه العميل..."
+                        className="w-full p-2.5 bg-white border border-emerald-300 rounded-xl text-xs outline-none"
+                      ></textarea>
+                    </div>
+                  )}
+
+                  {productForm.digitalDeliveryType === 'link' && (
+                    <div>
+                      <label className="block text-[11px] text-emerald-900 mb-1">الرابط المباشر (يظهر للعميل بعد الشراء):</label>
+                      <input
+                        type="url"
+                        value={productForm.digitalDeliveryLink || ''}
+                        onChange={(e) => setProductForm({ ...productForm, digitalDeliveryLink: e.target.value })}
+                        placeholder="https://example.com/download/..."
+                        className="w-full p-2.5 bg-white border border-emerald-300 rounded-xl text-xs outline-none text-left dir-ltr"
+                      />
+                    </div>
+                  )}
+
+                  {productForm.digitalDeliveryType === 'credentials' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] text-emerald-900 mb-1">الإيميل / اليوزر:</label>
+                        <input
+                          type="text"
+                          value={productForm.digitalDeliveryEmail || ''}
+                          onChange={(e) => setProductForm({ ...productForm, digitalDeliveryEmail: e.target.value })}
+                          placeholder="user@example.com"
+                          className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs outline-none text-left dir-ltr"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-emerald-900 mb-1">الباسوورد:</label>
+                        <input
+                          type="text"
+                          value={productForm.digitalDeliveryPassword || ''}
+                          onChange={(e) => setProductForm({ ...productForm, digitalDeliveryPassword: e.target.value })}
+                          placeholder="Password123"
+                          className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs outline-none text-left dir-ltr"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-emerald-800 bg-emerald-100 p-2 rounded-lg font-semibold">
+                    🔒 هذه البيانات تظهر للعميل **فقط** بعد إتمام الشراء وتأكيد الطلب، وسيجدها في قسم "طلباتي".
                   </p>
                 </div>
               )}

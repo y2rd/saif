@@ -3683,6 +3683,68 @@ export default function App() {
                                 </div>
                               )}
 
+                              {/* تسليم المنتجات الرقمية المباشرة (روابط، نصوص، حسابات) */}
+                              {myOrd.status === 'مكتمل' && myOrd.items && myOrd.items.map((item, idx) => {
+                                const prod = products.find(p => p.id === (item.productId || item.id));
+                                if (!prod || prod.productType !== 'digital') return null;
+                                
+                                return (
+                                  <div key={`digital-${idx}`} className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+                                    <div className="flex items-center gap-1.5 text-blue-900 mb-1">
+                                      <i className="fa-solid fa-cloud-arrow-down text-[14px]"></i>
+                                      <span className="text-[11px] font-bold">تسليم منتج: {prod.title || prod.name}</span>
+                                    </div>
+                                    
+                                    {(!prod.digitalDeliveryType || prod.digitalDeliveryType === 'text') && prod.digitalDeliveryText && (
+                                      <div className="bg-white p-2 rounded border border-blue-100 text-[11px] text-gray-800 whitespace-pre-wrap leading-relaxed">
+                                        {prod.digitalDeliveryText}
+                                      </div>
+                                    )}
+
+                                    {prod.digitalDeliveryType === 'link' && prod.digitalDeliveryLink && (
+                                      <div className="flex flex-col gap-1.5">
+                                        <span className="text-[10px] text-blue-800">رابط المنتج الخاص بك:</span>
+                                        <div className="flex items-center gap-2">
+                                          <a href={prod.digitalDeliveryLink} target="_blank" rel="noopener noreferrer" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-1.5 rounded text-[11px] font-bold transition">
+                                            فتح الرابط 🌐
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              navigator.clipboard?.writeText(prod.digitalDeliveryLink);
+                                              showToast('تم نسخ الرابط بنجاح!');
+                                            }}
+                                            className="px-3 py-1.5 bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded text-[11px] font-bold transition"
+                                          >
+                                            نسخ
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {prod.digitalDeliveryType === 'credentials' && (
+                                      <div className="bg-white p-2 rounded border border-blue-100 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-500">الإيميل / اليوزر</span>
+                                            <span className="font-mono text-[11px] font-bold select-all text-gray-900">{prod.digitalDeliveryEmail || 'غير متوفر'}</span>
+                                          </div>
+                                          <button type="button" onClick={() => { navigator.clipboard?.writeText(prod.digitalDeliveryEmail || ''); showToast('تم النسخ'); }} className="text-[10px] text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">نسخ</button>
+                                        </div>
+                                        <div className="h-px bg-gray-100 w-full"></div>
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-500">الباسوورد</span>
+                                            <span className="font-mono text-[11px] font-bold select-all text-gray-900">{prod.digitalDeliveryPassword || 'غير متوفر'}</span>
+                                          </div>
+                                          <button type="button" onClick={() => { navigator.clipboard?.writeText(prod.digitalDeliveryPassword || ''); showToast('تم النسخ'); }} className="text-[10px] text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">نسخ</button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+
                               {/* زر تقييم الطلب المكتمل */}
                               {myOrd.status === 'مكتمل' && (
                                 <div className="pt-2 mt-2 flex items-center justify-between border-t border-gray-200/70">
