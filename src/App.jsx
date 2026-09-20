@@ -3124,13 +3124,13 @@ export default function App() {
 
           {/* الجانب الأوسط (للكمبيوتر/التابلت): روابط الأقسام مباشرة في الهيدر كما في الصورة */}
           <nav className="hidden md:flex flex-1 items-center justify-center px-4 overflow-visible">
-            <ul className="flex items-center gap-3 lg:gap-5 text-[11px] font-bold">
+            <ul className="flex items-center gap-3 lg:gap-5 text-[11px] font-medium">
               {categories.slice(0, 6).map(cat => (
                 <li key={cat.id || cat.name}>
                   <a
                     href={`#/category/${encodeURIComponent(cat.name)}`}
                     onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
-                    className={`cursor-pointer transition ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c] hover:opacity-70' : 'text-gray-500 hover:text-gray-900'} ${selectedCat === cat.name ? 'text-gray-900 border-b-2 border-gray-900 pb-1' : ''}`}
+                    className={`cursor-pointer transition ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c] hover:opacity-70' : 'text-gray-600 hover:text-gray-900'} ${selectedCat === cat.name ? 'text-gray-900 font-extrabold' : ''}`}
                   >
                     {cat.name}
                   </a>
@@ -3138,7 +3138,7 @@ export default function App() {
               ))}
               {categories.length > 6 && (
                 <li className="relative group">
-                  <div className="cursor-pointer transition text-gray-500 hover:text-gray-900 flex items-center gap-1.5 font-bold">
+                  <div className="cursor-pointer transition text-gray-600 hover:text-gray-900 flex items-center gap-1.5 font-medium">
                     <i className="fa-solid fa-angle-up group-hover:rotate-180 transition-transform duration-200 text-[10px]"></i>
                     <span>المزيد</span>
                   </div>
@@ -3150,7 +3150,7 @@ export default function App() {
                           key={cat.id || cat.name}
                           href={`#/category/${encodeURIComponent(cat.name)}`}
                           onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
-                          className={`block w-full text-right px-4 py-2.5 hover:bg-gray-50 text-[11px] font-semibold cursor-pointer ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c]' : 'text-gray-700'} ${selectedCat === cat.name ? 'bg-gray-50 text-black' : ''}`}
+                          className={`block w-full text-right px-4 py-2.5 hover:bg-gray-50 text-[11px] font-medium cursor-pointer ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c]' : 'text-gray-700'} ${selectedCat === cat.name ? 'bg-gray-50 text-black font-extrabold' : ''}`}
                         >
                           {cat.name}
                         </a>
