@@ -391,6 +391,92 @@ export async function atomicApproveTopup(customerId, topupId, amountUsd, updated
   });
 }
 
+/**
+ * إرجاع رصيد الطلب الملغي بشكل ذري فوري ومضمون (Atomic Refund)
+ */
+export async function atomicRefundOrderBalance(customerId, orderId, refundAmount, refundTxRecord = null) {
+  if (!db) throw new Error('قاعدة البيانات غير مهيأة');
+  if (!customerId) throw new Error('معرف العميل مطلوب');
+  const amount = parseFloat(refundAmount);
+  if (isNaN(amount) || amount <= 0) throw new Error('مبلغ الاسترجاع غير صالح');
+
+  const custRef = doc(db, 'customers', customerId);
+  const orderRef = doc(db, 'orders', orderId);
+
+  return await runTransaction(db, async (transaction) => {
+    // 1. جلب بيانات العميل والطلب معاً
+    const custDoc = await transaction.get(custRef);
+    if (!custDoc.exists()) {
+      throw new Error('حساب العميل غير موجود في السحابة');
+    }
+
+    const custData = custDoc.data();
+    const serverBal = parseFloat(custData.balance || 0);
+    const newBalance = parseFloat((serverBal + amount).toFixed(2));
+
+    const currentTxs = Array.isArray(custData.walletTransactions) ? custData.walletTransactions : [];
+
+    // التحقق من عدم وجود استرجاع مسبق لهذا الطلب في سجل المعاملات
+    const alreadyRefundedTx = currentTxs.some(
+      tx => tx.orderId === orderId || tx.id === `tx_refund_${orderId}` || (tx.title && tx.title.includes(`#${orderId}`))
+    );
+    if (alreadyRefundedTx) {
+      throw new Error(`تم إرجاع هذا الطلب #${orderId} مسبقاً في سجل المعاملات المالية.`);
+    }
+
+    const txRecord = refundTxRecord || {
+      id: `tx_refund_${orderId}_${Date.now()}`,
+      orderId: orderId,
+      type: 'deposit',
+      amount: amount,
+      balanceAfter: newBalance,
+      title: `استرجاع رصيد للطلب الملغي #${orderId}`,
+      date: new Date().toISOString()
+    };
+
+    const notif = {
+      id: `notif-refund-${orderId}-${Date.now()}`,
+      title: `تم استرجاع الرصيد إلى محفظتك 💰 #${orderId}`,
+      message: `تم إرجاع مبلغ $${amount.toFixed(2)} إلى رصيد محفظتك لإلغاء الطلب #${orderId}. رصيدك الجديد: $${newBalance.toFixed(2)}.`,
+      type: 'wallet',
+      orderId: orderId,
+      date: new Date().toISOString(),
+      read: false
+    };
+
+    const currentNotifs = Array.isArray(custData.notifications) ? custData.notifications : [];
+
+    const updatedCustData = {
+      ...custData,
+      balance: newBalance,
+      walletTransactions: [txRecord, ...currentTxs].slice(0, 100),
+      notifications: [notif, ...currentNotifs].slice(0, 50),
+      lastLoginAt: Date.now()
+    };
+
+    // تحديث العميل
+    transaction.set(custRef, updatedCustData, { merge: true });
+
+    // تحديث الطلب
+    transaction.set(orderRef, {
+      status: 'ملغي',
+      walletRefunded: true,
+      walletRefundedAmount: amount,
+      walletRefundedDate: new Date().toISOString(),
+      walletBalanceAfterRefund: newBalance,
+      updatedAt: Date.now()
+    }, { merge: true });
+
+    return {
+      success: true,
+      previousBalance: serverBal,
+      newBalance: newBalance,
+      updatedCustomer: updatedCustData
+    };
+  });
+}
+
+
 
 // حفظ وتحديث طلب جديد في السحابة
 export async function syncOrderToCloud(order) {

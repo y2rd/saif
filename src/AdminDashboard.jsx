@@ -15,7 +15,8 @@ import {
   deleteOrderFromCloud,
   clearAllOrdersFromCloud,
   atomicApproveTopup,
-  atomicAdjustCustomerBalance
+  atomicAdjustCustomerBalance,
+  atomicRefundOrderBalance
 } from './firebase';
 
 export default function AdminDashboard({
@@ -1199,10 +1200,7 @@ export default function AdminDashboard({
       const isPaidByWallet = targetOrder.walletDeducted || targetOrder.method === 'المحفظة';
       const alreadyRefunded = Boolean(targetOrder.walletRefunded);
 
-      // حماية صارمة: لا يتم إرجاع المبلغ إطلاقاً إذا كان مسترجعاً سابقاً
-      if (alreadyRefunded) {
-        // تم إرجاعه مسبقاً - لا تفعل شيئاً مالياً
-      } else if (isPaidByWallet) {
+      if (!alreadyRefunded && isPaidByWallet) {
         const refundAmount = parseFloat(targetOrder.walletDeductedAmount || targetOrder.totalUsd || 0);
 
         if (refundAmount > 0) {
@@ -1216,17 +1214,10 @@ export default function AdminDashboard({
             ))
           );
 
-          // فحص أمان إضافي: التأكد من سجل المعاملات المالية أن هذا الطلب لم يُسترجع له من قبل
-          const txAlreadyExists = targetCust?.walletTransactions?.some(
-            tx => tx.orderId === targetOrder.id || tx.id === `tx_refund_${targetOrder.id}` || (tx.title && tx.title.includes(`#${targetOrder.id}`))
-          );
-
-          if (txAlreadyExists) {
-            targetOrder.walletRefunded = true;
-            targetOrder.walletRefundedAmount = refundAmount;
-          } else {
-            const custName = targetCust?.name || targetOrder.customer || 'العميل';
-            const currentBal = targetCust ? parseFloat(targetCust.balance || 0) : 0;
+          if (targetCust) {
+            const targetCustId = targetCust.id || targetCust.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
+            const custName = targetCust.name || targetOrder.customer || 'العميل';
+            const currentBal = parseFloat(targetCust.balance || 0);
 
             const shouldRefund = window.confirm(
               `💰 استرجاع رصيد المحفظة للطلب الملغي #${targetOrder.id}:\n\n` +
@@ -1234,10 +1225,10 @@ export default function AdminDashboard({
               `• المبلغ المدفوع من المحفظة: $${refundAmount.toFixed(2)}\n` +
               `• رصيد العميل الحالي: $${currentBal.toFixed(2)}\n` +
               `• الرصيد بعد الاسترجاع: $${(currentBal + refundAmount).toFixed(2)}\n\n` +
-              `هل ترغب بإرجاع المبلغ ($${refundAmount.toFixed(2)}) إلى محفظة العميل تلقائياً؟`
+              `هل ترغب بإرجاع المبلغ ($${refundAmount.toFixed(2)}) إلى محفظة العميل تلقائياً الآن؟`
             );
 
-            if (shouldRefund && targetCust) {
+            if (shouldRefund) {
               const newBal = parseFloat((currentBal + refundAmount).toFixed(2));
               const refundTx = {
                 id: `tx_refund_${targetOrder.id}_${Date.now()}`,
@@ -1249,6 +1240,23 @@ export default function AdminDashboard({
                 date: new Date().toISOString()
               };
 
+              // تنفيذ الاسترجاع الذري السحابي المباشر
+              atomicRefundOrderBalance(targetCustId, targetOrder.id, refundAmount, refundTx)
+                .then(res => {
+                  if (res && res.updatedCustomer) {
+                    setCustomers(prev => prev.map(c => (c.id === targetCust.id || c.identifier === targetCust.identifier) ? { ...c, ...res.updatedCustomer } : c));
+                  }
+                })
+                .catch(err => {
+                  console.warn("الاسترجاع الذري واجه خطأ، تطبيق التحديث البديل:", err);
+                  const fallbackCust = {
+                    ...targetCust,
+                    balance: newBal,
+                    walletTransactions: [refundTx, ...(targetCust.walletTransactions || [])]
+                  };
+                  syncCustomerToCloud(fallbackCust);
+                });
+
               const updatedCust = {
                 ...targetCust,
                 balance: newBal,
@@ -1257,7 +1265,6 @@ export default function AdminDashboard({
 
               const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
               setCustomers(updatedCustomersList);
-              syncCustomerToCloud(updatedCust);
               try {
                 localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
                 const savedCur = localStorage.getItem('haider_current_user');
@@ -1483,6 +1490,25 @@ export default function AdminDashboard({
       date: new Date().toISOString()
     };
 
+    const targetCustId = targetCust.id || targetCust.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
+
+    // تنفيذ الإرجاع الذري الفوري في Firestore
+    atomicRefundOrderBalance(targetCustId, targetOrder.id, refundAmount, refundTx)
+      .then(res => {
+        if (res && res.updatedCustomer) {
+          setCustomers(prev => prev.map(c => (c.id === targetCust.id || c.identifier === targetCust.identifier) ? { ...c, ...res.updatedCustomer } : c));
+        }
+      })
+      .catch(err => {
+        console.warn("الاسترجاع الذري واجه خطأ، استخدام التحديث المباشر:", err);
+        const fallbackCust = {
+          ...targetCust,
+          balance: newBal,
+          walletTransactions: [refundTx, ...(targetCust.walletTransactions || [])]
+        };
+        syncCustomerToCloud(fallbackCust);
+      });
+
     const updatedCust = {
       ...targetCust,
       balance: newBal,
@@ -1491,7 +1517,6 @@ export default function AdminDashboard({
 
     const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
     setCustomers(updatedCustomersList);
-    syncCustomerToCloud(updatedCust);
 
     try {
       localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
