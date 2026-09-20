@@ -20,7 +20,8 @@ import {
   verifyFirebasePhoneOtp,
   saveOtpToCloud,
   verifyOtpFromCloud,
-  sendOtpEmailNotification
+  sendOtpEmailNotification,
+  atomicDeductWalletBalance
 } from './firebase';
 
 function compressImage(file, maxWidth = 600, quality = 0.75) {
@@ -2365,7 +2366,7 @@ export default function App() {
     setReviewModalProductId('');
   };
 
-  const handleConfirmOrderWithProof = (methodName) => {
+  const handleConfirmOrderWithProof = async (methodName) => {
     // 1. الدفع المباشر من رصيد المحفظة
     if (methodName === 'wallet') {
       if (!currentUser) {
@@ -2374,29 +2375,31 @@ export default function App() {
         return;
       }
 
-      // التحقق الصارم من الرصيد عبر سجل العميل الفعلي المعتمد في المتجر وليس فقط الذاكرة المحلية
-      const verifiedCustomer = customers.find(c => c.id === currentUser.id || c.identifier === currentUser.identifier);
-      const verifiedBal = verifiedCustomer ? parseFloat(verifiedCustomer.balance || 0) : parseFloat(currentUser.balance || 0);
-      const currentBal = Math.min(parseFloat(currentUser.balance || 0), verifiedBal);
-
-      if (isNaN(currentBal) || currentBal < totalCartPriceUsd) {
-        alert(`رصيدك المعتمد الحالي ($${(isNaN(currentBal) ? 0 : currentBal).toFixed(2)}) غير كافٍ لإتمام هذا الطلب ($${totalCartPriceUsd.toFixed(2)}). يرجى شحن المحفظة أولاً أو اختيار وسيلة دفع أخرى.`);
-        return;
-      }
-
-      // الخصم الفوري من المحفظة
-      const newBal = parseFloat(Math.max(0, currentBal - totalCartPriceUsd).toFixed(2));
       const orderCost = totalCartPriceUsd;
+      const targetCustId = currentUser.id || currentUser.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
       const newOrderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
+      // سجل المعاملة المالية المبدئي
       const newTx = {
         id: `tx_${Date.now()}`,
         type: 'withdraw',
         amount: orderCost,
-        balanceAfter: newBal,
-        title: `دفع للطلب رقم #${newOrderId}`,
-        date: new Date().toISOString()
+        title: `دفع للطلب رقم #${newOrderId}`
       };
+
+      // تنفيذ المعاملة الذرية (Atomic Transaction) في Firestore
+      // هذه العملية تقفل سجل العميل في السحابة وتضمن عدم إمكانية الشراء المزدوج
+      let txResult;
+      try {
+        txResult = await atomicDeductWalletBalance(targetCustId, orderCost, newTx);
+      } catch (atomicErr) {
+        console.error("فشل الخصم الذري من المحفظة:", atomicErr);
+        alert(atomicErr.message || 'تعذر إتمام عملية الدفع من المحفظة. يرجى التحقق من اتصالك والمحاولة لاحقاً.');
+        return;
+      }
+
+      const newBal = txResult.newBalance;
+      const currentBal = txResult.previousBalance;
 
       // حساب نقاط المكافآت المكتسبة بناءً على إعدادات نقاط الولاء
       const loyaltyCfg = storeConfig.loyaltyConfig || { enabled: true, spendUsdPerPoint: 10, pointsPerUsd: 10 };
@@ -2416,9 +2419,9 @@ export default function App() {
 
       const updatedUser = {
         ...currentUser,
+        ...(txResult.updatedCustomer || {}),
         balance: newBal,
         points: newPts,
-        walletTransactions: [newTx, ...(currentUser.walletTransactions || [])],
         notifications: [notif, ...(currentUser.notifications || [])]
       };
 
@@ -2428,7 +2431,6 @@ export default function App() {
         localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
         localStorage.setItem('haider_store_customers', JSON.stringify(customers.map(c => c.id === updatedUser.id ? updatedUser : c)));
       } catch (e) {}
-      syncCustomerToCloud(updatedUser);
 
       // فحص التسليم الفوري للأكواد الرقمية إن وجدت
       let assignedKeys = [];

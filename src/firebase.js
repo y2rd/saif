@@ -7,7 +7,8 @@ import {
   deleteDoc,
   onSnapshot, 
   collection,
-  getDocs 
+  getDocs,
+  runTransaction
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -210,6 +211,186 @@ export async function syncCustomerToCloud(customer) {
     console.warn("خطأ في حفظ بيانات العميل سحابياً:", err);
   }
 }
+
+// -----------------------------------------------------------------------------
+// معاملات الرصيد الذرية الآمنة (Atomic Transactions) لمنع Race Condition والتلاعب
+// -----------------------------------------------------------------------------
+
+/**
+ * خصم مبلغ من رصيد العميل بشكل ذري وقفل السجل في السحابة لمنع الصرف المزدوج
+ */
+export async function atomicDeductWalletBalance(customerId, amountToDeduct, transactionRecord, newOrderRecord = null) {
+  if (!db) throw new Error('قاعدة البيانات غير مهيأة');
+  if (!customerId) throw new Error('معرف العميل مطلوب');
+  const deductAmount = parseFloat(amountToDeduct);
+  if (isNaN(deductAmount) || deductAmount <= 0) throw new Error('مبلغ الخصم غير صالح');
+
+  const custRef = doc(db, 'customers', customerId);
+
+  return await runTransaction(db, async (transaction) => {
+    const custDoc = await transaction.get(custRef);
+    if (!custDoc.exists()) {
+      throw new Error('حساب العميل غير موجود في السحابة');
+    }
+
+    const custData = custDoc.data();
+    const serverBal = parseFloat(custData.balance || 0);
+
+    if (isNaN(serverBal) || serverBal < deductAmount) {
+      throw new Error(`الرصيد الفعلي في السحابة ($${(isNaN(serverBal) ? 0 : serverBal).toFixed(2)}) غير كافٍ لتنفيذ هذه العملية ($${deductAmount.toFixed(2)})`);
+    }
+
+    const newBalance = parseFloat((serverBal - deductAmount).toFixed(2));
+    const currentTxs = Array.isArray(custData.walletTransactions) ? custData.walletTransactions : [];
+    const updatedTxRecord = {
+      ...transactionRecord,
+      balanceAfter: newBalance,
+      date: new Date().toISOString()
+    };
+
+    const updatedCustData = {
+      ...custData,
+      balance: newBalance,
+      walletTransactions: [updatedTxRecord, ...currentTxs].slice(0, 100),
+      lastLoginAt: Date.now()
+    };
+
+    transaction.set(custRef, updatedCustData, { merge: true });
+
+    if (newOrderRecord && newOrderRecord.id) {
+      const orderRef = doc(db, 'orders', newOrderRecord.id);
+      transaction.set(orderRef, {
+        ...newOrderRecord,
+        walletBalanceBefore: serverBal,
+        walletBalanceAfter: newBalance,
+        updatedAt: Date.now()
+      }, { merge: true });
+    }
+
+    return {
+      success: true,
+      previousBalance: serverBal,
+      newBalance: newBalance,
+      updatedCustomer: updatedCustData
+    };
+  });
+}
+
+/**
+ * تعديل رصيد العميل بشكل ذري (شحن أو خصم يدوي من لوحة الإدارة)
+ */
+export async function atomicAdjustCustomerBalance(customerId, amountDelta, transactionRecord) {
+  if (!db) throw new Error('قاعدة البيانات غير مهيأة');
+  if (!customerId) throw new Error('معرف العميل مطلوب');
+  const delta = parseFloat(amountDelta);
+  if (isNaN(delta) || delta === 0) throw new Error('قيمة التعديل غير صالحة');
+
+  const custRef = doc(db, 'customers', customerId);
+
+  return await runTransaction(db, async (transaction) => {
+    const custDoc = await transaction.get(custRef);
+    if (!custDoc.exists()) {
+      throw new Error('حساب العميل غير موجود في السحابة');
+    }
+
+    const custData = custDoc.data();
+    const serverBal = parseFloat(custData.balance || 0);
+    const newBalance = parseFloat(Math.max(0, serverBal + delta).toFixed(2));
+
+    const currentTxs = Array.isArray(custData.walletTransactions) ? custData.walletTransactions : [];
+    const updatedTxRecord = {
+      ...transactionRecord,
+      balanceAfter: newBalance,
+      date: new Date().toISOString()
+    };
+
+    const updatedCustData = {
+      ...custData,
+      balance: newBalance,
+      walletTransactions: [updatedTxRecord, ...currentTxs].slice(0, 100),
+      lastLoginAt: Date.now()
+    };
+
+    transaction.set(custRef, updatedCustData, { merge: true });
+
+    return {
+      success: true,
+      previousBalance: serverBal,
+      newBalance: newBalance,
+      updatedCustomer: updatedCustData
+    };
+  });
+}
+
+/**
+ * الموافقة على طلب شحن المحفظة بشكل ذري
+ */
+export async function atomicApproveTopup(customerId, topupId, amountUsd, updatedTopupsList) {
+  if (!db) throw new Error('قاعدة البيانات غير مهيأة');
+  if (!customerId) throw new Error('معرف العميل مطلوب');
+  const topupAmount = parseFloat(amountUsd);
+  if (isNaN(topupAmount) || topupAmount <= 0) throw new Error('مبلغ الشحن غير صالح');
+
+  const custRef = doc(db, 'customers', customerId);
+  const topupsDocRef = doc(db, 'store', 'topups');
+
+  return await runTransaction(db, async (transaction) => {
+    const custDoc = await transaction.get(custRef);
+    if (!custDoc.exists()) {
+      throw new Error('حساب العميل غير موجود في السحابة');
+    }
+
+    const custData = custDoc.data();
+    const serverBal = parseFloat(custData.balance || 0);
+    const newBalance = parseFloat((serverBal + topupAmount).toFixed(2));
+
+    const newTx = {
+      id: `tx_${Date.now()}`,
+      type: 'deposit',
+      amount: topupAmount,
+      balanceAfter: newBalance,
+      title: `شحن محفظة - طلب رقم #${topupId}`,
+      date: new Date().toISOString()
+    };
+
+    const notif = {
+      id: `notif-${Date.now()}`,
+      title: 'تم شحن رصيد المحفظة بنجاح 🎉',
+      message: `تمت الموافقة على طلبك رقم #${topupId} وإيداع $${topupAmount} في محفظتك. رصيدك الحالي: $${newBalance}.`,
+      type: 'wallet',
+      date: new Date().toISOString(),
+      read: false
+    };
+
+    const currentTxs = Array.isArray(custData.walletTransactions) ? custData.walletTransactions : [];
+    const currentNotifs = Array.isArray(custData.notifications) ? custData.notifications : [];
+
+    const updatedCustData = {
+      ...custData,
+      balance: newBalance,
+      walletTransactions: [newTx, ...currentTxs].slice(0, 100),
+      notifications: [notif, ...currentNotifs].slice(0, 50),
+      lastLoginAt: Date.now()
+    };
+
+    transaction.set(custRef, updatedCustData, { merge: true });
+
+    if (Array.isArray(updatedTopupsList)) {
+      transaction.set(topupsDocRef, {
+        list: updatedTopupsList,
+        updatedAt: Date.now()
+      }, { merge: true });
+    }
+
+    return {
+      success: true,
+      previousBalance: serverBal,
+      newBalance: newBalance,
+      updatedCustomer: updatedCustData
+    };
+  });
+}
+
 
 // حفظ وتحديث طلب جديد في السحابة
 export async function syncOrderToCloud(order) {

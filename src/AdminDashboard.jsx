@@ -13,7 +13,9 @@ import {
   deleteCustomerFromCloud,
   syncOrderToCloud,
   deleteOrderFromCloud,
-  clearAllOrdersFromCloud
+  clearAllOrdersFromCloud,
+  atomicApproveTopup,
+  atomicAdjustCustomerBalance
 } from './firebase';
 
 export default function AdminDashboard({
@@ -1934,6 +1936,9 @@ export default function AdminDashboard({
       txTitle = walletNoteInput.trim() || `تعديل الرصيد إلى (${amountNum})`;
     }
 
+    const delta = newBal - currentBal;
+    const targetCustId = walletModalCustomer.id || walletModalCustomer.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
+
     const newTx = {
       id: `tx_${Date.now()}`,
       type: txType,
@@ -1943,14 +1948,25 @@ export default function AdminDashboard({
       date: new Date().toISOString()
     };
 
-    const updatedCust = {
+    let updatedCust = {
       ...walletModalCustomer,
       balance: newBal,
       walletTransactions: [newTx, ...(walletModalCustomer.walletTransactions || [])]
     };
 
+    // تنفيذ التعديل الذري (Atomic Transaction) في السحابة
+    atomicAdjustCustomerBalance(targetCustId, delta, newTx)
+      .then(res => {
+        if (res && res.updatedCustomer) {
+          setCustomers(prev => prev.map(c => c.id === targetCustId ? { ...c, ...res.updatedCustomer } : c));
+        }
+      })
+      .catch(err => {
+        console.warn("تعديل رصيد سحابي بديل:", err);
+        syncCustomerToCloud(updatedCust);
+      });
+
     setCustomers(customers.map(c => c.id === walletModalCustomer.id ? updatedCust : c));
-    syncCustomerToCloud(updatedCust);
 
     // إذا كان هذا العميل مسجلاً دخول الآن كـ currentUser محلياً، نحدث رصيده فوراً
     try {
@@ -1976,7 +1992,7 @@ export default function AdminDashboard({
   };
 
   // الموافقة على طلب شحن المحفظة
-  const handleApproveTopup = (topup) => {
+  const handleApproveTopup = async (topup) => {
     if (!window.confirm(`هل أنت متأكد من الموافقة على شحن $${topup.amountUsd} لمحفظة ${topup.customerName}؟`)) return;
 
     const targetCust = customers.find(c =>
@@ -1986,51 +2002,67 @@ export default function AdminDashboard({
     );
 
     if (targetCust) {
-      const currentBal = parseFloat(targetCust.balance || 0);
-      const newBal = parseFloat((currentBal + parseFloat(topup.amountUsd)).toFixed(2));
-      const newTx = {
-        id: `tx_${Date.now()}`,
-        type: 'deposit',
-        amount: parseFloat(topup.amountUsd),
-        balanceAfter: newBal,
-        title: `شحن محفظة - طلب رقم #${topup.id}`,
-        date: new Date().toISOString()
-      };
+      const targetCustId = targetCust.id || targetCust.identifier?.replace(/[^a-zA-Z0-9]/g, '_');
+      const updatedTopups = (topupRequests || []).map(t => t.id === topup.id ? { ...t, status: 'مقبول' } : t);
 
-      const notif = {
-        id: `notif-${Date.now()}`,
-        title: 'تم شحن رصيد المحفظة بنجاح 🎉',
-        message: `تمت الموافقة على طلبك رقم #${topup.id} وإيداع $${topup.amountUsd} في محفظتك. رصيدك الحالي: $${newBal}.`,
-        type: 'wallet',
-        date: new Date().toISOString(),
-        read: false
-      };
-
-      const updatedCust = {
-        ...targetCust,
-        balance: newBal,
-        walletTransactions: [newTx, ...(targetCust.walletTransactions || [])],
-        notifications: [notif, ...(targetCust.notifications || [])]
-      };
-
-      const updatedCusts = customers.map(c => c.id === targetCust.id ? updatedCust : c);
-      setCustomers(updatedCusts);
-      syncCustomerToCloud(updatedCust);
+      let atomicSuccess = false;
       try {
-        localStorage.setItem('haider_store_customers', JSON.stringify(updatedCusts));
-      } catch (e) {}
-
-      try {
-        const savedCur = localStorage.getItem('haider_current_user');
-        if (savedCur) {
-          const parsed = JSON.parse(savedCur);
-          if (parsed && (parsed.id === updatedCust.id || parsed.identifier === updatedCust.identifier)) {
-            const merged = { ...parsed, ...updatedCust };
-            localStorage.setItem('haider_current_user', JSON.stringify(merged));
-            if (setCurrentUser) setCurrentUser(merged);
-          }
+        const res = await atomicApproveTopup(targetCustId, topup.id, topup.amountUsd, updatedTopups);
+        if (res && res.success) {
+          atomicSuccess = true;
+          const updatedCust = { ...targetCust, ...res.updatedCustomer };
+          setCustomers(prev => prev.map(c => c.id === targetCust.id ? updatedCust : c));
+          try {
+            const savedCur = localStorage.getItem('haider_current_user');
+            if (savedCur) {
+              const parsed = JSON.parse(savedCur);
+              if (parsed && (parsed.id === updatedCust.id || parsed.identifier === updatedCust.identifier)) {
+                const merged = { ...parsed, ...updatedCust };
+                localStorage.setItem('haider_current_user', JSON.stringify(merged));
+                if (setCurrentUser) setCurrentUser(merged);
+              }
+            }
+          } catch (e) {}
         }
-      } catch (e) {}
+      } catch (atomicErr) {
+        console.warn("الموافقة الذرية واجهت مشكلة، جاري تطبيق التزامن المباشر:", atomicErr);
+      }
+
+      if (!atomicSuccess) {
+        const currentBal = parseFloat(targetCust.balance || 0);
+        const newBal = parseFloat((currentBal + parseFloat(topup.amountUsd)).toFixed(2));
+        const newTx = {
+          id: `tx_${Date.now()}`,
+          type: 'deposit',
+          amount: parseFloat(topup.amountUsd),
+          balanceAfter: newBal,
+          title: `شحن محفظة - طلب رقم #${topup.id}`,
+          date: new Date().toISOString()
+        };
+
+        const notif = {
+          id: `notif-${Date.now()}`,
+          title: 'تم شحن رصيد المحفظة بنجاح 🎉',
+          message: `تمت الموافقة على طلبك رقم #${topup.id} وإيداع $${topup.amountUsd} في محفظتك. رصيدك الحالي: $${newBal}.`,
+          type: 'wallet',
+          date: new Date().toISOString(),
+          read: false
+        };
+
+        const updatedCust = {
+          ...targetCust,
+          balance: newBal,
+          walletTransactions: [newTx, ...(targetCust.walletTransactions || [])],
+          notifications: [notif, ...(targetCust.notifications || [])]
+        };
+
+        const updatedCusts = customers.map(c => c.id === targetCust.id ? updatedCust : c);
+        setCustomers(updatedCusts);
+        syncCustomerToCloud(updatedCust);
+        try {
+          localStorage.setItem('haider_store_customers', JSON.stringify(updatedCusts));
+        } catch (e) {}
+      }
     }
 
     if (setTopupRequests) {
