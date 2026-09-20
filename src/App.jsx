@@ -1782,6 +1782,7 @@ export default function App() {
           productType: product.productType || 'digital',
           isPhysical: product.productType === 'physical',
           exchangeCurrencyName: product.exchangeCurrencyName || null,
+          exchangeRequiredProductName: product.exchangeRequiredProductName || null,
           exchangeAmount: product.exchangeAmount || null,
           minQuantity: Math.max(1, parseInt(product.minQuantity) || 1),
           userNote: noteValue || null
@@ -1949,7 +1950,7 @@ export default function App() {
       if (item.userNote) message += `   ✍️ بيانات/ملاحظات العميل: ${item.userNote}\n`;
       if (item.productType === 'exchange') {
         message += `   النوع: *مبادلة*\n`;
-        message += `   ( المنتج المطلوب ): ${item.title} - الكمية: ${item.quantity}\n`;
+        message += `   ( المنتج المطلوب ): ${item.exchangeRequiredProductName || item.title} - الكمية: ${item.quantity}\n`;
         message += `   ( المنتج اللي نسلمك ): ${item.exchangeCurrencyName || 'مبادلة'} - الكمية: ${(item.exchangeAmount || 1) * item.quantity}\n\n`;
       } else {
         message += `   النوع: ${

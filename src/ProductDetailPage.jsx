@@ -232,11 +232,11 @@ export default function ProductDetailPage({
                 {isExchange ? (
                   <div className="mb-3 space-y-2">
                     <div className="grid grid-cols-2 gap-2 text-center">
-                      {/* خانة: المنتج المطلوب (الاسم ثابت من الإعدادات والكمية قابلة للكتابة) */}
+                      {/* خانة: المنتج المطلوب (الاسم محدد من الإعدادات والكمية قابلة للكتابة) */}
                       <div className="p-2.5 bg-gray-50/80 rounded-xl border border-gray-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
                         <span className="text-[10px] text-gray-500 font-bold">المنتج المطلوب</span>
-                        <span className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-1" title={product.title}>
-                          {product.title}
+                        <span className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-1" title={product.exchangeRequiredProductName || product.title}>
+                          {product.exchangeRequiredProductName || product.title}
                         </span>
                         <div className="w-full flex flex-col items-center justify-center gap-1 pt-1 border-t border-gray-200/60 text-xs font-price">
                           <div className="flex items-center justify-center gap-1.5">

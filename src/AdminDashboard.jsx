@@ -185,9 +185,10 @@ export default function AdminDashboard({
     customFieldPlaceholder: '',
     customFieldNote: '',
     // حقول منتج المبادلة
-    exchangeCurrencyName: '', // اسم العملة أو المادة المطلوبة (صكوك، قمح، كروت، إلخ)
-    exchangeAmount: '',       // الكمية المطلوبة للمبادلة
-    minQuantity: 1,           // الحد الأدنى لكمية العميل
+    exchangeRequiredProductName: '', // اسم المنتج المطلوب من العميل (ما يجلبه)
+    exchangeCurrencyName: '',        // اسم المنتج الذي نسلمه للعميل
+    exchangeAmount: '',              // كمية المنتج الذي نسلمه (تتضاعف مع كمية العميل)
+    minQuantity: 1,                  // الحد الأدنى للكمية المطلوبة من العميل
     exchangeCustomFields: ['آيدي المزرعة'], // الخانات المخصصة التي يحددها المدير ويكتب العميل فيها
     customFields: [], // الحقول المخصصة العامة: [{id, label, required}] يضيفها المدير بنفسه لأي نوع منتج
     // خيارات وأسعار المنتج الإضافية
@@ -858,6 +859,7 @@ export default function AdminDashboard({
       customFieldLabel: prod.customFieldLabel || '',
       customFieldPlaceholder: prod.customFieldPlaceholder || '',
       customFieldNote: prod.customFieldNote || '',
+      exchangeRequiredProductName: prod.exchangeRequiredProductName || '',
       exchangeCurrencyName: prod.exchangeCurrencyName || '',
       exchangeAmount: prod.exchangeAmount ?? '',
       minQuantity: prod.minQuantity !== undefined ? prod.minQuantity : 1,
@@ -895,6 +897,10 @@ export default function AdminDashboard({
     }
     if (productForm.productType === 'exchange' && !productForm.exchangeCurrencyName) {
       alert('يرجى تحديد أو كتابة اسم عملة/مادة المبادلة.');
+      return;
+    }
+    if (productForm.productType === 'exchange' && !productForm.exchangeRequiredProductName) {
+      alert('يرجى كتابة اسم المنتج المطلوب من العميل.');
       return;
     }
 
@@ -9998,49 +10004,74 @@ service cloud.firestore {
                     <span>بيانات منتج المبادلة (مبادلة بدون نقود):</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* المنتج/العملة التي نسلمها للعميل */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-teal-900 mb-1">المنتج اللي نسلمك (الاسم/العملة) *</label>
-                      <input
-                        type="text"
-                        required={productForm.productType === 'exchange'}
-                        value={productForm.exchangeCurrencyName || ''}
-                        onChange={(e) => setProductForm({ ...productForm, exchangeCurrencyName: e.target.value })}
-                        placeholder="مثال: صكوك، قمح، كروت"
-                        className="w-full p-2.5 bg-white border border-teal-300 rounded-xl text-xs outline-none focus:border-teal-600"
-                      />
-                    </div>
-
-                    {/* كمية التسليم المقابلة */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-teal-900 mb-1">كمية المنتج اللي نسلمك *</label>
-                      <input
-                        type="number"
-                        step="any"
-                        required={productForm.productType === 'exchange'}
-                        value={productForm.exchangeAmount || ''}
-                        onChange={(e) => setProductForm({ ...productForm, exchangeAmount: e.target.value })}
-                        placeholder="مثال: 5"
-                        className="w-full p-2.5 bg-white border border-teal-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
-                      />
-                      <span className="text-[10px] text-teal-700 mt-1 block">تتضاعف تلقائياً للعميل حسب كمية المطلوب (لا يوجد حد أدنى مستقل لها).</span>
-                    </div>
-
-                    {/* الحد الأدنى للمنتج المطلوب */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-teal-900 mb-1">الحد الأدنى لكمية (المنتج المطلوب)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={productForm.minQuantity || 1}
-                        onChange={(e) => setProductForm({ ...productForm, minQuantity: Math.max(1, parseInt(e.target.value) || 1) })}
-                        placeholder="1"
-                        className="w-full p-2.5 bg-white border border-teal-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
-                      />
-                      <span className="text-[10px] text-teal-700 mt-1 block">يحدده الأدمن للمنتج المطلوب فقط.</span>
+                  {/* صف 1: المنتج المطلوب من العميل */}
+                  <div className="p-3 bg-gray-50/80 border border-gray-200 rounded-xl space-y-2">
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">📥 المنتج المطلوب من العميل</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-800 mb-1">اسم المنتج المطلوب *</label>
+                        <input
+                          type="text"
+                          required={productForm.productType === 'exchange'}
+                          value={productForm.exchangeRequiredProductName || ''}
+                          onChange={(e) => setProductForm({ ...productForm, exchangeRequiredProductName: e.target.value })}
+                          placeholder="مثال: قمح، بيض، صوف"
+                          className="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs outline-none focus:border-teal-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-800 mb-1">الحد الأدنى للكمية المطلوبة</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={productForm.minQuantity || 1}
+                          onChange={(e) => setProductForm({ ...productForm, minQuantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                          placeholder="1"
+                          className="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
+                        />
+                        <span className="text-[10px] text-gray-500 mt-0.5 block">أقل كمية يقبل الطلب بها</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* صف 2: المنتج الذي نسلمه للعميل */}
+                  <div className="p-3 bg-teal-50/80 border border-teal-200 rounded-xl space-y-2">
+                    <p className="text-[10px] font-bold text-teal-700 uppercase tracking-wide">📤 المنتج اللي نسلمك</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-bold text-teal-900 mb-1">اسم المنتج اللي نسلمك *</label>
+                        <input
+                          type="text"
+                          required={productForm.productType === 'exchange'}
+                          value={productForm.exchangeCurrencyName || ''}
+                          onChange={(e) => setProductForm({ ...productForm, exchangeCurrencyName: e.target.value })}
+                          placeholder="مثال: صكوك، كروت، ماس"
+                          className="w-full p-2.5 bg-white border border-teal-300 rounded-xl text-xs outline-none focus:border-teal-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-teal-900 mb-1">الكمية التي نسلمها لكل وحدة *</label>
+                        <input
+                          type="number"
+                          step="any"
+                          required={productForm.productType === 'exchange'}
+                          value={productForm.exchangeAmount || ''}
+                          onChange={(e) => setProductForm({ ...productForm, exchangeAmount: e.target.value })}
+                          placeholder="مثال: 5"
+                          className="w-full p-2.5 bg-white border border-teal-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
+                        />
+                        <span className="text-[10px] text-teal-700 mt-0.5 block">تُضرب في كمية العميل تلقائياً</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* معاينة الحساب */}
+                  {productForm.exchangeRequiredProductName && productForm.exchangeCurrencyName && productForm.exchangeAmount && (
+                    <div className="p-2 bg-white border border-teal-200 rounded-xl text-[10px] text-teal-800 flex items-center gap-1.5">
+                      <span>🔄</span>
+                      <span>مثال: إذا طلب العميل <strong>{productForm.minQuantity || 1} {productForm.exchangeRequiredProductName}</strong> → يحصل على <strong>{parseFloat(productForm.exchangeAmount) * parseInt(productForm.minQuantity || 1)} {productForm.exchangeCurrencyName}</strong></span>
+                    </div>
+                  )}
 
                   <div className="pt-1 border-t border-teal-200/60">
                     <div>
