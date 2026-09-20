@@ -6786,15 +6786,7 @@ export default function AdminDashboard({
                             value={storeConfig.name || ''}
                             onChange={(e) => {
                               const newName = e.target.value;
-                              setStoreConfig(prev => {
-                                const updated = { ...prev, name: newName };
-                                try {
-                                  localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                                  localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                  syncStoreConfigToCloud(updated);
-                                } catch {}
-                                return updated;
-                              });
+                              setStoreConfig(prev => ({ ...prev, name: newName }));
                             }}
                             className="w-full p-2 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-black focus:bg-white transition"
                             placeholder="اسم المتجر..."
@@ -6821,16 +6813,8 @@ export default function AdminDashboard({
                                 const reader = new FileReader();
                                 reader.onloadend = () => {
                                   const base64Logo = reader.result;
-                                  setStoreConfig(prev => {
-                                    const updated = { ...prev, logoUrl: base64Logo };
-                                    try {
-                                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                      syncStoreConfigToCloud(updated);
-                                    } catch {}
-                                    return updated;
-                                  });
-                                  showToast('✅ تم رفع الشعار وحفظه سحابياً فوراً!');
+                                  setStoreConfig(prev => ({ ...prev, logoUrl: base64Logo }));
+                                  showToast('تم تجهيز الشعار، اضغط "حفظ الإعدادات" في الأعلى للتثبيت');
                                 };
                                 reader.readAsDataURL(file);
                               }
@@ -6851,16 +6835,8 @@ export default function AdminDashboard({
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setStoreConfig(prev => {
-                                    const updated = { ...prev, logoUrl: '' };
-                                    try {
-                                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                      syncStoreConfigToCloud(updated);
-                                    } catch {}
-                                    return updated;
-                                  });
-                                  showToast('تم حذف الشعار وتحديث السحابة فوراً');
+                                  setStoreConfig(prev => ({ ...prev, logoUrl: '' }));
+                                  showToast('تمت إزالة الشعار، اضغط "حفظ الإعدادات" للتثبيت');
                                 }}
                                 className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] flex items-center justify-center shadow-xs cursor-pointer hover:bg-red-700"
                                 title="حذف الشعار"
@@ -6885,15 +6861,7 @@ export default function AdminDashboard({
                         value={storeConfig.subTitle || ''}
                         onChange={(e) => {
                           const newSub = e.target.value;
-                          setStoreConfig(prev => {
-                            const updated = { ...prev, subTitle: newSub };
-                            try {
-                              localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                              localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                              syncStoreConfigToCloud(updated);
-                            } catch {}
-                            return updated;
-                          });
+                          setStoreConfig(prev => ({ ...prev, subTitle: newSub }));
                         }}
                         className="w-full p-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black focus:bg-white transition"
                         placeholder="مثلاً: كل ما تحتاجه لمزرعتك بأفضل الأسعار وأسرع تسليم"
@@ -6944,15 +6912,7 @@ export default function AdminDashboard({
                       value={storeConfig.footerCopyright || ''}
                       onChange={(e) => {
                         const newText = e.target.value;
-                        setStoreConfig(prev => {
-                          const updated = { ...prev, footerCopyright: newText };
-                          try {
-                            localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                            syncStoreConfigToCloud(updated);
-                          } catch {}
-                          return updated;
-                        });
+                        setStoreConfig(prev => ({ ...prev, footerCopyright: newText }));
                       }}
                       className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs text-gray-700 outline-none focus:border-black transition"
                       placeholder="جميع الحقوق محفوظة للمتجر © 2026"
@@ -7022,15 +6982,9 @@ export default function AdminDashboard({
                                 if (confirm(`هل أنت متأكد من حذف صفحة "${page.title}"؟`)) {
                                   setStoreConfig(prev => {
                                     const updatedPages = (prev.customPages || []).filter(p => p.id !== page.id);
-                                    const updated = { ...prev, customPages: updatedPages };
-                                    try {
-                                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                      syncStoreConfigToCloud(updated);
-                                    } catch {}
-                                    return updated;
+                                    return { ...prev, customPages: updatedPages };
                                   });
-                                  showToast('✅ تم حذف الصفحة بنجاح');
+                                  showToast('تم حذف الصفحة من المسودة، اضغط "حفظ الإعدادات" لتأكيد الحذف');
                                 }
                               }}
                               className="w-7 h-7 bg-white hover:bg-red-50 text-red-500 border border-gray-200 hover:border-red-200 rounded-lg flex items-center justify-center text-xs cursor-pointer shadow-2xs transition"
@@ -7095,7 +7049,7 @@ export default function AdminDashboard({
                           <i className="fa-solid fa-cloud-arrow-up text-emerald-600 text-xs"></i>
                           <span>حفظ الترتيب سحابياً</span>
                         </button>
-                        <span className="text-[10px] text-gray-400 font-medium hidden sm:inline">يحفظ تلقائياً عند أي تحريك</span>
+                        <span className="text-[10px] text-gray-400 font-medium hidden sm:inline">اضغط حفظ لتثبيت التعديلات</span>
                       </div>
                     </div>
 
@@ -7159,16 +7113,10 @@ export default function AdminDashboard({
                                         title: trimmed,
                                         data: { ...(list[idx].data || {}), title: trimmed }
                                       };
-                                      const updatedConfig = { ...prev, homeLayout: list };
-                                      try {
-                                        localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                        localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                        syncStoreConfigToCloud(updatedConfig);
-                                      } catch {}
-                                      return updatedConfig;
+                                      return { ...prev, homeLayout: list };
                                     });
                                     setEditingSectionTitleId(null);
-                                    showToast('✅ تم تغيير اسم العنصر وحفظه بنجاح');
+                                    showToast('تم تعديل اسم العنصر، اضغط "حفظ الإعدادات" لتثبيته');
                                   }}
                                   className="flex items-center gap-1.5 flex-1 min-w-0"
                                 >
@@ -7231,15 +7179,9 @@ export default function AdminDashboard({
                                   setStoreConfig(prev => {
                                     const list = [...(prev.homeLayout || arr)];
                                     list[idx] = { ...list[idx], enabled: list[idx].enabled === false ? true : false };
-                                    const updatedConfig = { ...prev, homeLayout: list };
-                                    try {
-                                      localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                      syncStoreConfigToCloud(updatedConfig);
-                                    } catch {}
-                                    return updatedConfig;
+                                    return { ...prev, homeLayout: list };
                                   });
-                                  showToast(secItem.enabled === false ? '✅ تم تفعيل العنصر بالمتجر' : 'تم تعطيل العنصر من المتجر');
+                                  showToast(secItem.enabled === false ? 'تم تفعيل العنصر (اضغط حفظ الإعدادات لتثبيته)' : 'تم تعطيل العنصر (اضغط حفظ الإعدادات لتثبيته)');
                                 }}
                                 className={`h-6 px-2 rounded-lg text-[10px] font-bold flex items-center gap-1 border transition cursor-pointer active:scale-95 ${
                                   secItem.enabled !== false
@@ -7252,7 +7194,7 @@ export default function AdminDashboard({
                                 <span>{secItem.enabled !== false ? 'مفعّل' : 'تفعيل'}</span>
                               </button>
 
-                              {/* أسهم الترتيب السريع (أعلى / أسفل) مباشرة في السطر مع الحفظ السحابي الفوري */}
+                              {/* أسهم الترتيب السريع (أعلى / أسفل) مباشرة في السطر */}
                               <div className="flex items-center gap-0.5 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
                                 <button
                                   type="button"
@@ -7265,15 +7207,8 @@ export default function AdminDashboard({
                                       const temp = list[idx - 1];
                                       list[idx - 1] = list[idx];
                                       list[idx] = temp;
-                                      const updatedConfig = { ...prev, homeLayout: list };
-                                      try {
-                                        localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                        localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                        syncStoreConfigToCloud(updatedConfig);
-                                      } catch {}
-                                      return updatedConfig;
+                                      return { ...prev, homeLayout: list };
                                     });
-                                    showToast('تم تحريك العنصر للأعلى وحفظ الترتيب سحابياً');
                                   }}
                                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black hover:bg-white rounded text-[10px] disabled:opacity-20 disabled:cursor-not-allowed transition cursor-pointer"
                                   title="تحريك لأعلى"
@@ -7291,15 +7226,8 @@ export default function AdminDashboard({
                                       const temp = list[idx + 1];
                                       list[idx + 1] = list[idx];
                                       list[idx] = temp;
-                                      const updatedConfig = { ...prev, homeLayout: list };
-                                      try {
-                                        localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                        localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                        syncStoreConfigToCloud(updatedConfig);
-                                      } catch {}
-                                      return updatedConfig;
+                                      return { ...prev, homeLayout: list };
                                     });
-                                    showToast('تم تحريك العنصر للأسفل وحفظ الترتيب سحابياً');
                                   }}
                                   className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-black hover:bg-white rounded text-[10px] disabled:opacity-20 disabled:cursor-not-allowed transition cursor-pointer"
                                   title="تحريك لأسفل"
@@ -7379,15 +7307,8 @@ export default function AdminDashboard({
                                           const temp = list[idx - 1];
                                           list[idx - 1] = list[idx];
                                           list[idx] = temp;
-                                          const updatedConfig = { ...prev, homeLayout: list };
-                                          try {
-                                            localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                            syncStoreConfigToCloud(updatedConfig);
-                                          } catch {}
-                                          return updatedConfig;
+                                          return { ...prev, homeLayout: list };
                                         });
-                                        showToast('تم تحريك العنصر لأعلى وحفظ الترتيب سحابياً');
                                       }}
                                       className="w-full px-3 py-2 text-right text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer transition"
                                     >
@@ -7407,15 +7328,8 @@ export default function AdminDashboard({
                                           const temp = list[idx + 1];
                                           list[idx + 1] = list[idx];
                                           list[idx] = temp;
-                                          const updatedConfig = { ...prev, homeLayout: list };
-                                          try {
-                                            localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                            syncStoreConfigToCloud(updatedConfig);
-                                          } catch {}
-                                          return updatedConfig;
+                                          return { ...prev, homeLayout: list };
                                         });
-                                        showToast('تم تحريك العنصر لأسفل وحفظ الترتيب سحابياً');
                                       }}
                                       className="w-full px-3 py-2 text-right text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer transition"
                                     >
@@ -7431,15 +7345,9 @@ export default function AdminDashboard({
                                         setStoreConfig(prev => {
                                           const list = [...(prev.homeLayout || arr)];
                                           list[idx] = { ...list[idx], enabled: list[idx].enabled === false ? true : false };
-                                          const updatedConfig = { ...prev, homeLayout: list };
-                                          try {
-                                            localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                            syncStoreConfigToCloud(updatedConfig);
-                                          } catch {}
-                                          return updatedConfig;
+                                          return { ...prev, homeLayout: list };
                                         });
-                                        showToast(secItem.enabled === false ? 'تم تفعيل العنصر بالمتجر' : 'تم تعطيل العنصر من المتجر');
+                                        showToast(secItem.enabled === false ? 'تم تفعيل العنصر (اضغط حفظ الإعدادات لتثبيته)' : 'تم تعطيل العنصر (اضغط حفظ الإعدادات لتثبيته)');
                                       }}
                                       className="w-full px-3 py-2 text-right text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition"
                                     >
@@ -7461,15 +7369,9 @@ export default function AdminDashboard({
                                         setStoreConfig(prev => {
                                           const list = [...(prev.homeLayout || arr)];
                                           list.splice(idx + 1, 0, dup);
-                                          const updatedConfig = { ...prev, homeLayout: list };
-                                          try {
-                                            localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                            syncStoreConfigToCloud(updatedConfig);
-                                          } catch {}
-                                          return updatedConfig;
+                                          return { ...prev, homeLayout: list };
                                         });
-                                        showToast('تم تكرار ونسخ العنصر وتطبيقه بالمتجر بنجاح!');
+                                        showToast('تم نسخ وتكرار العنصر، اضغط "حفظ الإعدادات" لتثبيته');
                                       }}
                                       className="w-full px-3 py-2 text-right text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition"
                                     >
@@ -7487,15 +7389,9 @@ export default function AdminDashboard({
                                         if (window.confirm(`هل أنت متأكد من حذف "${displayName}" نهائياً من الواجهة؟`)) {
                                           setStoreConfig(prev => {
                                             const list = [...(prev.homeLayout || arr)].filter((_, i) => i !== idx);
-                                            const updatedConfig = { ...prev, homeLayout: list };
-                                            try {
-                                              localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                              localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                              syncStoreConfigToCloud(updatedConfig);
-                                            } catch {}
-                                            return updatedConfig;
+                                            return { ...prev, homeLayout: list };
                                           });
-                                          showToast('تم حذف العنصر بنجاح من المتجر');
+                                          showToast('تم حذف العنصر من المسودة، اضغط "حفظ الإعدادات" لتأكيد الحذف');
                                         }
                                       }}
                                       className="w-full px-3 py-2 text-right text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer transition"
@@ -7644,13 +7540,7 @@ export default function AdminDashboard({
                                     const temp = list[sIdx - 1];
                                     list[sIdx - 1] = list[sIdx];
                                     list[sIdx] = temp;
-                                    const updatedConfig = { ...prev, homeLayout: list };
-                                    try {
-                                      localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                      syncStoreConfigToCloud(updatedConfig);
-                                    } catch {}
-                                    return updatedConfig;
+                                    return { ...prev, homeLayout: list };
                                   });
                                 }}
                                 className="w-4 h-4 rounded bg-gray-50 hover:bg-gray-200 disabled:opacity-20 flex items-center justify-center text-[7.5px] text-gray-700 cursor-pointer"
@@ -7669,13 +7559,7 @@ export default function AdminDashboard({
                                     const temp = list[sIdx + 1];
                                     list[sIdx + 1] = list[sIdx];
                                     list[sIdx] = temp;
-                                    const updatedConfig = { ...prev, homeLayout: list };
-                                    try {
-                                      localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                                      syncStoreConfigToCloud(updatedConfig);
-                                    } catch {}
-                                    return updatedConfig;
+                                    return { ...prev, homeLayout: list };
                                   });
                                 }}
                                 className="w-4 h-4 rounded bg-gray-50 hover:bg-gray-200 disabled:opacity-20 flex items-center justify-center text-[7.5px] text-gray-700 cursor-pointer"
@@ -8106,18 +7990,12 @@ export default function AdminDashboard({
                               { id: 'sec-customer-reviews', type: 'customerReviews', title: 'آراء العملاء', enabled: true }
                             ];
                             const updatedLayout = [...currentLayout, newSection];
-                            const updatedConfig = { ...prev, homeLayout: updatedLayout };
-                            try {
-                              localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                              localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                              syncStoreConfigToCloud(updatedConfig);
-                            } catch {}
-                            return updatedConfig;
+                            return { ...prev, homeLayout: updatedLayout };
                           });
                           setNewSectionCustomTitle('');
                           setShowAddSectionModal(false);
                           setEditingLayoutSection(newSection);
-                          showToast(`تمت إضافة "${newSection.title}" بنجاح!`);
+                          showToast(`تمت إضافة "${newSection.title}" للمسودة (اضغط حفظ الإعدادات لتثبيتها)`);
                         }}
                         className="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-200 hover:border-gray-400 transition flex items-center justify-between gap-3 cursor-pointer shadow-2xs group"
                       >
@@ -8747,16 +8625,10 @@ export default function AdminDashboard({
                             }
                             return item;
                           });
-                          const updatedConfig = { ...prev, homeLayout: updated };
-                          try {
-                            localStorage.setItem('haider_store_config', JSON.stringify(updatedConfig));
-                            localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                            syncStoreConfigToCloud(updatedConfig);
-                          } catch {}
-                          return updatedConfig;
+                          return { ...prev, homeLayout: updated };
                         });
                         setEditingLayoutSection(null);
-                        showToast('تم حفظ وتطبيق وتحديث العنصر في المتجر بنجاح!');
+                        showToast('تم تحديث العنصر في المسودة، اضغط "حفظ الإعدادات" لتثبيته سحابياً');
                       }}
                       className="px-6 py-2.5 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold cursor-pointer shadow-md transition active:scale-95 flex items-center gap-1.5"
                     >
@@ -11309,18 +11181,12 @@ service cloud.firestore {
                     } else {
                       updatedPages = [...existingPages, newPageObj];
                     }
-                    const updated = { ...prev, customPages: updatedPages };
-                    try {
-                      localStorage.setItem('haider_store_config', JSON.stringify(updated));
-                      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
-                      syncStoreConfigToCloud(updated);
-                    } catch {}
-                    return updated;
+                    return { ...prev, customPages: updatedPages };
                   });
 
                   setShowAddCustomPageModal(false);
                   setEditingCustomPage(null);
-                  showToast(editingCustomPage ? '✅ تم تحديث الصفحة بنجاح!' : '✅ تم إنشاء الصفحة وإضافتها للفوتر!');
+                  showToast(editingCustomPage ? 'تم تحديث الصفحة في المسودة، اضغط "حفظ الإعدادات" للتثبيت سحابياً' : 'تم إنشاء الصفحة بالمسودة، اضغط "حفظ الإعدادات" للتثبيت سحابياً');
                 }}
                 className="px-5 py-2 bg-[#004956] hover:bg-[#00343D] text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs transition active:scale-95 flex items-center gap-1.5"
               >
