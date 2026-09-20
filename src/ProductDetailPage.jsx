@@ -336,15 +336,15 @@ export default function ProductDetailPage({
 
                 {/* د. الحقول المخصصة التي يضيفها المدير (لجميع أنواع المنتجات) */}
                 {Array.isArray(product.customFields) && product.customFields.filter(f => f.label?.trim()).length > 0 && (
-                  <div className="mb-4 space-y-3 text-right">
+                  <div className="mb-3 space-y-2.5 text-right">
                     {product.customFields.filter(f => f.label?.trim()).map((field) => (
-                      <div key={field.id} className="flex items-center justify-between gap-3 bg-white p-2 px-3 rounded-2xl border border-gray-200/90 shadow-2xs">
+                      <div key={field.id} className="flex items-center justify-between gap-3 bg-white p-1.5 px-3 rounded-2xl border border-gray-200/90 shadow-2xs">
                         {/* اسم الخانة في نفس الصف على اليمين مع النجمة */}
                         <label className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight shrink-0 flex items-center whitespace-nowrap">
                           <span>{field.label}</span>
                           {field.required && <span className="text-red-500 font-bold mr-1 text-xs">*</span>}
                         </label>
-                        {/* حقل الإدخال بالأبعاد الدقيقة: الارتفاع 40 والعرض 200 */}
+                        {/* حقل الإدخال بالأبعاد الدقيقة: الارتفاع 30 والعرض 150 */}
                         <input
                           type="text"
                           value={customFieldValues?.[field.id] || ''}
@@ -352,8 +352,8 @@ export default function ProductDetailPage({
                             setCustomFieldValues(prev => ({ ...(prev || {}), [field.id]: e.target.value }));
                           }}
                           placeholder=""
-                          style={{ width: '200px', height: '40px' }}
-                          className="w-[200px] h-[40px] shrink-0 px-3 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
+                          style={{ width: '150px', height: '30px' }}
+                          className="w-[150px] h-[30px] shrink-0 px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
                         />
                       </div>
                     ))}
@@ -362,22 +362,22 @@ export default function ProductDetailPage({
 
                 {/* هـ. منتج مبادلة: بوكسات مخصصة (اسم الخانة ثابت محدد من قبل المدير والعميل يكتب في الخانة الفارغة فقط) */}
                 {isExchange && (
-                  <div className="mb-4 space-y-3 text-right">
+                  <div className="mb-3 space-y-2.5 text-right">
                     {customBoxes.map((box) => (
-                      <div key={box.id} className="flex items-center justify-between gap-3 bg-white p-2 px-3 rounded-2xl border border-gray-200/90 shadow-2xs">
+                      <div key={box.id} className="flex items-center justify-between gap-3 bg-white p-1.5 px-3 rounded-2xl border border-gray-200/90 shadow-2xs">
                         {/* اسم البوكس ثابت في نفس الصف على اليمين */}
                         <label className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight shrink-0 flex items-center whitespace-nowrap">
                           <span>{box.name}</span>
                           <span className="text-red-500 font-bold mr-1 text-xs">*</span>
                         </label>
-                        {/* حقل الإدخال بالأبعاد الدقيقة: الارتفاع 40 والعرض 200 */}
+                        {/* حقل الإدخال بالأبعاد الدقيقة: الارتفاع 30 والعرض 150 */}
                         <input
                           type="text"
                           value={box.value}
                           onChange={(e) => handleUpdateCustomBox(box.id, 'value', e.target.value)}
                           placeholder=""
-                          style={{ width: '200px', height: '40px' }}
-                          className="w-[200px] h-[40px] shrink-0 px-3 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
+                          style={{ width: '150px', height: '30px' }}
+                          className="w-[150px] h-[30px] shrink-0 px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
                         />
                       </div>
                     ))}
