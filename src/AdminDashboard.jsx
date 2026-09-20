@@ -17,7 +17,7 @@ import {
   atomicApproveTopup,
   atomicAdjustCustomerBalance,
   atomicRefundOrderBalance
-} from './firebase';
+} from './supabase';
 
 export default function AdminDashboard({
   storeConfig,

@@ -22,7 +22,7 @@ import {
   verifyOtpFromCloud,
   sendOtpEmailNotification,
   atomicDeductWalletBalance
-} from './firebase';
+} from './supabase';
 
 function compressImage(file, maxWidth = 600, quality = 0.75) {
   return new Promise((resolve, reject) => {
