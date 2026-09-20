@@ -9935,28 +9935,7 @@ service cloud.firestore {
                 </div>
               )}
 
-              {/* 3. حقول خاصة بـ (منتج حسب الطلب): خانة نصية للعميل */}
-              {productForm.productType === 'custom' && (
-                <div className="p-3 bg-purple-50/60 border border-purple-200/70 rounded-2xl space-y-2">
-                  <label className="block font-semibold text-purple-950 text-xs flex items-center gap-1.5">
-                    <span>✍️</span>
-                    <span>منتج حسب الطلب (يتطلب إدخال بيانات من العميل):</span>
-                  </label>
-                  <div>
-                    <label className="block text-[11px] text-purple-900 mb-1">عنوان الخانة النصية التي ستظهر للعميل:</label>
-                    <input
-                      type="text"
-                      value={productForm.customFieldLabel || ''}
-                      onChange={(e) => setProductForm({ ...productForm, customFieldLabel: e.target.value })}
-                      placeholder="مثال: اكتب الآيدي (ID) واسم الحساب، أو الاسم المطلوب طباعته"
-                      className="w-full p-2.5 bg-white border border-purple-300 rounded-xl text-xs outline-none"
-                    />
-                  </div>
-                  <p className="text-[10px] text-purple-800 leading-relaxed">
-                    💡 سيظهر حقل نصي مخصص في صفحة المنتج يتيح للعميل كتابة بياناته وملاحظاته، وستصلك البيانات مباشرة في تفاصيل الطلب.
-                  </p>
-                </div>
-              )}
+
 
               {/* 4. حقول خاصة بـ (منتج ملموس): سلعة مادية تتطلب شحن */}
               {productForm.productType === 'physical' && (
