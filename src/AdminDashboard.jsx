@@ -10042,7 +10042,7 @@ service cloud.firestore {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-teal-200/60">
+                  <div className="pt-1 border-t border-teal-200/60">
                     <div>
                       <label className="block text-[11px] font-medium text-teal-900 mb-1">الكمية المتوفرة بالمخزون</label>
                       <input
@@ -10051,11 +10051,6 @@ service cloud.firestore {
                         onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
                         className="w-full p-2 bg-white border border-teal-300 rounded-xl text-xs outline-none"
                       />
-                    </div>
-                    <div className="flex items-center">
-                      <p className="text-[11px] text-teal-800 bg-teal-100/60 p-2 rounded-xl">
-                        💡 <strong>ملاحظة:</strong> تم إلغاء أسعار البيع والتكلفة والخصم لهذا المنتج لأنه مخصص للمبادلات فقط ولا يتطلب مبالغ نقدية.
-                      </p>
                     </div>
                   </div>
                 </div>
