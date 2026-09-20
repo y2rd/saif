@@ -2500,10 +2500,10 @@ export default function AdminDashboard({
 
       {/* القائمة الجانبية (Sidebar) بخلفية بيضاء موحدة وبدون حدود مع خط 14px */}
       <aside
-        className={`bg-white border-0 flex flex-col justify-between shadow-none transition-all duration-300 z-50 ${
+        className={`bg-white border-0 flex flex-col shadow-none transition-all duration-300 z-50 ${
           mobileMenuOpen
             ? 'fixed top-0 right-0 bottom-0 w-64 max-w-[85vw] h-full translate-x-0'
-            : 'fixed top-0 right-0 bottom-0 w-64 max-w-[85vw] h-full translate-x-full md:static md:w-56 md:h-auto md:translate-x-0 md:flex'
+            : 'fixed top-0 right-0 bottom-0 w-64 max-w-[85vw] h-full translate-x-full md:static md:w-56 md:h-auto md:translate-x-0 md:flex md:justify-between'
         }`}
         style={mobileMenuOpen ? {
           paddingTop: 'env(safe-area-inset-top)',
@@ -2511,7 +2511,7 @@ export default function AdminDashboard({
         } : undefined}
       >
         {/* رأس القائمة في الجوال مع زر إغلاق صريح */}
-        <div className="md:hidden flex items-center justify-between p-3 bg-white border-b border-gray-100">
+        <div className="md:hidden flex items-center justify-between p-3 bg-white border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-1.5">
             <i className="fa-solid fa-layer-group text-gray-700 text-sm"></i>
             <span className="text-xs font-bold text-gray-900">أقسام لوحة التحكم</span>
@@ -2524,7 +2524,7 @@ export default function AdminDashboard({
             ✕
           </button>
         </div>
-        <div>
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           <div className="p-2 space-y-3">
             
             {/* المجموعة الأولى: نظرة عامة والمبيعات */}
