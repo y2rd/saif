@@ -544,26 +544,35 @@ export default function ProductDetailPage({
 
                 return (
                   <div className="mt-6 pt-5 border-t border-gray-100">
-                    <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-lg mx-auto">
+                    <div 
+                      className="grid grid-cols-3 gap-2 sm:gap-4 max-w-lg mx-auto"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        width: '100%'
+                      }}
+                    >
                       {activeFeatures.map((feat, fIndex) => (
                         <div
                           key={feat.id || fIndex}
-                          className="store-feature-card relative overflow-hidden py-4 sm:py-5 px-3 rounded-xl bg-white border border-gray-100 shadow-2xs flex flex-col items-center text-center group hover:border-gray-200 transition"
+                          style={{ minWidth: 0 }}
+                          className="relative overflow-hidden py-4 sm:py-6 px-2 sm:px-4 rounded-xl sm:rounded-2xl bg-white border border-gray-100 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
                         >
+                          {/* أيقونة سوداء مع حركة ناعمة عند التمرير */}
                           <div 
-                            className="store-feature-icon-wrapper rounded-full bg-[#0b1220] text-white flex items-center justify-center mb-1.5 shadow-xs group-hover:scale-105 transition-transform shrink-0"
-                            style={{ width: '26px', height: '26px', minWidth: '26px', minHeight: '26px' }}
+                            className="rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mb-2 sm:mb-3 transition-all duration-500 ease-out shrink-0 w-10 h-10 sm:w-12 sm:h-12 group-hover:-translate-y-1 group-hover:shadow-sm"
                           >
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" style={{ width: '13px', height: '13px' }} className="object-contain brightness-0 invert" />
+                              <img src={feat.customIconUrl} alt="" className="object-contain brightness-0 w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-white`} style={{ fontSize: '10px' }}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-sm sm:text-lg transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3`}></i>
                             )}
                           </div>
-                          <h4 className="font-bold text-gray-900 text-[11px] sm:text-xs tracking-tight truncate w-full mb-0.5">
+                          {/* نصوص الميزة */}
+                          <h4 className="font-bold text-gray-900 text-[10px] sm:text-[12px] tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 text-center">
                             {feat.title}
                           </h4>
-                          <p className="text-[9.5px] sm:text-[10px] text-gray-400 font-normal leading-tight line-clamp-1 w-full">
+                          <p className="text-[9px] sm:text-[10px] text-gray-400 font-medium leading-relaxed line-clamp-2 w-full text-center">
                             {feat.subtitle}
                           </p>
                         </div>
