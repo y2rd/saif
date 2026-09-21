@@ -131,6 +131,21 @@ export default function App() {
   const [activeSectionForPage, setActiveSectionForPage] = useState(null); // العنصر المفتوح لعرض كافة منتجاته في صفحة مستقلة
   const [adminSection, setAdminSection] = useState(null); // التوجه المباشر لتاب محدد عند الفتح (null = لا توجيه)
 
+  // الوضع الليلي
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('haider_store_theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('haider_store_theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('haider_store_theme', 'light');
+    }
+  }, [isDarkMode]);
+
   // العملة والمعروض: 'USD' أو 'IQD'، ولغة المتجر: 'ar' أو 'en'
   const [activeCurrency, setActiveCurrency] = useState('USD');
   const [activeLanguage, setActiveLanguage] = useState('ar');
@@ -2846,28 +2861,25 @@ export default function App() {
         fontWeight: 400
       }}
     >
-      {/* شاشة انتظار سريعة وأنيقة عند التشغيل لأول مرة فقط لحين جلب أحدث بيانات السحابة */}
+      {/* شاشة تحميل أولية أنيقة وفخمة (Elegant Loader) */}
       {isInitialSyncing && (
-        <div className="fixed inset-0 z-[999999] bg-[#00242B] flex flex-col items-center justify-center p-6 text-white select-none animate-in fade-in duration-300">
-          {/* لودر المربعات الحركي الاحترافي (Uiverse: ZacharyCrespin/grumpy-stingray-26) */}
-          <div className="flex items-center justify-center my-8 scale-90 sm:scale-100">
-            <div className="uiverse-loader">
-              <div className="uiverse-loader-square"></div>
-              <div className="uiverse-loader-square"></div>
-              <div className="uiverse-loader-square"></div>
-              <div className="uiverse-loader-square"></div>
-              <div className="uiverse-loader-square"></div>
-              <div className="uiverse-loader-square"></div>
-              <div className="uiverse-loader-square"></div>
+        <div className="fixed inset-0 z-[999999] bg-gradient-to-br from-[#0b1220] to-[#00242B] flex flex-col items-center justify-center p-6 text-white select-none transition-opacity duration-500">
+          <div className="relative flex items-center justify-center my-6">
+            {/* الدائرة المتوهجة الخارجية */}
+            <div className="absolute w-20 h-20 sm:w-28 sm:h-28 border-4 border-[#5eead4] border-b-transparent border-l-transparent rounded-full animate-spin" style={{ filter: 'drop-shadow(0 0 8px rgba(94,234,212,0.5))' }}></div>
+            <div className="absolute w-20 h-20 sm:w-28 sm:h-28 border-4 border-[#00b5d8] border-t-transparent border-r-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', filter: 'drop-shadow(0 0 8px rgba(0,181,216,0.5))' }}></div>
+            {/* الشعار الداخلي أو النبض */}
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-[#00b5d8] to-[#5eead4] rounded-full animate-pulse flex items-center justify-center shadow-lg">
+              <i className="fa-solid fa-gamepad text-white text-xl sm:text-2xl"></i>
             </div>
           </div>
 
-          <h2 className="text-xl font-bold tracking-wide text-white mb-2 mt-4">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-wide text-white mt-6 mb-3 drop-shadow-md">
             {storeConfig.name || 'متجر دكان هاي داي'}
           </h2>
-          <div className="flex items-center gap-2 text-xs font-medium text-[#76e5d0]">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#76e5d0] animate-bounce"></span>
-            <span>جاري تهيئة المتجر...</span>
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#5eead4] bg-white/5 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10">
+            <i className="fa-solid fa-spinner animate-spin"></i>
+            <span>جاري تجهيز المتجر...</span>
           </div>
         </div>
       )}
@@ -2926,12 +2938,21 @@ export default function App() {
       <div className="topbar-soft-blur px-3 sm:px-8 py-2 sticky top-0 z-40" style={{ paddingTop: (!storeConfig.announcements?.length && !storeConfig.announcement) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
-          {/* 1. في أقصى اليمين: العربية | USD */}
-          <div className="relative shrink-0">
+          {/* 1. في أقصى اليمين: الأزرار */}
+          <div className="relative shrink-0 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full btn-soft-blur text-black flex items-center justify-center cursor-pointer transition-all duration-300"
+              title={isDarkMode ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
+            >
+              <i className={`fa-solid ${isDarkMode ? 'fa-sun text-yellow-500' : 'fa-moon text-gray-700'} text-xs sm:text-sm`}></i>
+            </button>
+
             <button
               type="button"
               onClick={toggleCurrencyMenu}
-              className="px-2.5 sm:px-3 py-1 rounded-full btn-soft-blur text-black text-[11px] sm:text-xs font-light flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 sm:px-3 py-1 h-7 sm:h-8 rounded-full btn-soft-blur text-black text-[11px] sm:text-xs font-light flex items-center gap-1.5 cursor-pointer"
               title="تغيير العملة واللغة"
             >
               <span className="text-black">{activeLanguage === 'en' ? 'English' : 'العربية'}</span>
