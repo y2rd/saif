@@ -767,6 +767,7 @@ body.dark-theme {
 }
 body.dark-theme .bg-white,
 body.dark-theme .bg-\[\#FCFCFC\],
+body.dark-theme .bg-\[\#F9FAFB\],
 body.dark-theme .bg-gray-50,
 body.dark-theme .bg-\[\#f8fafc\] {
   background-color: #111827 !important;
@@ -855,4 +856,9 @@ body.dark-theme input, body.dark-theme textarea, body.dark-theme select {
   background-color: #111827 !important;
   color: #e2e8f0 !important;
   border-color: #374151 !important;
+}
+
+body.dark-theme .product__description-content * {
+  background-color: transparent !important;
+  color: #e2e8f0 !important;
 }
