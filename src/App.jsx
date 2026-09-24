@@ -3229,15 +3229,41 @@ export default function App() {
                   className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-right"
                   dir="rtl"
                 >
-                  {/* رأس القائمة مع اسم المستخدم ومعرفه */}
-                  <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {/* رأس القائمة مع اسم المستخدم ومعرفه (عند الضغط عليه يفتح لوحة التحكم للمدير) */}
+                  <div 
+                    onClick={() => {
+                      if (isManager) {
+                        setViewMode(viewMode === 'admin' ? 'store' : 'admin');
+                        setIsUserMenuOpen(false);
+                      }
+                    }}
+                    className={`px-4 py-2.5 border-b border-gray-100 flex items-center gap-2.5 transition-colors ${
+                      isManager ? 'cursor-pointer hover:bg-teal-50/50 group/adminhdr' : ''
+                    }`}
+                    title={isManager ? (viewMode === 'admin' ? 'الرجوع للمتجر' : 'دخول لوحة التحكم (الإدارة)') : undefined}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold shrink-0 relative">
                       {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'ع'}
+                      {isManager && (
+                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#004956] rounded-full border border-white flex items-center justify-center text-[7px] text-white">
+                          <i className="fa-solid fa-crown text-[6px]"></i>
+                        </span>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-xs text-gray-900 truncate">{currentUser.name}</div>
+                      <div className="font-bold text-xs text-gray-900 truncate flex items-center gap-1.5">
+                        <span>{currentUser.name}</span>
+                        {isManager && (
+                          <span className="text-[9px] bg-teal-100 text-[#004956] font-semibold px-1.5 py-0.2 rounded group-hover/adminhdr:bg-[#004956] group-hover/adminhdr:text-white transition">
+                            {viewMode === 'admin' ? 'المتجر' : 'مدير'}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[10px] text-gray-400 font-mono truncate">{currentUser.identifier}</div>
                     </div>
+                    {isManager && (
+                      <i className="fa-solid fa-angle-left text-gray-300 group-hover/adminhdr:text-[#004956] text-xs transition"></i>
+                    )}
                   </div>
 
                   {/* عناصر القائمة المنسدلة */}
@@ -3325,7 +3351,7 @@ export default function App() {
                       <span className="font-normal text-gray-700">الإعدادات</span>
                     </button>
 
-                    {/* لوحة الإدارة (تظهر فقط للمدير أو المشرفين بدون رمز دخول) */}
+                    {/* لوحة الإدارة (فوق تسجيل الخروج مباشرة وتظهر حصرياً للمدير أو المشرفين) */}
                     {isManager && (
                       <button
                         type="button"
@@ -3333,10 +3359,17 @@ export default function App() {
                           setViewMode(viewMode === 'admin' ? 'store' : 'admin');
                           setIsUserMenuOpen(false);
                         }}
-                        className="w-full px-4 py-2 text-xs text-[#004956] hover:bg-[#004956]/5 font-bold transition flex items-center gap-3 cursor-pointer"
+                        className="w-full px-4 py-2 text-xs text-[#004956] hover:bg-teal-50/80 font-bold transition flex items-center justify-between cursor-pointer"
                       >
-                        <i className="fa-solid fa-gauge-high text-sm text-[#004956] w-4 text-center"></i>
-                        <span>{viewMode === 'admin' ? 'الرجوع للمتجر' : 'لوحة التحكم (الإدارة)'}</span>
+                        <div className="flex items-center gap-3">
+                          <i className="fa-solid fa-gauge-high text-sm text-[#004956] w-4 text-center"></i>
+                          <span>{viewMode === 'admin' ? 'الرجوع للمتجر' : 'لوحة التحكم (الإدارة)'}</span>
+                        </div>
+                        {managerNotificationsCount > 0 && (
+                          <span className="bg-[#7F1D1D] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+                            {managerNotificationsCount}
+                          </span>
+                        )}
                       </button>
                     )}
 
@@ -3360,27 +3393,6 @@ export default function App() {
                 </div>
               )}
             </div>
-
-            {/* زر تبديل وضع الإدارة / المتجر (يظهر حصرياً للمدير أو المشرفين فقط وبدون رمز دخول) */}
-            {(isManager || viewMode === 'admin') && (
-              <button
-                onClick={handleOpenAdminPanel}
-                className="relative px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 shadow-xs text-white hover:opacity-90 active:scale-95 cursor-pointer shrink-0"
-                style={{ backgroundColor: storeConfig.primaryColor }}
-                title={viewMode === 'admin' ? 'الرجوع للمتجر' : 'دخول لوحة التحكم'}
-              >
-                <i className={`fa-solid ${viewMode === 'admin' ? 'fa-store' : 'fa-gear'} text-white text-[11px] sm:text-xs`}></i>
-                <span>{viewMode === 'admin' ? 'المتجر' : 'الإدارة'}</span>
-                {viewMode !== 'admin' && managerNotificationsCount > 0 && (
-                  <span 
-                    className="min-w-[17px] h-[17px] px-1 bg-[#7F1D1D] text-white rounded-full text-[9px] font-extrabold flex items-center justify-center shadow-md animate-pulse border border-white"
-                    title={`يوجد ${managerNotificationsCount} إشعار وطلب شحن معلق`}
-                  >
-                    {managerNotificationsCount > 99 ? '+99' : managerNotificationsCount}
-                  </span>
-                )}
-              </button>
-            )}
 
             {/* زر سلة المشتريات مع موشن الاهتزاز والتكبير عند إضافة أي منتج */}
             <button
@@ -5785,8 +5797,8 @@ export default function App() {
                             }}
                           >
                             <div>
-                              {/* 1. حاوية صورة المنتج مغطية من الأعلى بارتفاع عامودي مدمج وأنيق */}
-                              <div className="relative pt-[70%] sm:pt-[72%] bg-white overflow-hidden">
+                              {/* 1. حاوية صورة المنتج ممتدة وبارزة طولياً لإبراز تفاصيل المنتج */}
+                              <div className="relative pt-[112%] sm:pt-[108%] md:pt-[105%] bg-white overflow-hidden">
                                 <img
                                   src={item.imageUrl}
                                   alt={item.title}
@@ -5829,9 +5841,10 @@ export default function App() {
                               </div>
 
                               {/* 2. محتوى البطاقة: العنوان مع مسافات مقلصة ومضبوطة */}
-                              <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full">
+                              <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full" dir="rtl">
                                 <h3
-                                  className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                                  className="s-product-card-title text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right w-full"
+                                  style={{ textAlign: 'right' }}
                                   title={item.title}
                                 >
                                   {item.title}
@@ -5840,10 +5853,10 @@ export default function App() {
                             </div>
 
                             {/* 3. أسفل البطاقة: السعر وبمحاذاته التقييم مباشرة في نفس السطر */}
-                            <div className="p-3 sm:p-3.5 pt-1.5 sm:pt-2 pb-4 sm:pb-5">
-                              <div className="flex items-center justify-between gap-1.5 mb-2">
+                            <div className="p-3 sm:p-3.5 pt-1.5 sm:pt-2 pb-4 sm:pb-5 text-right w-full" dir="rtl">
+                              <div className="flex items-center justify-between gap-1.5 mb-2 text-right">
                                 {/* السعر أو متطلبات المبادلة والسعر القديم */}
-                                <div className="flex items-baseline gap-1">
+                                <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
                                   {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                     <div className="flex items-center text-right">
                                       <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
@@ -5853,14 +5866,14 @@ export default function App() {
                                   ) : (
                                     <>
                                       <span 
-                                        className={`text-[11px] sm:text-xs font-bold font-price tracking-tight ${
+                                        className={`text-[11px] sm:text-xs font-bold font-price tracking-tight text-right ${
                                           hasDiscount ? 'text-red-700' : 'text-black'
                                         }`}
                                       >
                                         {formatPrice(item.price, activeCurrency)}
                                       </span>
                                       {hasDiscount && (
-                                        <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price">
+                                        <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price text-right">
                                           {formatPrice(item.oldPrice, activeCurrency)}
                                         </span>
                                       )}
@@ -6085,8 +6098,8 @@ export default function App() {
                         }}
                       >
                         <div>
-                          {/* 1. حاوية صورة المنتج مغطية من الأعلى بارتفاع عامودي مدمج وأنيق */}
-                          <div className="relative pt-[70%] sm:pt-[72%] bg-white overflow-hidden">
+                          {/* 1. حاوية صورة المنتج ممتدة وبارزة طولياً لإبراز تفاصيل المنتج */}
+                          <div className="relative pt-[112%] sm:pt-[108%] md:pt-[105%] bg-white overflow-hidden">
                             <img
                               src={item.imageUrl}
                               alt={item.title}
@@ -6129,9 +6142,10 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full">
+                          <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full" dir="rtl">
                             <h3
-                              className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                              className="s-product-card-title text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right w-full"
+                              style={{ textAlign: 'right' }}
                               title={item.title}
                             >
                               {item.title}
@@ -6140,10 +6154,10 @@ export default function App() {
                         </div>
 
                         {/* 3. أسفل البطاقة: السعر وبمحاذاته التقييم مباشرة */}
-                        <div className="p-3 sm:p-4 pt-1.5 sm:pt-2 pb-4 sm:pb-5">
-                          <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <div className="p-3 sm:p-4 pt-1.5 sm:pt-2 pb-4 sm:pb-5 text-right w-full" dir="rtl">
+                          <div className="flex items-center justify-between gap-2 mb-2.5 text-right">
                             {/* السعر والسعر القديم أو متطلبات المبادلة */}
-                            <div className="flex items-baseline gap-1">
+                            <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
                                   <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
@@ -6153,14 +6167,14 @@ export default function App() {
                               ) : (
                                 <>
                                   <span 
-                                    className={`text-[11px] sm:text-xs font-bold font-price tracking-tight ${
+                                    className={`text-[11px] sm:text-xs font-bold font-price tracking-tight text-right ${
                                       hasDiscount ? 'text-red-700' : 'text-black'
                                     }`}
                                   >
                                     {formatPrice(item.price, activeCurrency)}
                                   </span>
                                   {hasDiscount && (
-                                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price">
+                                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price text-right">
                                       {formatPrice(item.oldPrice, activeCurrency)}
                                     </span>
                                   )}
@@ -6332,8 +6346,8 @@ export default function App() {
                         }}
                       >
                         <div>
-                          {/* 1. حاوية صورة المنتج مغطية من الأعلى بارتفاع عامودي مدمج وأنيق */}
-                          <div className="relative pt-[70%] sm:pt-[72%] bg-white overflow-hidden">
+                          {/* 1. حاوية صورة المنتج ممتدة وبارزة طولياً لإبراز تفاصيل المنتج */}
+                          <div className="relative pt-[112%] sm:pt-[108%] md:pt-[105%] bg-white overflow-hidden">
                             <img
                               src={item.imageUrl}
                               alt={item.title}
@@ -6376,9 +6390,10 @@ export default function App() {
                           </div>
 
                           {/* 2. محتوى البطاقة: العنوان */}
-                          <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full">
+                          <div className="p-3 sm:p-3.5 pt-4 sm:pt-5 pb-1 sm:pb-1.5 text-right w-full" dir="rtl">
                             <h3
-                              className="text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right"
+                              className="s-product-card-title text-[13.5px] sm:text-[12.5px] md:text-[13px] font-normal text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-snug text-right w-full"
+                              style={{ textAlign: 'right' }}
                               title={item.title}
                             >
                               {item.title}
@@ -6387,9 +6402,9 @@ export default function App() {
                         </div>
 
                         {/* 3. أسفل البطاقة: السعر وبمحاذاته التقييم مباشرة */}
-                        <div className="p-3 sm:p-4 pt-1.5 sm:pt-2 pb-4 sm:pb-5">
-                          <div className="flex items-center justify-between gap-2 mb-2.5">
-                            <div className="flex items-baseline gap-1">
+                        <div className="p-3 sm:p-4 pt-1.5 sm:pt-2 pb-4 sm:pb-5 text-right w-full" dir="rtl">
+                          <div className="flex items-center justify-between gap-2 mb-2.5 text-right">
+                            <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
                                   <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
@@ -6399,14 +6414,14 @@ export default function App() {
                               ) : (
                                 <>
                                   <span 
-                                    className={`text-[11px] sm:text-xs font-bold font-price tracking-tight ${
+                                    className={`text-[11px] sm:text-xs font-bold font-price tracking-tight text-right ${
                                       hasDiscount ? 'text-red-700' : 'text-black'
                                     }`}
                                   >
                                     {formatPrice(item.price, activeCurrency)}
                                   </span>
                                   {hasDiscount && (
-                                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price">
+                                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-medium font-price text-right">
                                       {formatPrice(item.oldPrice, activeCurrency)}
                                     </span>
                                   )}
@@ -7383,8 +7398,8 @@ function AutoMovingProductsCarousel({
             className="w-44 sm:w-48 md:w-56 lg:w-[230px] shrink-0 bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
           >
             <div>
-              {/* 1. حاوية صورة المنتج تغطي الحاوية بالكامل بدون حواف أو حدود رمادية */}
-              <div className="relative pt-[75%] bg-white overflow-hidden flex items-center justify-center">
+              {/* 1. حاوية صورة المنتج ممتدة طولياً لإبراز تفاصيل المنتج */}
+              <div className="relative pt-[112%] sm:pt-[108%] bg-white overflow-hidden flex items-center justify-center">
                 <img
                   src={p.imageUrl}
                   alt={p.title}
@@ -7411,10 +7426,11 @@ function AutoMovingProductsCarousel({
                 </button>
               </div>
 
-              {/* 2. عنوان المنتج ممركز أو في اليمين بشكل أنيق ومدمج */}
-              <div className="p-2.5 pt-4 sm:pt-5 pb-1 text-center">
+              {/* 2. عنوان المنتج بمحاذاة اليمين */}
+              <div className="p-2.5 pt-4 sm:pt-5 pb-1 text-right w-full" dir="rtl">
                 <h3
-                  className="text-[13px] sm:text-[12px] font-medium text-gray-800 line-clamp-1 leading-snug"
+                  className="s-product-card-title text-[13px] sm:text-[12px] font-medium text-gray-800 line-clamp-1 leading-snug text-right w-full"
+                  style={{ textAlign: 'right' }}
                   title={p.title}
                 >
                   {p.title}
@@ -7423,14 +7439,14 @@ function AutoMovingProductsCarousel({
             </div>
 
             {/* 3. أسفل البطاقة: السعر وزر إضافة للسلة المطابق لـ سلة */}
-            <div className="p-2.5 pt-1 pb-4 sm:pb-5">
-              <div className="flex flex-col items-center justify-center gap-0.5 mb-1.5 text-center">
-                <div className="flex items-center gap-1 justify-center">
-                  <span className="text-[9.5px] sm:text-[10px] font-bold text-gray-900 font-price">
+            <div className="p-2.5 pt-1 pb-4 sm:pb-5 text-right w-full" dir="rtl">
+              <div className="flex items-center justify-between gap-1.5 mb-2 text-right">
+                <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
+                  <span className="text-[9.5px] sm:text-[10px] font-bold text-gray-900 font-price text-right">
                     {formatPrice(p.price, activeCurrency)}
                   </span>
                   {hasDiscount && (
-                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-price">
+                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 line-through font-price text-right">
                       {formatPrice(p.oldPrice, activeCurrency)}
                     </span>
                   )}

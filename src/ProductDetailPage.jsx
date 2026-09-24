@@ -693,7 +693,7 @@ export default function ProductDetailPage({
                   className="bg-white rounded-2xl border border-gray-200/90 hover:border-black/30 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between overflow-hidden group"
                 >
                   <div>
-                    <div className="relative pt-[70%] sm:pt-[72%] bg-white overflow-hidden">
+                    <div className="relative pt-[112%] sm:pt-[108%] bg-white overflow-hidden">
                       <img src={rel.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                     </div>
                     <div className="p-3 sm:p-4 text-right">

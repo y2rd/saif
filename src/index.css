@@ -862,3 +862,27 @@ body.dark-theme .product__description-content * {
   background-color: transparent !important;
   color: #e2e8f0 !important;
 }
+
+/* ========================================================================= */
+/* إجبار محاذاة أسماء المنتجات والأسعار إلى جهة اليمين تماماً في كافة البطاقات والواجهات */
+/* ========================================================================= */
+.s-product-card-entry h3,
+.s-product-card-entry h4,
+.s-product-card-entry .product-title,
+.s-product-card-title {
+  text-align: right !important;
+  direction: rtl !important;
+  justify-content: flex-start !important;
+}
+
+.s-product-card-entry .product-price-wrapper,
+.s-product-card-price {
+  text-align: right !important;
+  justify-content: flex-start !important;
+  margin-left: auto !important;
+}
+
+.s-product-card-entry .font-price {
+  text-align: right !important;
+}
+
