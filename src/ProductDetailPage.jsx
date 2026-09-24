@@ -231,17 +231,17 @@ export default function ProductDetailPage({
                 {/* 2. السعر أو مقابل المبادلة تحت العنوان مباشرة */}
                 {isExchange ? (
                   <div className="mb-4">
-                    <div className="flex items-stretch justify-between gap-2 p-2 bg-white rounded-2xl border border-gray-100 shadow-sm relative">
+                    <div className="flex items-stretch justify-between gap-3 p-3 bg-white rounded-2xl shadow-xs relative">
                       
                       {/* السهم المتبادل دائمًا بالمنتصف (يعمل في الجوال والكمبيوتر) */}
-                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center z-10">
-                        <i className="fa-solid fa-right-left text-gray-400 text-[10px]"></i>
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center z-10">
+                        <i className="fa-solid fa-right-left text-gray-500 text-xs"></i>
                       </div>
 
                       {/* القسم الأول: تدفع (المنتج المطلوب) */}
-                      <div className="flex-1 flex flex-col p-2.5 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors border border-gray-50">
-                        <span className="text-[10px] text-gray-500 font-medium mb-1 text-center">تدفع</span>
-                        <span className="text-xs sm:text-sm font-bold text-gray-900 mb-2 text-center line-clamp-1" title={product.exchangeRequiredProductName || product.title}>
+                      <div className="flex-1 flex flex-col p-3 rounded-xl bg-gray-50 hover:bg-gray-100/70 transition-colors">
+                        <span className="text-[10px] sm:text-xs text-gray-500 font-medium mb-1 text-center">تدفع</span>
+                        <span className="text-xs sm:text-sm font-bold text-gray-900 mb-2.5 text-center line-clamp-1" title={product.exchangeRequiredProductName || product.title}>
                           {product.exchangeRequiredProductName || product.title}
                         </span>
                         
@@ -263,7 +263,7 @@ export default function ProductDetailPage({
                             onBlur={() => {
                               if (!quantity || quantity < minQty) setQuantity(minQty);
                             }}
-                            className="w-16 h-7 text-center bg-white border border-gray-200 focus:border-black focus:ring-1 focus:ring-black rounded-lg text-xs font-bold text-black font-english-num outline-none shadow-2xs transition-all"
+                            className="w-20 h-8 text-center bg-white rounded-lg text-xs sm:text-sm font-bold text-black font-english-num outline-none shadow-2xs transition-all border-0 focus:ring-1 focus:ring-gray-300"
                             placeholder={String(minQty)}
                           />
                           {minQty > 1 && (parseInt(quantity) || 0) <= minQty && (
@@ -273,14 +273,14 @@ export default function ProductDetailPage({
                       </div>
 
                       {/* القسم الثاني: تحصل على (المنتج المستلم) */}
-                      <div className="flex-1 flex flex-col p-2.5 rounded-xl bg-teal-50/40 hover:bg-teal-50/60 border border-teal-100/50 transition-colors">
-                        <span className="text-[10px] text-teal-600 font-medium mb-1 text-center">تحصل على</span>
-                        <span className="text-xs sm:text-sm font-bold text-teal-900 mb-2 text-center line-clamp-1" title={product.exchangeCurrencyName || 'مبادلة'}>
+                      <div className="flex-1 flex flex-col p-3 rounded-xl bg-teal-50/60 hover:bg-teal-50/80 transition-colors">
+                        <span className="text-[10px] sm:text-xs text-teal-700 font-medium mb-1 text-center">تحصل على</span>
+                        <span className="text-xs sm:text-sm font-bold text-teal-950 mb-2.5 text-center line-clamp-1" title={product.exchangeCurrencyName || 'مبادلة'}>
                           {product.exchangeCurrencyName || 'مبادلة'}
                         </span>
                         
-                        <div className="mt-auto flex flex-col items-center justify-center h-7">
-                          <span dir="ltr" className="text-sm sm:text-base font-black text-teal-700 font-english-num drop-shadow-sm">
+                        <div className="mt-auto flex flex-col items-center justify-center h-8">
+                          <span dir="ltr" className="text-sm sm:text-base font-black text-teal-800 font-english-num drop-shadow-sm">
                             {((parseFloat(product.exchangeAmount) || 1) * (parseInt(quantity) || 1)).toLocaleString('en-US')}
                           </span>
                         </div>
@@ -344,15 +344,15 @@ export default function ProductDetailPage({
 
                 {/* د. الحقول المخصصة التي يضيفها المدير (لجميع أنواع المنتجات) */}
                 {Array.isArray(product.customFields) && product.customFields.filter(f => f.label?.trim()).length > 0 && (
-                  <div className="mb-3 space-y-2.5 text-right">
+                  <div className="mb-4 space-y-3 text-right">
                     {product.customFields.filter(f => f.label?.trim()).map((field) => (
-                      <div key={field.id} className="flex items-center justify-between gap-3 bg-white p-1.5 px-3 rounded-2xl border border-gray-200/90 shadow-2xs">
+                      <div key={field.id} className="flex items-center justify-between gap-3 bg-white p-2.5 px-4 rounded-2xl shadow-xs">
                         {/* اسم الخانة في نفس الصف على اليمين مع النجمة */}
                         <label className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight shrink-0 flex items-center whitespace-nowrap">
                           <span>{field.label}</span>
                           {field.required && <span className="text-red-500 font-bold mr-1 text-xs">*</span>}
                         </label>
-                        {/* حقل الإدخال ممتد بكامل المساحة المتاحة وبارتفاع 30 */}
+                        {/* حقل الإدخال ممتد بكامل المساحة المتاحة وبحجم أكبر وبدون حدود */}
                         <input
                           type="text"
                           value={customFieldValues?.[field.id] || ''}
@@ -360,8 +360,8 @@ export default function ProductDetailPage({
                             setCustomFieldValues(prev => ({ ...(prev || {}), [field.id]: e.target.value }));
                           }}
                           placeholder=""
-                          style={{ height: '30px' }}
-                          className="flex-1 w-full h-[30px] px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
+                          style={{ height: '38px' }}
+                          className="flex-1 w-full h-[38px] px-3.5 bg-gray-50/80 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:bg-gray-100/90 focus:ring-1 focus:ring-gray-300 transition text-right border-0"
                         />
                       </div>
                     ))}
@@ -370,22 +370,22 @@ export default function ProductDetailPage({
 
                 {/* هـ. منتج مبادلة: بوكسات مخصصة (اسم الخانة ثابت محدد من قبل المدير والعميل يكتب في الخانة الفارغة فقط) */}
                 {isExchange && (
-                  <div className="mb-3 space-y-2.5 text-right">
+                  <div className="mb-4 space-y-3 text-right">
                     {customBoxes.map((box) => (
-                      <div key={box.id} className="flex items-center justify-between gap-3 bg-white p-1.5 px-3 rounded-2xl border border-gray-200/90 shadow-2xs">
+                      <div key={box.id} className="flex items-center justify-between gap-3 bg-white p-2.5 px-4 rounded-2xl shadow-xs">
                         {/* اسم البوكس ثابت في نفس الصف على اليمين */}
                         <label className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight shrink-0 flex items-center whitespace-nowrap">
                           <span>{box.name}</span>
                           <span className="text-red-500 font-bold mr-1 text-xs">*</span>
                         </label>
-                        {/* حقل الإدخال ممتد بكامل المساحة المتاحة وبارتفاع 30 */}
+                        {/* حقل الإدخال ممتد بكامل المساحة المتاحة وبحجم أكبر وبدون حدود */}
                         <input
                           type="text"
                           value={box.value}
                           onChange={(e) => handleUpdateCustomBox(box.id, 'value', e.target.value)}
                           placeholder=""
-                          style={{ height: '30px' }}
-                          className="flex-1 w-full h-[30px] px-2.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-900 outline-none focus:border-black focus:ring-1 focus:ring-black transition text-right shadow-2xs"
+                          style={{ height: '38px' }}
+                          className="flex-1 w-full h-[38px] px-3.5 bg-gray-50/80 rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:bg-gray-100/90 focus:ring-1 focus:ring-gray-300 transition text-right border-0"
                         />
                       </div>
                     ))}
@@ -394,32 +394,32 @@ export default function ProductDetailPage({
 
                 {/* 4. خيارات باقات الكميات المتعددة */}
                 {!isExchange && product.hasQuantityTiers && product.quantityTiers && product.quantityTiers.length > 0 && (
-                  <div className="mb-4">
-                    <label className="text-xs font-bold text-gray-900 mb-2.5 block">
+                  <div className="mb-5">
+                    <label className="text-xs sm:text-sm font-bold text-gray-900 mb-3 block">
                       الباقات المتوفرة:
                     </label>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {product.quantityTiers.map((tier, idx) => {
                         const isSelected = selectedTier?.minQuantity === tier.minQuantity;
                         return (
                           <div
                             key={idx}
                             onClick={() => handleSelectTier(tier)}
-                            className={`p-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between group ${
+                            className={`p-3.5 sm:p-4 rounded-2xl cursor-pointer transition-all duration-200 flex items-center justify-between group ${
                               isSelected
-                                ? 'border-gray-900 bg-gray-50/80 shadow-sm'
-                                : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50/50'
+                                ? 'bg-gray-100/90 ring-2 ring-black shadow-sm'
+                                : 'bg-white hover:bg-gray-50/80 shadow-xs'
                             }`}
                           >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
                                 isSelected ? 'border-gray-900 bg-gray-900' : 'border-gray-300 bg-white group-hover:border-gray-400'
                               }`}>
-                                {isSelected && <i className="fa-solid fa-check text-white text-[9px]"></i>}
+                                {isSelected && <i className="fa-solid fa-check text-white text-[10px]"></i>}
                               </div>
                               <div className="truncate text-right">
-                                <span className={`block text-xs sm:text-sm truncate ${isSelected ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                                <span className={`block text-xs sm:text-sm truncate ${isSelected ? 'font-black text-gray-900' : 'font-medium text-gray-700'}`}>
                                   {tier.label}
                                 </span>
                               </div>
@@ -437,12 +437,12 @@ export default function ProductDetailPage({
 
               {/* 5. شريط الشراء: عداد الكمية بكامل العرض فوق زر الإضافة للسلة */}
               <div className="pt-2 border-t border-gray-100 flex flex-col gap-1.5 mt-1">
-                {/* عداد الكمية فوق الزر بكامل العرض وبنفس طوله مع إمكانية الكتابة اليدوية المباشرة */}
-                <div className="w-full flex items-center justify-between border border-gray-200 rounded-md overflow-hidden bg-white shadow-2xs h-7 sm:h-7.5 px-1">
+                {/* عداد الكمية فوق الزر بكامل العرض وبنفس طوله مع إمكانية الكتابة اليدوية المباشرة وبدون حدود */}
+                <div className="w-full flex items-center justify-between rounded-xl overflow-hidden bg-white shadow-xs h-8 sm:h-9 px-1.5">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(minQty, (parseInt(quantity) || minQty) - 1))}
-                    className="w-7 sm:w-8 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-xs sm:text-sm transition rounded"
+                    className="w-8 sm:w-9 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-sm sm:text-base transition rounded-lg"
                     title="تقليل الكمية"
                   >
                     -
@@ -464,13 +464,13 @@ export default function ProductDetailPage({
                     onBlur={() => {
                       if (!quantity || quantity < minQty) setQuantity(minQty);
                     }}
-                    className="text-center font-bold text-xs text-black font-english-num w-16 py-0.5 outline-none bg-transparent"
+                    className="text-center font-bold text-xs sm:text-sm text-black font-english-num w-20 py-0.5 outline-none bg-transparent border-0"
                     placeholder={String(minQty)}
                   />
                   <button
                     type="button"
                     onClick={() => setQuantity((parseInt(quantity) || minQty) + 1)}
-                    className="w-7 sm:w-8 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-xs sm:text-sm transition rounded"
+                    className="w-8 sm:w-9 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-sm sm:text-base transition rounded-lg"
                     title="زيادة الكمية"
                   >
                     +
@@ -524,13 +524,13 @@ export default function ProductDetailPage({
                        const finalNote = [customFieldsNote, customUserNote.trim()].filter(Boolean).join(' | ');
                        onAddToCart(product, selectedTier, finalNote, finalQty);
                     }}
-                    className={`w-full h-6.5 sm:h-7 px-3 font-bold rounded-[7px] transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-[10px] sm:text-[11px] shadow-2xs active:scale-98 ${
+                    className={`w-full h-8 sm:h-9 px-3 font-bold rounded-xl transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-xs sm:text-sm shadow-xs active:scale-98 ${
                       isExchange
                         ? 'bg-white hover:bg-slate-50 text-[#0f172a] border border-[#1e293b]'
                         : 'bg-black hover:bg-gray-800 text-white'
                     }`}
                   >
-                    <i className={`${isExchange ? 'fa-solid fa-right-left text-[#0f172a]' : 'fa-solid fa-cart-shopping text-white'} text-[10px]`}></i>
+                    <i className={`${isExchange ? 'fa-solid fa-right-left text-[#0f172a]' : 'fa-solid fa-cart-shopping text-white'} text-xs`}></i>
                     <span>{isExchange ? 'طلب المبادلة' : 'أضف للسلة'}</span>
                   </button>
                 )}
