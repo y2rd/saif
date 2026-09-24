@@ -524,10 +524,14 @@ export default function ProductDetailPage({
                        const finalNote = [customFieldsNote, customUserNote.trim()].filter(Boolean).join(' | ');
                        onAddToCart(product, selectedTier, finalNote, finalQty);
                     }}
-                    className="w-full h-6.5 sm:h-7 px-3 bg-black hover:bg-gray-800 text-white font-bold rounded-[7px] transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-[10px] sm:text-[11px] shadow-2xs active:scale-98"
+                    className={`w-full h-6.5 sm:h-7 px-3 font-bold rounded-[7px] transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer text-[10px] sm:text-[11px] shadow-2xs active:scale-98 ${
+                      isExchange
+                        ? 'bg-white hover:bg-slate-50 text-[#0f172a] border border-[#1e293b]'
+                        : 'bg-black hover:bg-gray-800 text-white'
+                    }`}
                   >
-                    <i className="fa-solid fa-cart-shopping text-white text-[10px]"></i>
-                    <span>أضف للسلة</span>
+                    <i className={`${isExchange ? 'fa-solid fa-right-left text-[#0f172a]' : 'fa-solid fa-cart-shopping text-white'} text-[10px]`}></i>
+                    <span>{isExchange ? 'طلب المبادلة' : 'أضف للسلة'}</span>
                   </button>
                 )}
               </div>

@@ -3857,7 +3857,11 @@ export default function App() {
                                   }
                                   closeAuthModal();
                                 }}
-                                className="px-2.5 py-1 bg-black hover:bg-gray-800 text-white rounded-lg text-[10px] font-medium transition cursor-pointer"
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition cursor-pointer ${
+                                  favProd.productType === 'exchange' || (typeof favProd.exchangeCurrencyName === 'string' && favProd.exchangeCurrencyName.trim().length > 0)
+                                    ? 'bg-white hover:bg-slate-50 text-[#0f172a] border border-[#1e293b]'
+                                    : 'bg-black hover:bg-gray-800 text-white'
+                                }`}
                               >
                                 {favProd.productType === 'exchange' || (typeof favProd.exchangeCurrencyName === 'string' && favProd.exchangeCurrencyName.trim().length > 0)
                                   ? 'طلب المبادلة'
@@ -5859,7 +5863,7 @@ export default function App() {
                                 <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
                                   {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                     <div className="flex items-center text-right">
-                                      <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
+                                      <span className="text-[11px] sm:text-xs font-semibold text-[#0f172a] tracking-tight">
                                         مبادلة
                                       </span>
                                     </div>
@@ -5901,9 +5905,9 @@ export default function App() {
                                     setViewMode('product-detail');
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                   }}
-                                  className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                                  className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-[#1e293b] hover:border-[#0f172a] bg-white hover:bg-slate-50 active:scale-98 text-[#0f172a] font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                                 >
-                                  <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
+                                  <i className="fa-solid fa-right-left text-[#0f172a] text-[9px]"></i>
                                   <span>طلب المبادلة</span>
                                 </button>
                               ) : isProductRequiringInput(item) ? (
@@ -6160,7 +6164,7 @@ export default function App() {
                             <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
-                                  <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
+                                  <span className="text-[11px] sm:text-xs font-semibold text-[#0f172a] tracking-tight">
                                     مبادلة
                                   </span>
                                 </div>
@@ -6202,9 +6206,9 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-[#1e293b] hover:border-[#0f172a] bg-white hover:bg-slate-50 active:scale-98 text-[#0f172a] font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
-                              <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
+                              <i className="fa-solid fa-right-left text-[#0f172a] text-[9px]"></i>
                               <span>طلب المبادلة</span>
                             </button>
                           ) : isProductRequiringInput(item) ? (
@@ -6407,7 +6411,7 @@ export default function App() {
                             <div className="product-price-wrapper flex items-baseline gap-1 text-right justify-start">
                               {item.productType === 'exchange' || (typeof item.exchangeCurrencyName === 'string' && item.exchangeCurrencyName.trim().length > 0) ? (
                                 <div className="flex items-center text-right">
-                                  <span className="text-[11px] sm:text-xs font-semibold text-teal-900 tracking-tight">
+                                  <span className="text-[11px] sm:text-xs font-semibold text-[#0f172a] tracking-tight">
                                     مبادلة
                                   </span>
                                 </div>
@@ -6448,9 +6452,9 @@ export default function App() {
                                 setViewMode('product-detail');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
+                              className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-[#1e293b] hover:border-[#0f172a] bg-white hover:bg-slate-50 active:scale-98 text-[#0f172a] font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs group/btn"
                             >
-                              <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
+                              <i className="fa-solid fa-right-left text-[#0f172a] text-[9px]"></i>
                               <span>طلب المبادلة</span>
                             </button>
                           ) : isProductRequiringInput(item) ? (
@@ -7470,9 +7474,9 @@ function AutoMovingProductsCarousel({
                     setViewMode('product-detail');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-teal-200 hover:border-teal-700 bg-teal-50/60 hover:bg-teal-100/60 active:scale-98 text-teal-900 font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
+                  className="w-[94%] mx-auto py-1 sm:py-1.5 h-7 sm:h-8 rounded-md border border-[#1e293b] hover:border-[#0f172a] bg-white hover:bg-slate-50 active:scale-98 text-[#0f172a] font-bold text-[10px] sm:text-[11px] transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
                 >
-                  <i className="fa-solid fa-right-left text-teal-700 text-[9px]"></i>
+                  <i className="fa-solid fa-right-left text-[#0f172a] text-[9px]"></i>
                   <span>طلب المبادلة</span>
                 </button>
               ) : isProductRequiringInput(p) ? (
