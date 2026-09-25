@@ -560,7 +560,7 @@ export default function ProductDetailPage({
                         <div
                           key={feat.id || fIndex}
                           style={{ minWidth: 0 }}
-                          className="relative overflow-hidden p-2 sm:p-4 rounded-full aspect-square bg-white border border-gray-100 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col items-center justify-center text-center group min-w-0 w-full max-w-[150px] mx-auto"
+                          className="relative overflow-hidden p-2 sm:p-4 rounded-full aspect-square bg-white shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col items-center justify-center text-center group min-w-0 w-full max-w-[150px] mx-auto border-0"
                         >
                           {/* أيقونة سوداء مع حركة ناعمة عند التمرير */}
                           <div 
