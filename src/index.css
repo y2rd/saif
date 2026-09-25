@@ -886,3 +886,17 @@ body.dark-theme .product__description-content * {
   text-align: right !important;
 }
 
+/* ========================================================================= */
+/* إزالة الحدود والظلال نهائياً من خلفية بطاقات المنتجات                      */
+/* ========================================================================= */
+.s-product-card-entry,
+.card-soft-blur,
+.s-product-card-entry:hover,
+.card-soft-blur:hover {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  outline: none !important;
+}
+

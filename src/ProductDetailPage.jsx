@@ -695,7 +695,7 @@ export default function ProductDetailPage({
                     onSelectProduct(rel);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="bg-white rounded-2xl border border-gray-200/90 hover:border-black/30 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between overflow-hidden group"
+                  className="bg-white rounded-2xl border-0 shadow-none hover:shadow-none transition cursor-pointer flex flex-col justify-between overflow-hidden group"
                 >
                   <div>
                     <div className="relative pt-[112%] sm:pt-[108%] bg-white overflow-hidden">

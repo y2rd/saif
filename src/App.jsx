@@ -5793,7 +5793,7 @@ export default function App() {
                         return (
                           <div
                             key={item.id}
-                            className="s-product-card-entry bg-white border border-gray-100/90 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative shadow-xs"
+                            className="s-product-card-entry bg-white border-0 shadow-none hover:shadow-none rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
                             onClick={() => {
                               setActiveProductForPage(item);
                               setViewMode('product-detail');
@@ -6095,7 +6095,7 @@ export default function App() {
                     return (
                       <div
                         key={item.id}
-                        className="s-product-card-entry bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+                        className="s-product-card-entry bg-white border-0 shadow-none hover:shadow-none rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
                         onClick={() => {
                           setActiveProductForPage(item);
                           setViewMode('product-detail');
@@ -6343,7 +6343,7 @@ export default function App() {
                     return (
                       <div
                         key={item.id}
-                        className="s-product-card-entry bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+                        className="s-product-card-entry bg-white border-0 shadow-none hover:shadow-none rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
                         onClick={() => {
                           setActiveProductForPage(item);
                           setViewMode('product-detail');
@@ -7400,7 +7400,7 @@ function AutoMovingProductsCarousel({
               setViewMode('product-detail');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="w-44 sm:w-48 md:w-56 lg:w-[230px] shrink-0 bg-white border card-soft-blur rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+            className="w-44 sm:w-48 md:w-56 lg:w-[230px] shrink-0 bg-white border-0 shadow-none hover:shadow-none rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
           >
             <div>
               {/* 1. حاوية صورة المنتج ممتدة طولياً لإبراز تفاصيل المنتج */}
