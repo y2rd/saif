@@ -5974,24 +5974,24 @@ export default function App() {
                         <div
                           key={feat.id || fIndex}
                           style={{ minWidth: 0 }}
-                          className="relative overflow-hidden py-5 sm:py-8 px-2 sm:px-6 rounded-2xl sm:rounded-[24px] bg-white border border-gray-100 hover:border-gray-300 shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group min-w-0 w-full"
+                          className="relative overflow-hidden p-2 sm:p-5 rounded-full aspect-square bg-white border border-gray-100 hover:border-gray-300 shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center text-center group min-w-0 w-full max-w-[200px] mx-auto"
                         >
                           {/* أيقونة سوداء مع حركة ناعمة عند التمرير */}
                           <div 
-                            className="rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mb-2.5 sm:mb-4 transition-all duration-500 ease-out shrink-0 w-10 h-10 sm:w-14 sm:h-14 group-hover:-translate-y-1 group-hover:shadow-sm"
+                            className="rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mb-1.5 sm:mb-2.5 transition-all duration-500 ease-out shrink-0 w-8 h-8 sm:w-12 sm:h-12 group-hover:-translate-y-1 group-hover:shadow-sm"
                           >
                             {feat.customIconUrl ? (
-                              <img src={feat.customIconUrl} alt="" className="object-contain brightness-0 w-4 h-4 sm:w-6 sm:h-6 transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3" />
+                              <img src={feat.customIconUrl} alt="" className="object-contain brightness-0 w-3.5 h-3.5 sm:w-5 sm:h-5 transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3" />
                             ) : (
-                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-sm sm:text-xl transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3`}></i>
+                              <i className={`${feat.icon || 'fa-solid fa-bolt'} text-black text-xs sm:text-lg transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-3`}></i>
                             )}
                           </div>
 
                           {/* نصوص الميزة */}
-                          <h4 className="font-bold text-gray-900 text-[11px] sm:text-[14px] tracking-tight truncate w-full group-hover:text-black transition-colors mb-1 text-center">
+                          <h4 className="font-bold text-gray-900 text-[10px] sm:text-[13px] tracking-tight truncate w-full group-hover:text-black transition-colors mb-0.5 text-center px-1">
                             {feat.title}
                           </h4>
-                          <p className="text-[9px] sm:text-xs text-gray-400 font-medium leading-relaxed line-clamp-2 w-full text-center">
+                          <p className="text-[8.5px] sm:text-[11px] text-gray-400 font-medium leading-tight line-clamp-1 w-full text-center px-1">
                             {feat.subtitle}
                           </p>
                         </div>
