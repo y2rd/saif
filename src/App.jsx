@@ -346,22 +346,7 @@ export default function App() {
     }, 240);
   };
 
-  // إرسال كود التحقق OTP وحفظه سحابياً وإرساله للإيميل أو رسالة SMS للهاتف
-  const triggerSendOtp = async (contactIdentifier) => {
-    // كود تحقق سحابي في Supabase
-    const generatedCode = String(Math.floor(100000 + Math.random() * 900000)); // 6 أرقام معيارية
-    setOtpResendCountdown(60); // 60 ثانية لإعادة الإرسال
-    
-    // حفظ الكود في قاعدة بيانات Supabase
-    await saveOtpToCloud(contactIdentifier, generatedCode);
-
-    // إذا كان الحساب بريد إلكتروني، إرسال الكود للبريد الإلكتروني الحقيقي
-    if (authMethod === 'email' && contactIdentifier.includes('@')) {
-      sendOtpEmailNotification(contactIdentifier, generatedCode, authName);
-    }
-    
-    return generatedCode;
-  };
+  // تم الغاء إرسال الـ OTP
 
   // تقديم النموذج (تسجيل دخول أو بدء إنشاء حساب جديد)
   const handleAuthSubmit = async (e) => {
@@ -472,10 +457,38 @@ export default function App() {
           return;
         }
 
-        // إرسال كود التحقق والانتقال لشاشة إدخال الرمز
-        const code = await triggerSendOtp(fullContact);
-        setAuthStep('otp');
+        // إنشاء الحساب مباشرة وتشفير كلمة المرور سحابياً
+        const credRes = await registerWithCredentials(fullContact, authPassword.trim(), authName.trim());
+        if (!credRes.success) {
+          setAuthError(credRes.message);
+          setAuthLoading(false);
+          return;
+        }
+
+        const newCustomer = credRes.user;
+
+        setCurrentUser(newCustomer);
+        setCustomers(prev => {
+          const filtered = prev.filter(c => c.identifier !== fullContact && c.id !== newCustomer.id);
+          const updated = [newCustomer, ...filtered];
+          try {
+            localStorage.setItem('haider_store_customers', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+
+        try {
+          localStorage.setItem('haider_current_user', JSON.stringify(newCustomer));
+        } catch (e) {}
+
         setAuthLoading(false);
+        closeAuthModal();
+        showAppModal({
+          title: 'تم إنشاء الحساب بنجاح',
+          message: `أهلاً بك يا ${newCustomer.name}! تم إنشاء حسابك وتسجيل دخولك كعميل في المتجر.`,
+          type: 'success',
+          confirmText: 'تصفح المتجر'
+        });
       }
     } catch (err) {
       console.error(err);
@@ -484,105 +497,7 @@ export default function App() {
     }
   };
 
-  // تأكيد كود التحقق وإتمام تسجيل الحساب كـ customer حصراً
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setAuthError('');
-    if (!authOtp.trim()) {
-      setAuthError('يرجى إدخال رمز التحقق');
-      return;
-    }
-
-    const fullContact = authMethod === 'phone' 
-      ? `${selectedCountryCode.code} ${authIdentifier.trim()}` 
-      : authIdentifier.trim().toLowerCase();
-
-    setAuthLoading(true);
-
-    try {
-      let isValid = false;
-
-      // تحقق سحابي
-      if (!isValid) {
-        const cloudCheck = await verifyOtpFromCloud(fullContact, authOtp.trim());
-        if (cloudCheck && cloudCheck.success) {
-          isValid = true;
-        }
-      }
-
-      if (!isValid) {
-        setAuthError('رمز التحقق غير صحيح أو انتهت صلاحيته، يرجى إعادة المحاولة');
-        setAuthLoading(false);
-        return;
-      }
-
-      // تجهيز بيانات العميل الجديد برتبة customer حصراً (لا يمكن أن يكون admin أبداً)
-      const newCustomer = {
-        name: authName.trim(),
-        identifier: fullContact,
-        email: authMethod === 'email' ? fullContact : '',
-        phone: authMethod === 'phone' ? fullContact : '',
-        password: authPassword.trim(),
-        role: 'customer', // عميل عادي حصراً ومحمياً
-        tier: 'عادي',
-        joinedAt: new Date().toISOString(),
-        verified: true
-      };
-
-      // إذا كان التسجيل بالبريد الإلكتروني، ننشئ الحساب باستخدام Credentials
-      if (authMethod === 'email' && fullContact.includes('@')) {
-        try {
-          const credRes = await registerWithCredentials(fullContact, authPassword.trim(), authName.trim());
-          if (credRes.success && credRes.user?.id) {
-            newCustomer.id = credRes.user.id;
-          }
-        } catch (e) {
-          console.warn("تسجيل الحساب المباشر:", e);
-        }
-      }
-
-      // حفظ العميل الجديد في قاعدة البيانات السحابية والمحلية
-      await syncCustomerToCloud(newCustomer);
-      setCurrentUser(newCustomer);
-      setCustomers(prev => {
-        const filtered = prev.filter(c => c.identifier !== fullContact && c.id !== newCustomer.id);
-        const updated = [newCustomer, ...filtered];
-        try {
-          localStorage.setItem('haider_store_customers', JSON.stringify(updated));
-        } catch (e) {}
-        return updated;
-      });
-
-      try {
-        localStorage.setItem('haider_current_user', JSON.stringify(newCustomer));
-      } catch (e) {}
-
-      setAuthLoading(false);
-      closeAuthModal();
-      showAppModal({
-        title: 'تم إنشاء الحساب بنجاح',
-        message: `أهلاً بك يا ${newCustomer.name}! تم تأكيد حسابك وتسجيل دخولك كعميل في المتجر.`,
-        type: 'success',
-        confirmText: 'تصفح المتجر'
-      });
-    } catch (err) {
-      console.error(err);
-      setAuthError('تعذر تأكيد الرمز حالياً، يرجى المحاولة مجدداً');
-      setAuthLoading(false);
-    }
-  };
-
-  // إعادة إرسال كود التحقق
-  const handleResendOtp = async () => {
-    if (otpResendCountdown > 0) return;
-    const fullContact = authMethod === 'phone' 
-      ? `${selectedCountryCode.code} ${authIdentifier.trim()}` 
-      : authIdentifier.trim().toLowerCase();
-    
-    setAuthLoading(true);
-    await triggerSendOtp(fullContact);
-    setAuthLoading(false);
-  };
+  // تم إلغاء نظام الـ OTP והاستعاضة عنه بالتسجيل المباشر
 
   // فحص صلاحية الإدارة (تقتصر على المدير أو المشرفين فقط)
   const isManager = Boolean(
@@ -2041,13 +1956,15 @@ export default function App() {
       localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrdersList));
     } catch (e) {}
 
-    // خصم المخزون من المنتجات
+    // خصم المخزون من المنتجات بدقة وحساب إجمالي الكميات المشتراة
     let stockChanged = false;
     const updatedProducts = products.map(p => {
-      const cartItem = cartItems.find(item => item.productId === p.id);
-      if (cartItem) {
+      const totalBought = cartItems
+        .filter(item => String(item.productId || item.id) === String(p.id))
+        .reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+      if (totalBought > 0) {
         stockChanged = true;
-        return { ...p, stock: Math.max(0, (p.stock || 0) - cartItem.quantity) };
+        return { ...p, stock: Math.max(0, (parseInt(p.stock) || 0) - totalBought) };
       }
       return p;
     });

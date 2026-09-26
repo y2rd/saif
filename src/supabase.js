@@ -40,8 +40,10 @@ export async function saveProductToCloud(product) {
     const cleanData = { ...product };
     delete cleanData.data; // منع التداخل والتكرار التراكمي
     const imgUrl = cleanData.image || cleanData.imageUrl || '';
-    cleanData.imageUrl = imgUrl;
-    cleanData.image = imgUrl;
+    // إزالة الصورة من كائن data لتفادي تضخيم عمود JSONB بحفظ base64 مكرراً
+    delete cleanData.image;
+    delete cleanData.imageUrl;
+    delete cleanData._imageNotLoaded;
 
     const row = {
       id: String(product.id),
@@ -88,8 +90,9 @@ export async function syncProductsToCloud(products) {
       const cleanData = { ...p };
       delete cleanData.data;
       const imgUrl = cleanData.image || cleanData.imageUrl || '';
-      cleanData.imageUrl = imgUrl;
-      cleanData.image = imgUrl;
+      delete cleanData.image;
+      delete cleanData.imageUrl;
+      delete cleanData._imageNotLoaded;
 
       return {
         id: String(p.id),
@@ -664,27 +667,45 @@ export async function clearAllOrdersFromCloud(orderIds = []) {
 // -------------------------------------------------------------
 // 10. تسجيل الدخول والإنشاء والحسابات
 // -------------------------------------------------------------
+export async function hashPassword(password) {
+  try {
+    const msgBuffer = new TextEncoder().encode(String(password).trim());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return String(password).trim();
+  }
+}
+
 export async function loginWithCredentials(emailOrIdentifier, password) {
   const cust = await getCustomerByIdentifier(emailOrIdentifier);
-  if (cust && cust.password && String(cust.password) === String(password).trim()) {
-    return cust;
+  if (cust && cust.password) {
+    const hashed = await hashPassword(password);
+    if (String(cust.password) === String(password).trim() || String(cust.password) === hashed) {
+      return cust;
+    }
   }
   return null;
 }
 
-export async function registerWithCredentials(email, password, name = '') {
-  if (!email || !password) return { success: false, message: 'بيانات غير مكتملة' };
+export async function registerWithCredentials(identifier, password, name = '') {
+  if (!identifier || !password) return { success: false, message: 'بيانات غير مكتملة' };
   try {
-    const existing = await getCustomerByIdentifier(email);
+    const existing = await getCustomerByIdentifier(identifier);
     if (existing) return { success: false, message: 'هذا الحساب مسجل بالفعل!' };
 
-    const custId = email.trim().replace(/[^a-zA-Z0-9]/g, '_');
+    const custId = identifier.trim().replace(/[^a-zA-Z0-9]/g, '_');
+    const hashedPassword = await hashPassword(password);
+    const isEmail = identifier.includes('@');
+    
     const newCust = {
       id: custId,
-      name: name.trim() || email.split('@')[0],
-      email: email.trim(),
-      identifier: email.trim(),
-      password: password.trim(),
+      name: name.trim() || identifier.split('@')[0],
+      email: isEmail ? identifier.trim() : '',
+      phone: isEmail ? '' : identifier.trim(),
+      identifier: identifier.trim(),
+      password: hashedPassword,
       role: 'customer',
       balance: 0,
       points: 0,
@@ -715,32 +736,10 @@ export async function registerWithCredentials(email, password, name = '') {
   }
 }
 
-// دوال OTP ورسائل الهاتف التوافقية
-export async function saveOtpToCloud(identifier, code) {
-  try {
-    localStorage.setItem(`otp_${identifier}`, JSON.stringify({ code: String(code), expiresAt: Date.now() + 600000 }));
-  } catch (e) {}
-}
-
-export async function verifyOtpFromCloud(identifier, inputCode) {
-  try {
-    const item = localStorage.getItem(`otp_${identifier}`);
-    if (!item) return { success: false, message: 'لم يتم العثور على رمز تحقق' };
-    const parsed = JSON.parse(item);
-    if (Date.now() > parsed.expiresAt) return { success: false, message: 'انتهت صلاحية الرمز' };
-    if (String(parsed.code).trim() === String(inputCode).trim()) {
-      localStorage.removeItem(`otp_${identifier}`);
-      return { success: true };
-    }
-    return { success: false, message: 'رمز التحقق غير صحيح' };
-  } catch (e) {
-    return { success: false, message: 'خطأ في التحقق من الرمز' };
-  }
-}
-
-export async function sendOtpEmailNotification(email, code, userName = '') {
-  return { success: true };
-}
+// تم إلغاء دوال الـ OTP بطلب من المالك والاعتماد على تشفير الباسورد فقط
+export async function saveOtpToCloud(identifier, code) {}
+export async function verifyOtpFromCloud(identifier, inputCode) { return { success: true }; }
+export async function sendOtpEmailNotification(email, code, userName = '') { return { success: true }; }
 
 // -------------------------------------------------------------
 // 11. الاستماع اللحظي الفوري لجميع البيانات (Realtime Subscription)
@@ -854,8 +853,10 @@ export function subscribeToStoreData({
               });
               // تحديث المنتجات بالصور الجديدة
               const updatedList = lightList.map(p => {
-                if (imgMap[String(p.id)]) {
-                  return { ...p, image: imgMap[String(p.id)], imageUrl: imgMap[String(p.id)], _imageNotLoaded: false };
+                const sId = String(p.id);
+                if (sId in imgMap) {
+                  const newImg = imgMap[sId] || '';
+                  return { ...p, image: newImg, imageUrl: newImg, _imageNotLoaded: false };
                 }
                 return p;
               });
@@ -966,8 +967,10 @@ export function subscribeToStoreData({
                   imgMap[String(r.id)] = r.image || r.data?.image || r.data?.imageUrl || '';
                 });
                 const updatedList = lightList.map(p => {
-                  if (imgMap[String(p.id)]) {
-                    return { ...p, image: imgMap[String(p.id)], imageUrl: imgMap[String(p.id)], _imageNotLoaded: false };
+                  const sId = String(p.id);
+                  if (sId in imgMap) {
+                    const newImg = imgMap[sId] || '';
+                    return { ...p, image: newImg, imageUrl: newImg, _imageNotLoaded: false };
                   }
                   return p;
                 });

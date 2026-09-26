@@ -9667,12 +9667,12 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* الحل 2: المزامنة السحابية المباشرة (Firebase Firestore) */}
+              {/* الحل 2: المزامنة السحابية المباشرة (Supabase Cloud) */}
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3.5 shadow-2xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                     <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold">2</span>
-                    <h3 className="text-xs font-bold text-gray-900">المزامنة السحابية المباشرة (Firebase Firestore)</h3>
+                    <h3 className="text-xs font-bold text-gray-900">المزامنة السحابية المباشرة (Supabase Cloud)</h3>
                   </div>
                   <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
                     رفع البيانات إلى السحابة فوراً لتكون مركزية وتظهر تلقائياً لأي زائر يدخل المتجر من أي هاتف أو كمبيوتر في العالم بدون الحاجة لاستيراد يدوي.
@@ -9703,61 +9703,21 @@ export default function AdminDashboard({
 
             </div>
 
-            {/* دليل وتأكيد قواعد فايربيس الآمنة (Firebase Firestore Rules) */}
+            {/* حالة الاتصال بقاعدة بيانات سوبابيس (Supabase Cloud Status) */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 space-y-3 shadow-2xs">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-shield-halved text-[#004956] text-sm"></i>
-                  <h3 className="text-xs font-bold text-gray-900">قواعد الحماية في Firebase (Firestore Security Rules)</h3>
+                  <i className="fa-solid fa-cloud text-emerald-600 text-sm"></i>
+                  <h3 className="text-xs font-bold text-gray-900">حالة قاعدة البيانات السحابية (Supabase)</h3>
                 </div>
-                <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                  محمية ومُوصى بها
+                <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  متصل ونشط
                 </span>
               </div>
               <p className="text-xs text-gray-600 leading-relaxed font-normal">
-                انسخ هذه القواعد وضعها في <strong>Firebase Console &gt; Firestore Database &gt; Rules</strong> لحماية بيانات متجرك وحسابات العملاء من التعديل أو الاختراق:
+                متجرك متصل بقاعدة البيانات السحابية <strong>Supabase PostgreSQL</strong> بشكل مباشر مع ميزة الاستماع اللحظي (Realtime) لتحديث التغييرات على الفور لكافة الزوار والعملاء.
               </p>
-              <div className="relative bg-gray-900 text-emerald-400 p-3 rounded-xl font-mono text-[11px] overflow-x-auto text-left" dir="ltr">
-                <pre>{`rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // منتجات وأقسام وإعدادات المتجر: قراءة عامة وكتابة موثوقة
-    match /store/{document=**} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /settings/{document=**} {
-      allow read: if true;
-      allow write: if true;
-    }
-    // الطلبات وطلبات الشحن: إضافة للعميل ومراجعة للإدارة
-    match /orders/{orderId} {
-      allow read, write: if true;
-    }
-    match /topups/{topupId} {
-      allow read, write: if true;
-    }
-    // بيانات العملاء ورموز التحقق
-    match /customers/{custId} {
-      allow read, write: if true;
-    }
-    match /otps/{otpId} {
-      allow read, write: if true;
-    }
-  }
-}`}</pre>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const rules = `rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /store/{document=**} { allow read: if true; allow write: if true; }\n    match /settings/{document=**} { allow read: if true; allow write: if true; }\n    match /orders/{orderId} { allow read, write: if true; }\n    match /topups/{topupId} { allow read, write: if true; }\n    match /customers/{custId} { allow read, write: if true; }\n    match /otps/{otpId} { allow read, write: if true; }\n  }\n}`;
-                    navigator.clipboard.writeText(rules);
-                    showToast('تم نسخ كود قواعد فايربيس المحمية إلى الحافظة!');
-                  }}
-                  className="absolute top-2 right-2 px-2 py-1 bg-white/20 hover:bg-white/30 text-white rounded text-[10px] font-sans transition cursor-pointer"
-                >
-                  نسخ القواعد
-                </button>
-              </div>
             </div>
 
           </div>
