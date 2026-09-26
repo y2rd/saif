@@ -664,7 +664,7 @@ export async function clearAllOrdersFromCloud(orderIds = []) {
 // -------------------------------------------------------------
 // 10. تسجيل الدخول والإنشاء والحسابات
 // -------------------------------------------------------------
-export async function loginWithFirebaseAuth(emailOrIdentifier, password) {
+export async function loginWithCredentials(emailOrIdentifier, password) {
   const cust = await getCustomerByIdentifier(emailOrIdentifier);
   if (cust && cust.password && String(cust.password) === String(password).trim()) {
     return cust;
@@ -672,7 +672,7 @@ export async function loginWithFirebaseAuth(emailOrIdentifier, password) {
   return null;
 }
 
-export async function registerWithFirebaseAuth(email, password, name = '') {
+export async function registerWithCredentials(email, password, name = '') {
   if (!email || !password) return { success: false, message: 'بيانات غير مكتملة' };
   try {
     const existing = await getCustomerByIdentifier(email);
@@ -742,10 +742,6 @@ export async function sendOtpEmailNotification(email, code, userName = '') {
   return { success: true };
 }
 
-export function setupRecaptcha() { return null; }
-export async function sendFirebasePhoneOtp() { return { success: false, message: 'يرجى تسجيل الدخول عبر البريد أو اسم المستخدم' }; }
-export async function verifyFirebasePhoneOtp() { return { success: false, message: 'غير مدعوم' }; }
-
 // -------------------------------------------------------------
 // 11. الاستماع اللحظي الفوري لجميع البيانات (Realtime Subscription)
 // -------------------------------------------------------------
@@ -779,7 +775,7 @@ export function subscribeToStoreData({
       const pProdsLight = onProductsUpdate
         ? supabase
             .from('products')
-            .select('id, title, price, old_price, category, product_type, stock, badge, description, is_deleted, updated_at, sku, weight, custom_fields, quantity_tiers, license_keys, min_quantity, shipping_fee, exchange_amount, exchange_currency_name, exchange_required_product_name, exchange_custom_fields, flash_sale_enabled, flash_sale_price, flash_sale_ends_at, has_quantity_tiers, cost_price, sales_count, total_sales_revenue, reviews, download_url, file_size, created_at')
+          .select('id, title, price, old_price, category, product_type, stock, badge, description, is_deleted, updated_at, created_at, data')
             .eq('is_deleted', false)
             .order('created_at', { ascending: false })
         : Promise.resolve({});
@@ -829,41 +825,11 @@ export function subscribeToStoreData({
         const lightList = resProdsLight.value.data.map(r => {
           const cachedImg = imageCache[String(r.id)] || '';
           return {
+            ...r.data,
+            ...r,
             id: r.id,
-            title: r.title || '',
-            price: r.price,
-            oldPrice: r.old_price,
-            category: r.category || '',
-            productType: r.product_type || 'simple',
-            stock: r.stock,
-            badge: r.badge || '',
-            description: r.description || '',
-            is_deleted: r.is_deleted,
-            sku: r.sku || '',
-            weight: r.weight || '',
-            minQuantity: r.min_quantity || 1,
-            shippingFee: r.shipping_fee || 0,
-            exchangeAmount: r.exchange_amount,
-            exchangeCurrencyName: r.exchange_currency_name || '',
-            exchangeRequiredProductName: r.exchange_required_product_name || '',
-            exchangeCustomFields: r.exchange_custom_fields || [],
-            flashSaleEnabled: r.flash_sale_enabled || false,
-            flashSalePrice: r.flash_sale_price || '',
-            flashSaleEndsAt: r.flash_sale_ends_at || '',
-            hasQuantityTiers: r.has_quantity_tiers || false,
-            costPrice: r.cost_price,
-            salesCount: r.sales_count || 0,
-            totalSalesRevenue: r.total_sales_revenue || '0.00',
-            reviews: r.reviews || [],
-            licenseKeys: r.license_keys || [],
-            downloadUrl: r.download_url || '',
-            fileSize: r.file_size || '',
-            created_at: r.created_at,
-            updated_at: r.updated_at,
-            // الصورة من الكاش المحلي مؤقتاً
             image: cachedImg,
             imageUrl: cachedImg,
-            // علامة أن الصورة الكاملة لم تُجلب بعد
             _imageNotLoaded: !cachedImg
           };
         });
@@ -952,8 +918,64 @@ export function subscribeToStoreData({
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
       if (onProductsUpdate) {
-        const { data } = await supabase.from('products').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
-        if (Array.isArray(data)) onProductsUpdate(data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
+        const { data } = await supabase.from('products')
+          .select('id, title, price, old_price, category, product_type, stock, badge, description, is_deleted, updated_at, created_at, data')
+          .eq('is_deleted', false).order('created_at', { ascending: false });
+        if (Array.isArray(data)) {
+          // جلب الصور من الكاش المحلي لمنع إعادة التحميل الضخمة
+          let imageCache = {};
+          try {
+            const savedProds = localStorage.getItem('haider_store_products');
+            if (savedProds) {
+              const cachedList = JSON.parse(savedProds);
+              if (Array.isArray(cachedList)) {
+                cachedList.forEach(p => {
+                  if (p.id && (p.image || p.imageUrl)) {
+                    imageCache[String(p.id)] = p.image || p.imageUrl;
+                  }
+                });
+              }
+            }
+          } catch {}
+
+          const lightList = data.map(r => {
+            const cachedImg = imageCache[String(r.id)] || '';
+            return {
+              ...r.data,
+              ...r,
+              id: r.id,
+              image: cachedImg,
+              imageUrl: cachedImg,
+              _imageNotLoaded: !cachedImg
+            };
+          });
+          onProductsUpdate(lightList, Date.now());
+
+          // المرحلة 2: جلب الصور المطلوبة في الخلفية
+          const productsNeedingImages = lightList.filter(p => p._imageNotLoaded);
+          if (productsNeedingImages.length > 0) {
+            const idsNeedImg = productsNeedingImages.map(p => String(p.id));
+            supabase
+              .from('products')
+              .select('id, image, data')
+              .in('id', idsNeedImg)
+              .then(({ data: imgData }) => {
+                if (!Array.isArray(imgData)) return;
+                const imgMap = {};
+                imgData.forEach(r => {
+                  imgMap[String(r.id)] = r.image || r.data?.image || r.data?.imageUrl || '';
+                });
+                const updatedList = lightList.map(p => {
+                  if (imgMap[String(p.id)]) {
+                    return { ...p, image: imgMap[String(p.id)], imageUrl: imgMap[String(p.id)], _imageNotLoaded: false };
+                  }
+                  return p;
+                });
+                onProductsUpdate(updatedList, Date.now());
+              })
+              .catch(() => {});
+          }
+        }
       }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, async () => {

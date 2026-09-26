@@ -22,7 +22,6 @@
     "@tailwindcss/vite": "^4.3.3",
     "acorn": "^8.18.0",
     "acorn-walk": "^8.3.5",
-    "firebase": "^12.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

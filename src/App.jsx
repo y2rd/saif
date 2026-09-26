@@ -16,10 +16,8 @@ import {
   syncTopupsToCloud,
   sendTelegramNotification,
   getCustomerByIdentifier,
-  loginWithFirebaseAuth,
-  registerWithFirebaseAuth,
-  sendFirebasePhoneOtp,
-  verifyFirebasePhoneOtp,
+  loginWithCredentials,
+  registerWithCredentials,
   saveOtpToCloud,
   verifyOtpFromCloud,
   sendOtpEmailNotification,
@@ -350,26 +348,11 @@ export default function App() {
 
   // إرسال كود التحقق OTP وحفظه سحابياً وإرساله للإيميل أو رسالة SMS للهاتف
   const triggerSendOtp = async (contactIdentifier) => {
-    // 1. إذا كان رقم هاتف: نرسل كود SMS حقيقي عبر Firebase Phone Auth
-    if (authMethod === 'phone') {
-      try {
-        const smsRes = await sendFirebasePhoneOtp(contactIdentifier, 'recaptcha-container');
-        if (smsRes.success) {
-          setOtpResendCountdown(60);
-          return 'firebase-sms';
-        } else if (smsRes.message) {
-          console.warn("إرسال SMS من فايربيس:", smsRes.message);
-        }
-      } catch (e) {
-        console.warn("خطأ غير متوقع في Firebase Phone Auth:", e);
-      }
-    }
-
-    // 2. كود تحقق سحابي في Firestore كخيار موثوق أو احتياطي
+    // كود تحقق سحابي في Supabase
     const generatedCode = String(Math.floor(100000 + Math.random() * 900000)); // 6 أرقام معيارية
     setOtpResendCountdown(60); // 60 ثانية لإعادة الإرسال
     
-    // حفظ الكود في قاعدة بيانات Firestore
+    // حفظ الكود في قاعدة بيانات Supabase
     await saveOtpToCloud(contactIdentifier, generatedCode);
 
     // إذا كان الحساب بريد إلكتروني، إرسال الكود للبريد الإلكتروني الحقيقي
@@ -433,9 +416,9 @@ export default function App() {
         existingUser = await getCustomerByIdentifier(fullContact, trimmedInput);
       }
 
-      // 3. في حالة تسجيل الدخول ولم يُعثر عليه، التحقق من Firebase Authentication
+      // 3. في حالة تسجيل الدخول ولم يُعثر عليه، محاولة التحقق بالبيانات (Credentials)
       if (authMode === 'login' && !existingUser) {
-        existingUser = await loginWithFirebaseAuth(trimmedInput, authPassword.trim());
+        existingUser = await loginWithCredentials(trimmedInput, authPassword.trim());
       }
 
       if (authMode === 'login') {
@@ -519,15 +502,7 @@ export default function App() {
     try {
       let isValid = false;
 
-      // إذا كان التحقق برقم الهاتف، نتحقق أولاً عبر Firebase Phone Auth الرسمي
-      if (authMethod === 'phone') {
-        const phoneCheck = await verifyFirebasePhoneOtp(authOtp.trim());
-        if (phoneCheck && phoneCheck.success) {
-          isValid = true;
-        }
-      }
-
-      // إذا لم يكن هاتف أو كخيار سحابي مؤكد
+      // تحقق سحابي
       if (!isValid) {
         const cloudCheck = await verifyOtpFromCloud(fullContact, authOtp.trim());
         if (cloudCheck && cloudCheck.success) {
@@ -554,15 +529,15 @@ export default function App() {
         verified: true
       };
 
-      // إذا كان التسجيل بالبريد الإلكتروني، ننشئ الحساب رسمياً في Firebase Auth مع إرسال إيميل Google
+      // إذا كان التسجيل بالبريد الإلكتروني، ننشئ الحساب باستخدام Credentials
       if (authMethod === 'email' && fullContact.includes('@')) {
         try {
-          const fbRes = await registerWithFirebaseAuth(fullContact, authPassword.trim(), authName.trim());
-          if (fbRes.success && fbRes.user?.uid) {
-            newCustomer.uid = fbRes.user.uid;
+          const credRes = await registerWithCredentials(fullContact, authPassword.trim(), authName.trim());
+          if (credRes.success && credRes.user?.id) {
+            newCustomer.id = credRes.user.id;
           }
         } catch (e) {
-          console.warn("تسجيل Firebase Auth المباشر:", e);
+          console.warn("تسجيل الحساب المباشر:", e);
         }
       }
 
@@ -687,7 +662,7 @@ export default function App() {
     } catch {
       return [];
     }
-  })())); // تتبع الطلبات المحذوفة محلياً ومزامنتها عبر الريفرش لمنع إعادة ظهورها من Firebase
+  })())); // تتبع الطلبات المحذوفة محلياً ومزامنتها عبر الريفرش لمنع إعادة ظهورها من Supabase
   const readNotifIdsRef = useRef(new Set((() => {
     try {
       const saved = localStorage.getItem('haider_read_notif_ids');
@@ -695,7 +670,7 @@ export default function App() {
     } catch {
       return [];
     }
-  })())); // تتبع الإشعارات المقروءة محلياً ودائماً عبر الريفرش لمنع إعادة ظهورها كجديدة من Firebase
+  })())); // تتبع الإشعارات المقروءة محلياً ودائماً عبر الريفرش لمنع إعادة ظهورها كجديدة من Supabase
   const [wishlist, setWishlist] = useState([]);
   const [cartBump, setCartBump] = useState(false); // موشن اهتزاز وتكبير السلة عند إضافة منتج
   const [cartToastMessage, setCartToastMessage] = useState(''); // رسالة صغيرة تحت في منتصف الشاشة بالخط الأسود
@@ -1310,7 +1285,7 @@ export default function App() {
     }
   }, [isInitialSyncing]);
 
-  // مزامنة حية وفورية من Firebase Firestore (Real-time Cloud Sync)
+  // مزامنة حية وفورية من Supabase (Real-time Cloud Sync)
   useEffect(() => {
     let receivedConfig = false;
     let receivedProducts = false;
@@ -1405,7 +1380,7 @@ export default function App() {
                     const base = prev || parsedCur;
 
                     // ✅ إصلاح: استخدام readNotifIdsRef (Set ثابت) لمنع إعادة ظهور الإشعارات المقروءة
-                    // readNotifIdsRef يحتفظ بـ IDs الإشعارات المقروءة حتى لو تأخّر Firebase في الحفظ
+                    // readNotifIdsRef يحتفظ بـ IDs الإشعارات المقروءة حتى لو تأخّر Supabase في الحفظ
                     const cloudNotifs = match.notifications || [];
                     const localNotifs = base.notifications || [];
                     const mergedNotifs = cloudNotifs.map(n => ({
@@ -1437,7 +1412,7 @@ export default function App() {
       },
       onOrdersUpdate: (cloudOrders) => {
         if (Array.isArray(cloudOrders)) {
-          // تصفية الطلبات التي حُذفت محلياً لمنع إعادة ظهورها من Firebase
+          // تصفية الطلبات التي حُذفت محلياً لمنع إعادة ظهورها من Supabase
           const filtered = cloudOrders.filter(o => !deletedOrderIdsRef.current.has(String(o.id)));
           setOrders(filtered);
           try {
@@ -1837,35 +1812,13 @@ export default function App() {
     });
 
     setProducts(updatedProducts);
+    syncProductsToCloud(updatedProducts); // حفظ سحابي
     setUserReviewName('');
     setUserReviewComment('');
-    alert('تم إضافة تقييمك بنجاح.');
-  };
-
-  const compressImage = (file, maxWidth = 800, quality = 0.75) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+    showAppModal({
+      title: 'تم بنجاح',
+      message: 'تم إضافة تقييمك بنجاح.',
+      type: 'success'
     });
   };
 
@@ -2088,6 +2041,22 @@ export default function App() {
       localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrdersList));
     } catch (e) {}
 
+    // خصم المخزون من المنتجات
+    let stockChanged = false;
+    const updatedProducts = products.map(p => {
+      const cartItem = cartItems.find(item => item.productId === p.id);
+      if (cartItem) {
+        stockChanged = true;
+        return { ...p, stock: Math.max(0, (p.stock || 0) - cartItem.quantity) };
+      }
+      return p;
+    });
+
+    if (stockChanged) {
+      setProducts(updatedProducts);
+      syncProductsToCloud(updatedProducts);
+    }
+
     // مزامنة الطلب مع قاعدة البيانات السحابية
     syncOrderToCloud(newOrder).catch((err) => {
       console.warn("فشلت المزامنة السحابية للطلب:", err);
@@ -2153,7 +2122,11 @@ export default function App() {
       message += `💰 *الإجمالي النهائي: ${primaryTotal}*`;
     }
 
-    alert(`تم تسجيل طلبك بنجاح (${newOrderId}) وإدراجه في قائمة الطلبات! جاري نقلك إلى واتساب للتأكيد.`);
+    showAppModal({
+      title: 'اكتمل الطلب بنجاح',
+      message: `تم تسجيل طلبك بنجاح (${newOrderId}) وإدراجه في قائمة الطلبات! جاري نقلك إلى واتساب للتأكيد.`,
+      type: 'success'
+    });
     window.open(`https://wa.me/${storeConfig.whatsapp}?text=${encodeURIComponent(message)}`, '_blank');
 
     setCartItems([]);
@@ -2206,8 +2179,12 @@ export default function App() {
       message += `💰 الإجمالي النهائي: ${primaryTotal}`;
     }
 
-    alert(`تم تسجيل طلبك بنجاح (${newOrderId}) وإدراجه في قائمة الطلبات! جاري نقلك إلى تيليجرام للتأكيد.`);
-    
+    showAppModal({
+      title: 'اكتمل الطلب بنجاح',
+      message: `تم تسجيل طلبك بنجاح (${newOrderId}) وإدراجه في قائمة الطلبات! جاري نقلك إلى تيليجرام للتأكيد.`,
+      type: 'success'
+    });
+
     // إتاحة نسخ تفاصيل الطلب للحافظة لتسهيل اللصق في المحادثة
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
