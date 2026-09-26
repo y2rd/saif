@@ -8,7 +8,7 @@
     "allowNavigation": [
       "y2rd.github.io",
       "*.github.io",
-      "*.firebaseio.com",
+      "*.supabase.co",
       "*.googleapis.com"
     ]
   }

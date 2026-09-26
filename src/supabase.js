@@ -1018,6 +1018,12 @@ export function subscribeToStoreData({
         if (Array.isArray(data)) onTopupsUpdate(data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
       }
     })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'coupons' }, async () => {
+      if (onCouponsUpdate) {
+        const { data } = await supabase.from('coupons').select('*');
+        if (Array.isArray(data)) onCouponsUpdate(data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
+      }
+    })
     .subscribe();
 
   return () => {

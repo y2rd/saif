@@ -586,7 +586,14 @@ export default function App() {
       return [];
     }
   })())); // تتبع الإشعارات المقروءة محلياً ودائماً عبر الريفرش لمنع إعادة ظهورها كجديدة من Supabase
-  const [wishlist, setWishlist] = useState([]);
+  const [wishlist, setWishlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem('haider_store_wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [cartBump, setCartBump] = useState(false); // موشن اهتزاز وتكبير السلة عند إضافة منتج
   const [cartToastMessage, setCartToastMessage] = useState(''); // رسالة صغيرة تحت في منتصف الشاشة بالخط الأسود
   const [cartToastVisible, setCartToastVisible] = useState(false); // التحكم في سلاسة الدخول والخروج
@@ -611,9 +618,17 @@ export default function App() {
   };
 
   const toggleWishlist = (productId) => {
-    setWishlist(prev => 
-      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
-    );
+    setWishlist(prev => {
+      const updated = prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId];
+      try {
+        localStorage.setItem('haider_store_wishlist', JSON.stringify(updated));
+      } catch (e) {}
+      if (currentUser && currentUser.id) {
+        const updatedCust = { ...currentUser, wishlist: updated };
+        syncCustomerToCloud(updatedCust);
+      }
+      return updated;
+    });
   };
 
   // نافذة تفاصيل المنتج
