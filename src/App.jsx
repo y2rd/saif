@@ -242,6 +242,26 @@ export default function App() {
     };
   }, [isUserMenuOpen]);
 
+  // إدارة القوائم المنسدلة لشريط الأقسام (للكمبيوتر والتابلت باللمس والنقر)
+  const [activeNavDropdown, setActiveNavDropdown] = useState(null); // 'more' أو معرّف القسم cat.id
+  const navBarRef = useRef(null);
+
+  useEffect(() => {
+    const handleNavClickOutside = (event) => {
+      if (navBarRef.current && !navBarRef.current.contains(event.target)) {
+        setActiveNavDropdown(null);
+      }
+    };
+    if (activeNavDropdown) {
+      document.addEventListener('mousedown', handleNavClickOutside);
+      document.addEventListener('touchstart', handleNavClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleNavClickOutside);
+      document.removeEventListener('touchstart', handleNavClickOutside);
+    };
+  }, [activeNavDropdown]);
+
   // حالة نافذة تتبع الطلبات الفورية
   const [showOrderTrackingModal, setShowOrderTrackingModal] = useState(false);
   const [trackingQuery, setTrackingQuery] = useState('');
@@ -3083,44 +3103,233 @@ export default function App() {
             </div>
           </div>
 
-          {/* الجانب الأوسط (للكمبيوتر/التابلت): روابط الأقسام مباشرة في الهيدر كما في الصورة */}
-          <nav className="hidden md:flex flex-1 items-center justify-center px-4 overflow-visible">
-            <ul className="flex items-center gap-3 lg:gap-5 text-[11px] font-medium">
-              {categories.slice(0, 6).map(cat => (
-                <li key={cat.id || cat.name}>
-                  <a
-                    href={`#/category/${encodeURIComponent(cat.name)}`}
-                    onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
-                    className={`cursor-pointer transition ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c] hover:opacity-70' : 'text-gray-700 hover:text-black'} ${selectedCat === cat.name ? 'text-black font-extrabold' : ''}`}
-                  >
-                    {cat.name}
-                  </a>
-                </li>
-              ))}
-              {categories.length > 6 && (
-                <li className="relative group">
-                  <div className="cursor-pointer transition text-gray-700 hover:text-black flex items-center gap-1.5 font-medium">
-                    <span>المزيد</span>
-                    <i className="fa-solid fa-angle-down group-hover:rotate-180 transition-transform duration-200 text-[10px]"></i>
-                  </div>
-                  <div className="absolute top-full right-0 mt-5 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="absolute -top-1.5 right-6 w-3 h-3 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
-                    <div className="relative bg-white z-10 flex flex-col rounded-xl overflow-hidden">
-                      {categories.slice(6).map(cat => (
-                        <a
-                          key={cat.id || cat.name}
-                          href={`#/category/${encodeURIComponent(cat.name)}`}
-                          onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.name); }}
-                          className={`block w-full text-right px-4 py-2.5 hover:bg-gray-50 text-[11px] font-medium cursor-pointer ${cat.name.includes('تخفيض') || cat.name.includes('عروض') ? 'text-[#8b1c1c]' : 'text-gray-700'} ${selectedCat === cat.name ? 'bg-gray-50 text-black font-extrabold' : ''}`}
+          {/* الجانب الأوسط (للكمبيوتر/التابلت): روابط الأقسام مباشرة في الهيدر مع دعم النوافذ المنسدلة للأقسام الفرعية وقائمة المزيد التفاعلية باللمس والنقر */}
+          <nav ref={navBarRef} className="hidden md:flex flex-1 items-center justify-center px-2 lg:px-4 overflow-visible">
+            {(() => {
+              // الأقسام الرئيسية التي ليس لها parentId
+              const mainCats = categories.filter(c => !c.parentId);
+              // أي أقسام فرعية مجهولة الأب (orphan) تُعامل كأقسام مستقلة
+              const orphanSubCats = categories.filter(c => c.parentId && !categories.some(p => p.id === c.parentId));
+              const allTopCats = [...mainCats, ...orphanSubCats];
+              
+              // عرض أول 5 أقسام رئيسية مباشرة، والباقي في قائمة المزيد
+              const visibleCats = allTopCats.slice(0, 5);
+              const moreCats = allTopCats.slice(5);
+
+              return (
+                <ul className="flex items-center gap-2 lg:gap-4 text-[11px] font-medium">
+                  {visibleCats.map(cat => {
+                    const subCats = categories.filter(c => c.parentId === cat.id);
+                    const hasSub = subCats.length > 0;
+                    const isOpen = activeNavDropdown === cat.id;
+                    const isMainSelected = selectedCat === cat.name;
+                    const isAnySubSelected = subCats.some(s => s.name === selectedCat);
+
+                    if (!hasSub) {
+                      return (
+                        <li key={cat.id || cat.name}>
+                          <a
+                            href={`#/category/${encodeURIComponent(cat.name)}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleCategoryClick(cat.name);
+                              setActiveNavDropdown(null);
+                            }}
+                            className={`cursor-pointer transition px-2 py-1 rounded-lg ${
+                              cat.name.includes('تخفيض') || cat.name.includes('عروض')
+                                ? 'text-[#8b1c1c] hover:opacity-70'
+                                : 'text-gray-700 hover:text-black hover:bg-gray-50'
+                            } ${isMainSelected ? 'text-black font-extrabold bg-gray-100/70' : ''}`}
+                          >
+                            {cat.name}
+                          </a>
+                        </li>
+                      );
+                    }
+
+                    // القسم لديه أقسام فرعية -> نافذة منسدلة مثل حركة المزيد متوافقة مع التابلت والكمبيوتر
+                    return (
+                      <li
+                        key={cat.id || cat.name}
+                        className="relative"
+                        onMouseEnter={() => setActiveNavDropdown(cat.id)}
+                        onMouseLeave={() => setActiveNavDropdown(null)}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setActiveNavDropdown(prev => prev === cat.id ? null : cat.id);
+                          }}
+                          className={`cursor-pointer transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium ${
+                            isMainSelected || isAnySubSelected
+                              ? 'text-black font-extrabold bg-gray-100/80 shadow-2xs'
+                              : 'text-gray-700 hover:text-black hover:bg-gray-50'
+                          }`}
+                          aria-expanded={isOpen}
                         >
-                          {cat.name}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </li>
-              )}
-            </ul>
+                          <span>{cat.name}</span>
+                          <i className={`fa-solid fa-angle-down text-[9px] transition-transform duration-200 ${isOpen ? 'rotate-180 text-black' : 'text-gray-400'}`}></i>
+                        </button>
+
+                        {/* النافذة المنسدلة التفاعلية (باللمس على التابلت والتحويم على الكمبيوتر) */}
+                        <div
+                          className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 ${
+                            isOpen
+                              ? 'opacity-100 visible pointer-events-auto translate-y-0'
+                              : 'opacity-0 invisible pointer-events-none -translate-y-1'
+                          }`}
+                        >
+                          <div className="w-56 bg-white border border-gray-100 rounded-xl shadow-xl py-1 relative overflow-hidden text-right">
+                            {/* سهم المؤشر الصغير أعلى النافذة */}
+                            <div className="absolute -top-1.5 right-6 w-3 h-3 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
+
+                            {/* زر استعراض كل القسم الرئيسي */}
+                            <a
+                              href={`#/category/${encodeURIComponent(cat.name)}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleCategoryClick(cat.name);
+                                setActiveNavDropdown(null);
+                              }}
+                              className={`flex items-center justify-between px-3.5 py-2 text-[11px] font-bold transition cursor-pointer border-b border-gray-100/80 ${
+                                isMainSelected ? 'bg-gray-50 text-black font-black' : 'text-gray-800 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <i className="fa-solid fa-table-cells-large text-[10px] text-[#004956]"></i>
+                                <span>عرض كل {cat.name}</span>
+                              </span>
+                              <i className="fa-solid fa-arrow-left text-[9px] text-gray-300"></i>
+                            </a>
+
+                            {/* قائمة الأقسام الفرعية التابعة له */}
+                            <div className="py-1 max-h-60 overflow-y-auto">
+                              {subCats.map(subCat => {
+                                const isSubSelected = selectedCat === subCat.name;
+                                return (
+                                  <a
+                                    key={subCat.id || subCat.name}
+                                    href={`#/category/${encodeURIComponent(subCat.name)}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleCategoryClick(subCat.name);
+                                      setActiveNavDropdown(null);
+                                    }}
+                                    className={`flex items-center gap-2 px-3.5 py-2 hover:bg-gray-50 text-[11px] transition cursor-pointer ${
+                                      isSubSelected
+                                        ? 'bg-gray-50 text-black font-bold'
+                                        : 'text-gray-600 hover:text-black font-medium'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isSubSelected ? 'bg-[#004956]' : 'bg-gray-300'}`}></span>
+                                    <span className="truncate">{subCat.name}</span>
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+
+                  {/* زر وقائمة المزيد (تعمل بالنقر واللمس على التابلت وبالتحويم على الكمبيوتر) */}
+                  {moreCats.length > 0 && (
+                    <li
+                      className="relative"
+                      onMouseEnter={() => setActiveNavDropdown('more')}
+                      onMouseLeave={() => setActiveNavDropdown(null)}
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveNavDropdown(prev => prev === 'more' ? null : 'more');
+                        }}
+                        className={`cursor-pointer transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium ${
+                          activeNavDropdown === 'more'
+                            ? 'text-black font-extrabold bg-gray-100/80 shadow-2xs'
+                            : 'text-gray-700 hover:text-black hover:bg-gray-50'
+                        }`}
+                        aria-expanded={activeNavDropdown === 'more'}
+                      >
+                        <span>المزيد</span>
+                        <i className={`fa-solid fa-angle-down text-[9px] transition-transform duration-200 ${activeNavDropdown === 'more' ? 'rotate-180 text-black' : 'text-gray-400'}`}></i>
+                      </button>
+
+                      <div
+                        className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 ${
+                          activeNavDropdown === 'more'
+                            ? 'opacity-100 visible pointer-events-auto translate-y-0'
+                            : 'opacity-0 invisible pointer-events-none -translate-y-1'
+                        }`}
+                      >
+                        <div className="w-60 bg-white border border-gray-100 rounded-xl shadow-xl py-1 relative overflow-hidden text-right max-h-80 overflow-y-auto">
+                          <div className="absolute -top-1.5 right-6 w-3 h-3 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
+                          <div className="relative bg-white z-10 flex flex-col">
+                            {moreCats.map(cat => {
+                              const moreSubCats = categories.filter(c => c.parentId === cat.id);
+                              const isCatSelected = selectedCat === cat.name;
+
+                              return (
+                                <div key={cat.id || cat.name} className="border-b border-gray-50 last:border-b-0">
+                                  <a
+                                    href={`#/category/${encodeURIComponent(cat.name)}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleCategoryClick(cat.name);
+                                      setActiveNavDropdown(null);
+                                    }}
+                                    className={`flex items-center justify-between px-3.5 py-2 text-[11px] font-medium hover:bg-gray-50 transition cursor-pointer ${
+                                      cat.name.includes('تخفيض') || cat.name.includes('عروض')
+                                        ? 'text-[#8b1c1c]'
+                                        : 'text-gray-700 hover:text-black'
+                                    } ${isCatSelected ? 'bg-gray-50 text-black font-bold' : ''}`}
+                                  >
+                                    <span className="truncate">{cat.name}</span>
+                                    {moreSubCats.length > 0 && (
+                                      <span className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full font-normal">
+                                        {moreSubCats.length} فروع
+                                      </span>
+                                    )}
+                                  </a>
+
+                                  {/* فروع القسم في قائمة المزيد إن وجدت */}
+                                  {moreSubCats.length > 0 && (
+                                    <div className="bg-gray-50/70 py-1 pr-4 pl-2 space-y-0.5 border-t border-gray-50">
+                                      {moreSubCats.map(sub => (
+                                        <a
+                                          key={sub.id || sub.name}
+                                          href={`#/category/${encodeURIComponent(sub.name)}`}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            handleCategoryClick(sub.name);
+                                            setActiveNavDropdown(null);
+                                          }}
+                                          className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] rounded-md transition cursor-pointer ${
+                                            selectedCat === sub.name
+                                              ? 'text-black font-bold bg-white shadow-2xs'
+                                              : 'text-gray-500 hover:text-gray-800'
+                                          }`}
+                                        >
+                                          <i className="fa-solid fa-angle-left text-[8px] text-gray-300"></i>
+                                          <span className="truncate">{sub.name}</span>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              );
+            })()}
           </nav>
 
           {/* العناصر التفاعلية: تسجيل الدخول + زر الإدارة + السلة */}
