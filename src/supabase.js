@@ -33,25 +33,80 @@ export async function syncStoreConfigToCloud(config) {
 // -------------------------------------------------------------
 // 2. المنتجات (Products)
 // -------------------------------------------------------------
+// حفظ أو تعديل منتج مباشر في قاعدة البيانات السحابية (Direct Cloud Upsert)
+export async function saveProductToCloud(product) {
+  if (!supabase) return { success: false, error: 'Database not initialized' };
+  try {
+    const cleanData = { ...product };
+    delete cleanData.data; // منع التداخل والتكرار التراكمي
+    const imgUrl = cleanData.image || cleanData.imageUrl || '';
+    cleanData.imageUrl = imgUrl;
+    cleanData.image = imgUrl;
+
+    const row = {
+      id: String(product.id),
+      title: product.title || product.name || 'بدون عنوان',
+      price: parseFloat(product.price || 0),
+      old_price: product.oldPrice ? parseFloat(product.oldPrice) : null,
+      category: product.category || '',
+      image: imgUrl,
+      product_type: product.productType || 'digital',
+      stock: parseInt(product.stock !== undefined ? product.stock : 20),
+      badge: product.badge || '',
+      description: product.descriptionHtml || product.description || '',
+      is_deleted: false,
+      data: cleanData,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabase.from('products').upsert([row]);
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error("خطأ في حفظ المنتج سحابياً:", err);
+    throw err;
+  }
+}
+
+// حذف منتج مباشر وفوري من قاعدة البيانات السحابية
+export async function deleteProductFromCloud(productId) {
+  if (!supabase) return { success: false, error: 'Database not initialized' };
+  try {
+    const { error } = await supabase.from('products').delete().eq('id', String(productId));
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error("خطأ في حذف المنتج سحابياً:", err);
+    throw err;
+  }
+}
+
 export async function syncProductsToCloud(products) {
   if (!supabase) return { success: false, error: 'Database not initialized' };
   const list = Array.isArray(products) ? products : [];
   try {
-    const rows = list.map(p => ({
-      id: String(p.id),
-      title: p.title || p.name || 'بدون عنوان',
-      price: parseFloat(p.price || 0),
-      old_price: p.oldPrice ? parseFloat(p.oldPrice) : null,
-      category: p.category || '',
-      image: p.image || p.imageUrl || '',
-      product_type: p.productType || 'digital',
-      stock: parseInt(p.stock !== undefined ? p.stock : 20),
-      badge: p.badge || '',
-      description: p.descriptionHtml || p.description || '',
-      is_deleted: false,
-      data: p,
-      updated_at: new Date().toISOString()
-    }));
+    const rows = list.map(p => {
+      const cleanData = { ...p };
+      delete cleanData.data;
+      const imgUrl = cleanData.image || cleanData.imageUrl || '';
+      cleanData.imageUrl = imgUrl;
+      cleanData.image = imgUrl;
+
+      return {
+        id: String(p.id),
+        title: p.title || p.name || 'بدون عنوان',
+        price: parseFloat(p.price || 0),
+        old_price: p.oldPrice ? parseFloat(p.oldPrice) : null,
+        category: p.category || '',
+        image: imgUrl,
+        product_type: p.productType || 'digital',
+        stock: parseInt(p.stock !== undefined ? p.stock : 20),
+        badge: p.badge || '',
+        description: p.descriptionHtml || p.description || '',
+        is_deleted: false,
+        data: cleanData,
+        updated_at: new Date().toISOString()
+      };
+    });
     const { error } = await supabase.from('products').upsert(rows);
     if (error) throw error;
     return { success: true };
@@ -87,6 +142,19 @@ export async function syncCategoriesToCloud(categories) {
   }
 }
 
+// حذف قسم مباشر من السحابة
+export async function deleteCategoryFromCloud(categoryId) {
+  if (!supabase) return { success: false, error: 'Database not initialized' };
+  try {
+    const { error } = await supabase.from('categories').delete().eq('id', String(categoryId));
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error("خطأ في حذف القسم سحابياً:", err);
+    throw err;
+  }
+}
+
 // -------------------------------------------------------------
 // 4. الكوبونات (Coupons)
 // -------------------------------------------------------------
@@ -106,6 +174,16 @@ export async function syncCouponsToCloud(coupons) {
     await supabase.from('coupons').upsert(rows);
   } catch (err) {
     console.warn("خطأ في حفظ الكوبونات سحابياً:", err);
+  }
+}
+
+// حذف كوبون مباشر من السحابة
+export async function deleteCouponFromCloud(couponId) {
+  if (!supabase) return;
+  try {
+    await supabase.from('coupons').delete().eq('id', String(couponId));
+  } catch (err) {
+    console.warn("خطأ في حذف الكوبون سحابياً:", err);
   }
 }
 
@@ -682,70 +760,176 @@ export function subscribeToStoreData({
 }) {
   if (!supabase) return () => {};
 
-  // جلب أولي فوري لكافة البيانات
+  // ============================================================
+  // جلب أولي فائق السرعة - مرحلتان:
+  // المرحلة 1: جلب بيانات المنتجات بدون الصور (خفيف جداً ~1 ثانية)
+  //            → يُعرض فوراً للزائر مع الصور من الكاش المحلي
+  // المرحلة 2: جلب الصور الكاملة في الخلفية → تحديث تلقائي
+  // ============================================================
   const fetchAllInitial = async () => {
     try {
-      if (onConfigUpdate) {
-        const { data } = await supabase.from('store_settings').select('*').eq('id', 'storeConfig').maybeSingle();
-        if (data && data.data) onConfigUpdate(data.data, new Date(data.updated_at).getTime());
+      // ── المرحلة 1: جلب سريع بدون صور ──────────────────────────
+      const pConfig = onConfigUpdate
+        ? supabase.from('store_settings').select('*').eq('id', 'storeConfig').maybeSingle()
+        : Promise.resolve({});
+      const pCats = onCategoriesUpdate
+        ? supabase.from('categories').select('*').order('display_order', { ascending: true })
+        : Promise.resolve({});
+      // جلب بيانات المنتجات بدون عمود الصورة (image) أو data لأنهما يحتويان base64 ضخمة
+      const pProdsLight = onProductsUpdate
+        ? supabase
+            .from('products')
+            .select('id, title, price, old_price, category, product_type, stock, badge, description, is_deleted, updated_at, sku, weight, custom_fields, quantity_tiers, license_keys, min_quantity, shipping_fee, exchange_amount, exchange_currency_name, exchange_required_product_name, exchange_custom_fields, flash_sale_enabled, flash_sale_price, flash_sale_ends_at, has_quantity_tiers, cost_price, sales_count, total_sales_revenue, reviews, download_url, file_size, created_at')
+            .eq('is_deleted', false)
+            .order('created_at', { ascending: false })
+        : Promise.resolve({});
+      const pCusts = onCustomersUpdate
+        ? supabase.from('customers').select('*')
+        : Promise.resolve({});
+      const pOrds = onOrdersUpdate
+        ? supabase.from('orders').select('*').eq('is_deleted', false).order('created_at', { ascending: false })
+        : Promise.resolve({});
+      const pCpns = onCouponsUpdate
+        ? supabase.from('coupons').select('*')
+        : Promise.resolve({});
+      const pTops = onTopupsUpdate
+        ? supabase.from('topups').select('*').order('created_at', { ascending: false })
+        : Promise.resolve({});
+
+      const [resConfig, resCats, resProdsLight, resCusts, resOrds, resCpns, resTops] = await Promise.allSettled([
+        pConfig, pCats, pProdsLight, pCusts, pOrds, pCpns, pTops
+      ]);
+
+      if (resConfig.status === 'fulfilled' && resConfig.value?.data?.data && onConfigUpdate) {
+        onConfigUpdate(resConfig.value.data.data, new Date(resConfig.value.data.updated_at || Date.now()).getTime());
       }
-      if (onCategoriesUpdate) {
-        const { data } = await supabase.from('categories').select('*').order('display_order', { ascending: true });
-        if (Array.isArray(data)) {
-          const list = data.map(r => ({ ...r.data, ...r, id: r.id }));
-          onCategoriesUpdate(list, Date.now());
-        }
+      if (resCats.status === 'fulfilled' && Array.isArray(resCats.value?.data) && onCategoriesUpdate) {
+        const list = resCats.value.data.map(r => ({ ...r.data, ...r, id: r.id }));
+        onCategoriesUpdate(list, Date.now());
       }
-      if (onProductsUpdate) {
-        const { data } = await supabase.from('products').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
-        if (Array.isArray(data)) {
-          const list = data.map(r => ({ ...r.data, ...r, id: r.id }));
-          onProductsUpdate(list, Date.now());
-        }
-      }
-      if (onCustomersUpdate) {
-        const { data } = await supabase.from('customers').select('*');
-        if (Array.isArray(data)) {
-          const list = data.map(r => ({
-            ...r.data,
-            ...r,
+
+      // المرحلة 1: عرض المنتجات الخفيفة مع إضافة الصور من الكاش المحلي
+      if (resProdsLight.status === 'fulfilled' && Array.isArray(resProdsLight.value?.data) && onProductsUpdate) {
+        // بناء خريطة صور من localStorage لتعويض غياب الصور في الجلب الخفيف
+        let imageCache = {};
+        try {
+          const savedProds = localStorage.getItem('haider_store_products');
+          if (savedProds) {
+            const cachedList = JSON.parse(savedProds);
+            if (Array.isArray(cachedList)) {
+              cachedList.forEach(p => {
+                if (p.id && (p.image || p.imageUrl)) {
+                  imageCache[String(p.id)] = p.image || p.imageUrl;
+                }
+              });
+            }
+          }
+        } catch {}
+
+        const lightList = resProdsLight.value.data.map(r => {
+          const cachedImg = imageCache[String(r.id)] || '';
+          return {
             id: r.id,
-            walletTransactions: r.wallet_transactions || r.data?.walletTransactions || [],
-            notifications: r.notifications || r.data?.notifications || []
-          }));
-          onCustomersUpdate(list);
+            title: r.title || '',
+            price: r.price,
+            oldPrice: r.old_price,
+            category: r.category || '',
+            productType: r.product_type || 'simple',
+            stock: r.stock,
+            badge: r.badge || '',
+            description: r.description || '',
+            is_deleted: r.is_deleted,
+            sku: r.sku || '',
+            weight: r.weight || '',
+            minQuantity: r.min_quantity || 1,
+            shippingFee: r.shipping_fee || 0,
+            exchangeAmount: r.exchange_amount,
+            exchangeCurrencyName: r.exchange_currency_name || '',
+            exchangeRequiredProductName: r.exchange_required_product_name || '',
+            exchangeCustomFields: r.exchange_custom_fields || [],
+            flashSaleEnabled: r.flash_sale_enabled || false,
+            flashSalePrice: r.flash_sale_price || '',
+            flashSaleEndsAt: r.flash_sale_ends_at || '',
+            hasQuantityTiers: r.has_quantity_tiers || false,
+            costPrice: r.cost_price,
+            salesCount: r.sales_count || 0,
+            totalSalesRevenue: r.total_sales_revenue || '0.00',
+            reviews: r.reviews || [],
+            licenseKeys: r.license_keys || [],
+            downloadUrl: r.download_url || '',
+            fileSize: r.file_size || '',
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+            // الصورة من الكاش المحلي مؤقتاً
+            image: cachedImg,
+            imageUrl: cachedImg,
+            // علامة أن الصورة الكاملة لم تُجلب بعد
+            _imageNotLoaded: !cachedImg
+          };
+        });
+
+        // عرض فوري للمنتجات بدون صور جديدة (الصور القديمة من الكاش)
+        onProductsUpdate(lightList, Date.now());
+
+        // ── المرحلة 2: جلب الصور الكاملة في الخلفية ──────────────
+        // فقط للمنتجات التي ليس لها صورة في الكاش المحلي
+        const productsNeedingImages = lightList.filter(p => p._imageNotLoaded);
+        if (productsNeedingImages.length > 0) {
+          const idsNeedImg = productsNeedingImages.map(p => String(p.id));
+          supabase
+            .from('products')
+            .select('id, image, data')
+            .in('id', idsNeedImg)
+            .then(({ data: imgData }) => {
+              if (!Array.isArray(imgData)) return;
+              const imgMap = {};
+              imgData.forEach(r => {
+                imgMap[String(r.id)] = r.image || r.data?.image || r.data?.imageUrl || '';
+              });
+              // تحديث المنتجات بالصور الجديدة
+              const updatedList = lightList.map(p => {
+                if (imgMap[String(p.id)]) {
+                  return { ...p, image: imgMap[String(p.id)], imageUrl: imgMap[String(p.id)], _imageNotLoaded: false };
+                }
+                return p;
+              });
+              onProductsUpdate(updatedList, Date.now());
+            })
+            .catch(() => {});
         }
       }
-      if (onOrdersUpdate) {
-        const { data } = await supabase.from('orders').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
-        if (Array.isArray(data)) {
-          const list = data.map(r => ({
-            ...r.data,
-            ...r,
-            id: r.id,
-            totalUsd: r.total_usd,
-            customerId: r.customer_id,
-            customerName: r.customer_name,
-            customerPhone: r.customer_phone,
-            customerIdentifier: r.customer_identifier
-          }));
-          onOrdersUpdate(list);
-        }
+
+      if (resCusts.status === 'fulfilled' && Array.isArray(resCusts.value?.data) && onCustomersUpdate) {
+        const list = resCusts.value.data.map(r => ({
+          ...r.data,
+          ...r,
+          id: r.id,
+          walletTransactions: r.wallet_transactions || r.data?.walletTransactions || [],
+          notifications: r.notifications || r.data?.notifications || []
+        }));
+        onCustomersUpdate(list);
       }
-      if (onCouponsUpdate) {
-        const { data } = await supabase.from('coupons').select('*');
-        if (Array.isArray(data)) {
-          onCouponsUpdate(data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
-        }
+      if (resOrds.status === 'fulfilled' && Array.isArray(resOrds.value?.data) && onOrdersUpdate) {
+        const list = resOrds.value.data.map(r => ({
+          ...r.data,
+          ...r,
+          id: r.id,
+          totalUsd: r.total_usd,
+          customerId: r.customer_id,
+          customerName: r.customer_name,
+          customerPhone: r.customer_phone,
+          customerIdentifier: r.customer_identifier
+        }));
+        onOrdersUpdate(list);
       }
-      if (onTopupsUpdate) {
-        const { data } = await supabase.from('topups').select('*').order('created_at', { ascending: false });
-        if (Array.isArray(data)) {
-          onTopupsUpdate(data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
-        }
+      if (resCpns.status === 'fulfilled' && Array.isArray(resCpns.value?.data) && onCouponsUpdate) {
+        onCouponsUpdate(resCpns.value.data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
+      }
+      if (resTops.status === 'fulfilled' && Array.isArray(resTops.value?.data) && onTopupsUpdate) {
+        onTopupsUpdate(resTops.value.data.map(r => ({ ...r.data, ...r, id: r.id })), Date.now());
       }
     } catch (err) {
-      console.warn("خطأ في الجلب الأولي من Supabase:", err);
+      console.warn('خطأ في الجلب الأولي من Supabase:', err);
     }
   };
 

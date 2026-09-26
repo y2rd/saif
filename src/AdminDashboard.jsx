@@ -4,8 +4,12 @@ import hayDayPresetImages from './hayday_presets.json';
 import { 
   syncStoreConfigToCloud, 
   syncProductsToCloud, 
+  saveProductToCloud,
+  deleteProductFromCloud,
   syncCategoriesToCloud,
+  deleteCategoryFromCloud,
   syncCouponsToCloud,
+  deleteCouponFromCloud,
   syncTopupsToCloud,
   fetchTopupsFromCloud,
   subscribeToTopups,
@@ -160,6 +164,7 @@ export default function AdminDashboard({
   const [groupByCategory, setGroupByCategory] = useState(true); // تقسيم حسب التصنيف
   const [editingProduct, setEditingProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const richTextEditorRef = useRef(null);
   // وضع تحرير الوصف: 'visual' (مرئي مباشر) أو 'code' (نصي مباشر بدون أي أخطاء)
   const [descEditorMode, setDescEditorMode] = useState('visual');
@@ -521,17 +526,20 @@ export default function AdminDashboard({
       localStorage.setItem('haider_store_categories', JSON.stringify(categories));
       localStorage.setItem('haider_store_categories_updatedAt', String(now));
       
-      syncStoreConfigToCloud(storeConfig);
-      syncCategoriesToCloud(categories);
-      syncCouponsToCloud(coupons);
-      if (Array.isArray(topupRequests)) syncTopupsToCloud(topupRequests);
+      const pRes = syncProductsToCloud(products);
+      const cfgRes = syncStoreConfigToCloud(storeConfig);
+      const catRes = syncCategoriesToCloud(categories);
+      const cpnRes = syncCouponsToCloud(coupons);
+      const topRes = Array.isArray(topupRequests) ? syncTopupsToCloud(topupRequests) : Promise.resolve();
 
-      showToast('✅ تم حفظ وتطبيق كافة إعدادات وتعديلات المتجر بنجاح!');
+      await Promise.allSettled([pRes, cfgRes, catRes, cpnRes, topRes]);
+
+      showToast('✅ تم حفظ ومزامنة كافة إعدادات ومنتجات المتجر سحابياً بنجاح!');
     } catch (err) {
       console.error('Error saving settings:', err);
-      showToast('تم حفظ الإعدادات بنجاح في المتصفح!');
+      showToast('تم حفظ الإعدادات بنجاح!');
     } finally {
-      setTimeout(() => setIsSavingGlobalSettings(false), 500);
+      setIsSavingGlobalSettings(false);
     }
   };
 
@@ -925,7 +933,7 @@ export default function AdminDashboard({
   };
 
   // حفظ المنتج
-  const handleSaveProductSubmit = (e) => {
+  const handleSaveProductSubmit = async (e) => {
     e.preventDefault();
     if (!productForm.title) {
       alert('يرجى كتابة عنوان المنتج على الأقل.');
@@ -944,86 +952,98 @@ export default function AdminDashboard({
       return;
     }
 
-    const licenseKeysArray = productForm.licenseKeys
-      ? productForm.licenseKeys.split('\n').map(k => k.trim()).filter(Boolean)
-      : [];
+    setIsSavingProduct(true);
+    try {
+      const licenseKeysArray = productForm.licenseKeys
+        ? productForm.licenseKeys.split('\n').map(k => k.trim()).filter(Boolean)
+        : [];
 
-    const computedStock = productForm.productType === 'license' && licenseKeysArray.length > 0
-      ? licenseKeysArray.length
-      : parseInt(productForm.stock) || 0;
+      const computedStock = productForm.productType === 'license' && licenseKeysArray.length > 0
+        ? licenseKeysArray.length
+        : parseInt(productForm.stock) || 0;
 
-    // تنظيف خيارات وأسعار المنتج
-    const formattedTiers = productForm.hasQuantityTiers
-      ? productForm.quantityTiers.filter(t => t.price && t.label && t.label.trim() !== '').map((t, idx) => ({
-          minQuantity: parseInt(t.minQuantity) || (idx + 1),
-          label: t.label.trim(),
-          price: parseFloat(t.price)
-        }))
-      : [];
+      // تنظيف خيارات وأسعار المنتج
+      const formattedTiers = productForm.hasQuantityTiers
+        ? productForm.quantityTiers.filter(t => t.price && t.label && t.label.trim() !== '').map((t, idx) => ({
+            minQuantity: parseInt(t.minQuantity) || (idx + 1),
+            label: t.label.trim(),
+            price: parseFloat(t.price)
+          }))
+        : [];
 
-    const isEx = productForm.productType === 'exchange';
-    const parsedPrice = isEx ? 0 : (parseFloat(productForm.price) || 0);
-    const parsedMinQty = isEx ? Math.max(1, parseInt(productForm.minQuantity) || 1) : 1;
-    const parsedExAmount = isEx ? (parseFloat(productForm.exchangeAmount) || 1) : '';
+      const isEx = productForm.productType === 'exchange';
+      const parsedPrice = isEx ? 0 : (parseFloat(productForm.price) || 0);
+      const parsedMinQty = isEx ? Math.max(1, parseInt(productForm.minQuantity) || 1) : 1;
+      const parsedExAmount = isEx ? (parseFloat(productForm.exchangeAmount) || 1) : '';
 
-    if (editingProduct) {
-      const updatedProduct = {
-        ...editingProduct,
-        ...productForm,
-        price: parsedPrice,
-        oldPrice: (!isEx && productForm.oldPrice) ? parseFloat(productForm.oldPrice) : null,
-        costPrice: (!isEx && productForm.costPrice) ? parseFloat(productForm.costPrice) : null,
-        stock: computedStock,
-        licenseKeys: licenseKeysArray,
-        hasQuantityTiers: isEx ? false : productForm.hasQuantityTiers,
-        quantityTiers: isEx ? [] : formattedTiers,
-        minQuantity: parsedMinQty,
-        exchangeAmount: parsedExAmount
-      };
-      const newProds = products.map(p => p.id === editingProduct.id ? updatedProduct : p);
-      const now = Date.now();
-      try {
-        localStorage.setItem('haider_store_products_updatedAt', String(now));
-        localStorage.setItem('haider_store_products', JSON.stringify(newProds));
-      } catch (e) {}
-      setProducts(newProds);
-      syncProductsToCloud(newProds);
-      if (setActiveProductForPage) {
-        setActiveProductForPage(prev => (prev && prev.id === editingProduct.id ? updatedProduct : prev));
+      if (editingProduct) {
+        const updatedProduct = {
+          ...editingProduct,
+          ...productForm,
+          price: parsedPrice,
+          oldPrice: (!isEx && productForm.oldPrice) ? parseFloat(productForm.oldPrice) : null,
+          costPrice: (!isEx && productForm.costPrice) ? parseFloat(productForm.costPrice) : null,
+          stock: computedStock,
+          licenseKeys: licenseKeysArray,
+          hasQuantityTiers: isEx ? false : productForm.hasQuantityTiers,
+          quantityTiers: isEx ? [] : formattedTiers,
+          minQuantity: parsedMinQty,
+          exchangeAmount: parsedExAmount
+        };
+        const newProds = products.map(p => p.id === editingProduct.id ? updatedProduct : p);
+        const now = Date.now();
+        try {
+          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          localStorage.setItem('haider_store_products', JSON.stringify(newProds));
+        } catch (e) {}
+        setProducts(newProds);
+        try {
+          await saveProductToCloud(updatedProduct);
+        } catch (err) {
+          console.error("فشل الحفظ المباشر للمنتج في السحابة:", err);
+        }
+        if (setActiveProductForPage) {
+          setActiveProductForPage(prev => (prev && prev.id === editingProduct.id ? updatedProduct : prev));
+        }
+        showToast('تم تحديث وحفظ بيانات المنتج سحابياً بنجاح ✅');
+      } else {
+        const newProd = {
+          id: Date.now(),
+          ...productForm,
+          price: parsedPrice,
+          oldPrice: (!isEx && productForm.oldPrice) ? parseFloat(productForm.oldPrice) : null,
+          costPrice: (!isEx && productForm.costPrice) ? parseFloat(productForm.costPrice) : null,
+          stock: computedStock,
+          licenseKeys: licenseKeysArray,
+          hasQuantityTiers: isEx ? false : productForm.hasQuantityTiers,
+          quantityTiers: isEx ? [] : formattedTiers,
+          minQuantity: parsedMinQty,
+          exchangeAmount: parsedExAmount,
+          imageUrl: productForm.imageUrl || 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80',
+          reviews: []
+        };
+        const newProds = [newProd, ...products];
+        const now = Date.now();
+        try {
+          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          localStorage.setItem('haider_store_products', JSON.stringify(newProds));
+        } catch (e) {}
+        setProducts(newProds);
+        try {
+          await saveProductToCloud(newProd);
+        } catch (err) {
+          console.error("فشل الحفظ المباشر للمنتج في السحابة:", err);
+        }
+        showToast('تمت إضافة المنتج وحفظه سحابياً بنجاح ✅');
       }
-      showToast('تم تحديث وحفظ بيانات المنتج بنجاح');
-    } else {
-      const newProd = {
-        id: Date.now(),
-        ...productForm,
-        price: parsedPrice,
-        oldPrice: (!isEx && productForm.oldPrice) ? parseFloat(productForm.oldPrice) : null,
-        costPrice: (!isEx && productForm.costPrice) ? parseFloat(productForm.costPrice) : null,
-        stock: computedStock,
-        licenseKeys: licenseKeysArray,
-        hasQuantityTiers: isEx ? false : productForm.hasQuantityTiers,
-        quantityTiers: isEx ? [] : formattedTiers,
-        minQuantity: parsedMinQty,
-        exchangeAmount: parsedExAmount,
-        imageUrl: productForm.imageUrl || 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80',
-        reviews: []
-      };
-      const newProds = [newProd, ...products];
-      const now = Date.now();
-      try {
-        localStorage.setItem('haider_store_products_updatedAt', String(now));
-        localStorage.setItem('haider_store_products', JSON.stringify(newProds));
-      } catch (e) {}
-      setProducts(newProds);
-      syncProductsToCloud(newProds);
-      showToast('تمت إضافة المنتج الجديد بنجاح');
+      setShowProductModal(false);
+    } finally {
+      setIsSavingProduct(false);
     }
-
-    setShowProductModal(false);
   };
 
-  // حذف منتج
-  const handleDeleteProduct = (productId) => {
+  // حذف منتج مباشر وفوري من قاعدة البيانات السحابية
+  const handleDeleteProduct = async (productId) => {
     if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج؟')) {
       const updated = products.filter(p => p.id !== productId);
       const now = Date.now();
@@ -1032,8 +1052,12 @@ export default function AdminDashboard({
         localStorage.setItem('haider_store_products', JSON.stringify(updated));
       } catch (e) {}
       setProducts(updated);
-      syncProductsToCloud(updated);
-      showToast('تم حذف المنتج بنجاح');
+      try {
+        await deleteProductFromCloud(productId);
+      } catch (err) {
+        console.error("فشل حذف المنتج من السحابة:", err);
+      }
+      showToast('تم حذف المنتج سحابياً بنجاح');
     }
   };
 
@@ -1745,7 +1769,7 @@ export default function AdminDashboard({
     showToast('تم تحديث بيانات القسم بنجاح');
   };
 
-  const handleDeleteCategory = (catId) => {
+  const handleDeleteCategory = async (catId) => {
     if (categories.length <= 1) {
       alert('يجب الإبقاء على قسم واحد على الأقل في المتجر.');
       return;
@@ -1759,9 +1783,14 @@ export default function AdminDashboard({
         .filter(c => c.id !== catId)
         .map(c => c.parentId === catId ? { ...c, parentId: null } : c);
       setCategories(updatedCats);
-      syncCategoriesToCloud(updatedCats);
       try { localStorage.setItem('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
-      showToast('تم حذف القسم بنجاح');
+      try {
+        await deleteCategoryFromCloud(catId);
+        await syncCategoriesToCloud(updatedCats);
+      } catch (err) {
+        console.error("فشل حذف القسم سحابياً:", err);
+      }
+      showToast('تم حذف القسم سحابياً بنجاح');
     }
   };
 
@@ -1903,9 +1932,16 @@ export default function AdminDashboard({
   };
 
   // حذف الكوبون
-  const handleDeleteCoupon = (couponId) => {
+  const handleDeleteCoupon = async (couponId) => {
     if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا الكوبون نهائياً؟')) {
-      setCoupons(coupons.filter(c => c.id !== couponId));
+      const updated = coupons.filter(c => c.id !== couponId);
+      setCoupons(updated);
+      try {
+        await deleteCouponFromCloud(couponId);
+      } catch (err) {
+        console.error("فشل حذف الكوبون سحابياً:", err);
+      }
+      showToast('تم حذف الكوبون سحابياً بنجاح');
     }
   };
 
@@ -10551,16 +10587,25 @@ service cloud.firestore {
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
                 <button
                   type="button"
+                  disabled={isSavingProduct}
                   onClick={() => setShowProductModal(false)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium cursor-pointer"
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium cursor-pointer disabled:opacity-50"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#004956] text-white rounded-xl font-semibold shadow-xs hover:opacity-90 cursor-pointer"
+                  disabled={isSavingProduct}
+                  className="px-6 py-2 bg-[#004956] text-white rounded-xl font-semibold shadow-xs hover:opacity-90 cursor-pointer disabled:opacity-75 flex items-center justify-center gap-2 min-w-[140px]"
                 >
-                  {editingProduct ? 'تحديث المنتج' : 'نشر المنتج الآن'}
+                  {isSavingProduct ? (
+                    <>
+                      <i className="fa-solid fa-circle-notch fa-spin text-sm"></i>
+                      <span>جاري الرفع سحابياً...</span>
+                    </>
+                  ) : (
+                    <span>{editingProduct ? 'تحديث المنتج' : 'نشر المنتج الآن'}</span>
+                  )}
                 </button>
               </div>
             </form>

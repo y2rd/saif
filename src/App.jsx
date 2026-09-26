@@ -4,6 +4,8 @@ import AdminDashboard from './AdminDashboard';
 import ProductDetailPage from './ProductDetailPage';
 import { App as CapApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import bundledInitialProducts from './bundled_products_cache.json';
+import bundledInitialCategories from './bundled_categories_cache.json';
 import { 
   subscribeToStoreData, 
   syncCustomerToCloud, 
@@ -1048,6 +1050,10 @@ export default function App() {
     { id: 'Alexandria', name: 'Alexandria (الإسكندرية)' }
   ];
 
+  // ref لتتبع أحدث قيمة لإعدادات المتجر بدون إعادة تشغيل الـ effects
+  const storeConfigRef = useRef(storeConfig);
+  useEffect(() => { storeConfigRef.current = storeConfig; }, [storeConfig]);
+
   const sizeSpecs = {
     2: { desktopSize: '1200 × 500 بكسل', mobileSize: '600 × 350 بكسل', ratio: '16:7', cardHeight: 'h-48 sm:h-64', gridClass: 'grid-cols-1 sm:grid-cols-2' },
     3: { desktopSize: '800 × 500 بكسل', mobileSize: '500 × 350 بكسل', ratio: '16:10', cardHeight: 'h-44 sm:h-56', gridClass: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' },
@@ -1057,7 +1063,7 @@ export default function App() {
 
   const currentSizeInfo = sizeSpecs[storeConfig.itemsPerRow] || sizeSpecs[3];
 
-  // 2. التصنيفات المتنوعة للمتجر
+  // 2. التصنيفات المتنوعة للمتجر - تحميل فوري لحظي دون أي تأخير
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('haider_store_categories');
@@ -1070,22 +1076,36 @@ export default function App() {
         }
       }
     } catch {}
-    return [];
+    return Array.isArray(bundledInitialCategories) && bundledInitialCategories.length > 0 ? bundledInitialCategories : [];
   });
 
   const [selectedCat, setSelectedCat] = useState('الكل');
 
-  // 3. المنتجات
+  // 3. المنتجات - عرض فوري لحظي دون أي تأخير عند فتح الرابط
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('haider_store_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // دمج المنتجات المحلية مع الكاش المدمج: أضف أي منتج في الكاش غير موجود محلياً
+          // هذا يضمن ظهور المنتجات الجديدة حتى لو كان localStorage قديماً
+          if (Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0) {
+            const localIds = new Set(parsed.map(p => String(p.id)));
+            const missingFromLocal = bundledInitialProducts.filter(p => !localIds.has(String(p.id)));
+            if (missingFromLocal.length > 0) {
+              return [...parsed, ...missingFromLocal];
+            }
+          }
+          return parsed;
+        }
       }
     } catch {}
-    return [];
+    // إذا كان أول دخول للمتصفح، يتم تحميل قائمة المنتجات المدمجة فوراً في أول جزء من الثانية
+    return Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0 ? bundledInitialProducts : [];
   });
+  // ref لتتبع أحدث قيمة للمنتجات بدون إعادة تشغيل الـ effects
+  const productsRef = useRef(products);
 
   // 4. الطلبات
   const [orders, setOrders] = useState(() => {
@@ -1126,17 +1146,8 @@ export default function App() {
     return [];
   });
 
-  // حالة شاشة الانتظار السريعة والأنيقة عند أول تشغيل فقط
-  const [isInitialSyncing, setIsInitialSyncing] = useState(() => {
-    try {
-      // إذا كانت البيانات مخزنة مسبقاً في الهاتف، نفتح المتجر فوراً بدون تأخير
-      const hasLocalConfig = !!localStorage.getItem('haider_store_config');
-      const hasLocalProducts = !!localStorage.getItem('haider_store_products');
-      return !(hasLocalConfig && hasLocalProducts);
-    } catch {
-      return false;
-    }
-  });
+  // فتح المتجر وعرض المنتجات مباشرة وفوراً مثل المتاجر الكبرى بدون أي شاشة انتظار معطلة
+  const [isInitialSyncing, setIsInitialSyncing] = useState(false);
 
   // حفظ فوري في التخزين المحلي (localStorage) عند أي تعديل أو حذف
   useEffect(() => {
@@ -1163,7 +1174,13 @@ export default function App() {
     }
   }, [storeConfig]);
 
+  // تحديث productsRef دائماً عند أي تغيير في المنتجات (بدون إعادة تشغيل effects أخرى)
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
+
   // حقن الخطوط المخصصة المحفوظة سحابياً أو محلياً
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem('custom_store_fonts');
@@ -1498,8 +1515,8 @@ export default function App() {
       }
 
       if (routeType === 'product' && param) {
-        // محاولة العثور على المنتج في الحالة الحالية أو التخزين المحلي
-        let allProds = products;
+        // محاولة العثور على المنتج في الـ ref (أحدث قيمة) أو التخزين المحلي
+        let allProds = productsRef.current;
         if (!allProds || allProds.length === 0) {
           try {
             const saved = localStorage.getItem('haider_store_products');
@@ -1540,7 +1557,7 @@ export default function App() {
       }
 
       if ((routeType === 'p' || routeType === 'page') && param) {
-        const pages = Array.isArray(storeConfig?.customPages) ? storeConfig.customPages : [];
+        const pages = Array.isArray(storeConfigRef.current?.customPages) ? storeConfigRef.current.customPages : [];
         const foundPage = pages.find(p => String(p.id) === String(param) || String(p.slug || '') === String(param) || String(p.title || '') === String(param));
         if (foundPage) {
           setActiveCustomPage(foundPage);
@@ -1554,13 +1571,15 @@ export default function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    // قراءة أولية للهاش بعد تهيئة المنتجات والإعدادات
+    // قراءة أولية للهاش مرة واحدة فقط عند تحميل الصفحة
     handleHashChange();
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [products, storeConfig]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // يعمل مرة واحدة فقط - يستخدم productsRef و storeConfigRef للوصول لأحدث البيانات دائماً
+
 
   // 2. تحديث رابط الهاش في المتصفح تلقائياً عند أي تنقل في المتجر
   useEffect(() => {
@@ -2833,13 +2852,16 @@ export default function App() {
     // إخفاء أي منتج نفذت كميته من المتجر تلقائياً
     if (isProductOutOfStock(p)) return false;
 
-    let matchesCat = selectedCat === 'الكل' || p.category === selectedCat;
+    const pCat = (p.category || '').trim();
+    const curCat = (selectedCat || '').trim();
+
+    let matchesCat = curCat === 'الكل' || curCat === '' || pCat === curCat;
     if (!matchesCat) {
       // التحقق إذا كان التصنيف المختار قسماً رئيسياً يتبعه هذا القسم الفرعي
-      const selectedCatObj = categories.find(c => c.name === selectedCat);
+      const selectedCatObj = categories.find(c => (c.name || '').trim() === curCat);
       if (selectedCatObj) {
-        const childCats = categories.filter(c => c.parentId === selectedCatObj.id).map(c => c.name);
-        if (childCats.includes(p.category)) {
+        const childCats = categories.filter(c => c.parentId === selectedCatObj.id).map(c => (c.name || '').trim());
+        if (childCats.includes(pCat)) {
           matchesCat = true;
         }
       }
@@ -2847,7 +2869,7 @@ export default function App() {
     if (!matchesCat) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      return p.title.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q));
+      return (p.title || '').toLowerCase().includes(q) || pCat.toLowerCase().includes(q);
     }
     return true;
   });
@@ -6036,27 +6058,36 @@ export default function App() {
       {/* 3. صفحة مخصصة للقسم تعرض منتجاته فقط بنمط منصة سلة          */}
       {/* ========================================================= */}
       {viewMode === 'category' && (() => {
-        const currentCatObj = categories.find(c => c.name === selectedCat) || { name: selectedCat };
+        const cleanSelected = (selectedCat || '').trim();
+        const currentCatObj = categories.find(c => {
+          const cName = (c.name || '').trim();
+          return cName === cleanSelected || c.id === cleanSelected;
+        }) || { name: selectedCat };
+
         const categoryProducts = products.filter(p => {
           // إخفاء أي منتج نفذت كميته من صفحة القسم
           if (isProductOutOfStock(p)) return false;
 
+          const pCat = (p.category || '').trim();
+          const curCat = cleanSelected;
+
           let matchesCat = false;
-          if (selectedCat === 'الكل') {
+          if (curCat === 'الكل' || curCat === '' || !curCat) {
             matchesCat = true;
           } else {
-            const currentCat = categories.find(c => c.name === selectedCat);
+            const currentCat = categories.find(c => (c.name || '').trim() === curCat || c.id === curCat);
             if (currentCat) {
-              const childCatNames = categories.filter(c => c.parentId === currentCat.id).map(c => c.name);
-              matchesCat = [currentCat.name, ...childCatNames].includes(p.category);
+              const childCatNames = categories.filter(c => c.parentId === currentCat.id).map(c => (c.name || '').trim());
+              const validNames = [(currentCat.name || '').trim(), ...childCatNames];
+              matchesCat = validNames.some(vn => vn === pCat || (vn && pCat && (pCat.includes(vn) || vn.includes(pCat))));
             } else {
-              matchesCat = p.category === selectedCat;
+              matchesCat = pCat === curCat || (pCat && curCat && (pCat.includes(curCat) || curCat.includes(pCat)));
             }
           }
           if (!matchesCat) return false;
           if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase().trim();
-            return p.title.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q));
+            return (p.title || '').toLowerCase().includes(q) || pCat.toLowerCase().includes(q);
           }
           return true;
         });
