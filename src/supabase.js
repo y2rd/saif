@@ -805,11 +805,16 @@ export function subscribeToStoreData({
 
       // عرض المنتجات مباشرة ببيانات كاملة والصور (بدون مرحلتين)
       if (resProdsLight.status === 'fulfilled' && Array.isArray(resProdsLight.value?.data) && onProductsUpdate) {
-        const fullList = resProdsLight.value.data.map(r => ({
-          ...r.data,
-          ...r,
-          id: r.id
-        }));
+        const fullList = resProdsLight.value.data.map(r => {
+          const img = r.image || r.data?.image || r.data?.imageUrl || '';
+          return {
+            ...r.data,
+            ...r,
+            id: r.id,
+            image: img,
+            imageUrl: img
+          };
+        });
         onProductsUpdate(fullList, Date.now());
       }
 
@@ -870,11 +875,16 @@ export function subscribeToStoreData({
           .select('*')
           .eq('is_deleted', false).order('created_at', { ascending: false });
         if (Array.isArray(data)) {
-          const list = data.map(r => ({
-            ...r.data,
-            ...r,
-            id: r.id
-          }));
+          const list = data.map(r => {
+            const img = r.image || r.data?.image || r.data?.imageUrl || '';
+            return {
+              ...r.data,
+              ...r,
+              id: r.id,
+              image: img,
+              imageUrl: img
+            };
+          });
           onProductsUpdate(list, Date.now());
         }
       }
