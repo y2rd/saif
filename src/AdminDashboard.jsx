@@ -1117,104 +1117,16 @@ export default function AdminDashboard({
 
   // ─── تحميل نموذج Excel فارغ للتعبئة ──────────────────────────────────────
   const handleDownloadProductTemplate = () => {
-    const headers = [
-      'العنوان',
-      'السعر (USD)',
-      'السعر القديم (USD)',
-      'القسم',
-      'نوع المنتج',
-      'الكمية في المخزن',
-      'الشارة (Badge)',
-      'وصف المنتج',
-      'أكواد البطاقات (كل كود في سطر)',
-      'شرائح الكميات (min-max:price)',
-      'الحد الأدنى للطلب',
-      'عملة الاستبدال',
-      'منتج الاستبدال المطلوب',
-      'كمية الاستبدال',
-    ];
-
-    // صفوف توضيحية كمثال
-    const exampleRows = [
-      {
-        'العنوان': 'بطاقة iTunes 25$',
-        'السعر (USD)': 27,
-        'السعر القديم (USD)': 30,
-        'القسم': 'بطاقات',
-        'نوع المنتج': 'رقمي',
-        'الكمية في المخزن': 50,
-        'الشارة (Badge)': 'جديد',
-        'وصف المنتج': 'بطاقة iTunes أمريكية بقيمة 25 دولار',
-        'أكواد البطاقات (كل كود في سطر)': 'XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY',
-        'شرائح الكميات (min-max:price)': '1-4:27 | 5-9:25 | 10-:23',
-        'الحد الأدنى للطلب': 1,
-        'عملة الاستبدال': '',
-        'منتج الاستبدال المطلوب': '',
-        'كمية الاستبدال': '',
-      },
-      {
-        'العنوان': 'بطاقة Google Play 10$',
-        'السعر (USD)': 11.5,
-        'السعر القديم (USD)': '',
-        'القسم': 'بطاقات',
-        'نوع المنتج': 'رقمي',
-        'الكمية في المخزن': 100,
-        'الشارة (Badge)': '',
-        'وصف المنتج': 'بطاقة Google Play أمريكية 10 دولار',
-        'أكواد البطاقات (كل كود في سطر)': 'AAAA-BBBB-CCCC',
-        'شرائح الكميات (min-max:price)': '',
-        'الحد الأدنى للطلب': 1,
-        'عملة الاستبدال': '',
-        'منتج الاستبدال المطلوب': '',
-        'كمية الاستبدال': '',
-      },
-    ];
-
-    const ws = XLSX.utils.json_to_sheet(exampleRows, { header: headers });
-
-    // تنسيق رأس الجدول — عرض مناسب لكل عمود
-    ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 4, 20) }));
-
-    // إضافة صف تعليمي ملون (ملاحظات)
-    const notesRow = {
-      'العنوان': '★ مطلوب',
-      'السعر (USD)': '★ مطلوب — رقم عشري مثل 9.99',
-      'السعر القديم (USD)': 'اختياري — يُعرض مشطوباً',
-      'القسم': '★ يجب أن يطابق اسم قسم موجود',
-      'نوع المنتج': 'رقمي | مادي | استبدال',
-      'الكمية في المخزن': 'رقم صحيح ≥ 0',
-      'الشارة (Badge)': 'نص قصير مثل: جديد، خصم، الأفضل',
-      'وصف المنتج': 'نص حر — يدعم التنسيق',
-      'أكواد البطاقات (كل كود في سطر)': 'للمنتجات الرقمية فقط — كود في كل سطر',
-      'شرائح الكميات (min-max:price)': 'اختياري — مثال: 1-4:27 | 5-9:25 | 10-:23',
-      'الحد الأدنى للطلب': 'اختياري — رقم صحيح',
-      'عملة الاستبدال': 'للاستبدال فقط',
-      'منتج الاستبدال المطلوب': 'للاستبدال فقط',
-      'كمية الاستبدال': 'للاستبدال فقط',
-    };
-    XLSX.utils.sheet_add_json(ws, [notesRow], { skipHeader: true, origin: -1 });
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'نموذج المنتجات');
-
-    // إضافة ورقة تعليمات
-    const instrData = [
-      { 'تعليمات الاستخدام': '1. احذف صفوف المثال واحتفظ بصف العناوين فقط' },
-      { 'تعليمات الاستخدام': '2. أضف منتجاتك — كل منتج في صف جديد' },
-      { 'تعليمات الاستخدام': '3. عمود "نوع المنتج": اكتب فقط أحد الخيارات: رقمي | مادي | استبدال' },
-      { 'تعليمات الاستخدام': '4. عمود "القسم": يجب أن يطابق اسم قسم موجود في المتجر تماماً' },
-      { 'تعليمات الاستخدام': '5. الأكواد: اكتب كل كود في سطر داخل نفس الخلية (Alt+Enter في Excel)' },
-      { 'تعليمات الاستخدام': '6. شرائح الكميات: استخدم الصيغة min-max:price وافصل بين الشرائح بـ |' },
-      { 'تعليمات الاستخدام': '7. السعر القديم: اتركه فارغاً إذا لم يكن هناك خصم' },
-      { 'تعليمات الاستخدام': '8. احفظ الملف بصيغة .xlsx ثم ارفعه من لوحة التحكم' },
-    ];
-    const wsInstr = XLSX.utils.json_to_sheet(instrData);
-    wsInstr['!cols'] = [{ wch: 70 }];
-    XLSX.utils.book_append_sheet(wb, wsInstr, 'تعليمات');
-
-    XLSX.writeFile(wb, 'نموذج_استيراد_المنتجات.xlsx');
-    showToast('✅ تم تحميل نموذج Excel — ابدأ بالتعبئة وارفعه من الاستيراد');
+    // تحميل النموذج الجاهز المحترف مباشرةً
+    const a = document.createElement('a');
+    a.href = import.meta.env.BASE_URL + 'product_import_template.xlsx';
+    a.download = 'نموذج_استيراد_المنتجات.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('✅ تم تحميل النموذج — عبّئه وارفعه من "استيراد Excel"');
   };
+
 
   // ─── استيراد المنتجات من Excel ──────────────────────────────────────────────
   const excelImportRef = useRef(null);
@@ -1228,23 +1140,40 @@ export default function AdminDashboard({
     reader.onload = async (evt) => {
       try {
         const wb = XLSX.read(evt.target.result, { type: 'binary' });
+        // نقرأ أول ورقة (نموذج المنتجات)
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        // نتخطى السطر الأول (العنوان الكبير) ونبدأ من السطر الثاني (رأس الجدول)
+        const rows = XLSX.utils.sheet_to_json(ws, {
+          defval: '',
+          range: 1, // السطر 2 هو الرأس
+        });
 
         if (!rows.length) {
           showToast('⚠️ الملف فارغ أو لا يحتوي على بيانات');
           return;
         }
 
+        // دالة مساعدة للحصول على قيمة عمود بأكثر من اسم محتمل
+        const get = (row, ...keys) => {
+          for (const k of keys) {
+            if (row[k] !== undefined && row[k] !== '') return row[k];
+          }
+          return '';
+        };
+
         // تحويل الصفوف إلى منتجات
         const typeMap = { 'رقمي': 'digital', 'مادي': 'physical', 'استبدال': 'exchange' };
         const imported = rows.map((row, idx) => {
-          const rawKeys = String(row['أكواد البطاقات (كل كود في سطر)'] || '')
+          const rawKeys = String(
+            get(row, 'أكواد البطاقات', 'أكواد البطاقات (كل كود في سطر)') || ''
+          )
             .split(/\r?\n/)
             .map(k => k.trim())
             .filter(Boolean);
 
-          const rawTiers = String(row['شرائح الكميات (min-max:price)'] || '')
+          const rawTiers = String(
+            get(row, 'شرائح الكميات', 'شرائح الكميات (min-max:price)') || ''
+          )
             .split('|')
             .map(t => t.trim())
             .filter(Boolean)
@@ -1258,33 +1187,41 @@ export default function AdminDashboard({
               };
             });
 
-          const productType = typeMap[String(row['نوع المنتج'] || 'رقمي')] || 'digital';
-          const price = parseFloat(row['السعر (USD)']) || 0;
-          const oldPrice = parseFloat(row['السعر القديم (USD)']) || null;
+          const productType = typeMap[String(
+            get(row, 'نوع المنتج', 'نوع المنتج *') || 'رقمي'
+          )] || 'digital';
+
+          const price = parseFloat(
+            get(row, 'السعر (USD)', 'السعر (USD) *', 'سعر المنتج')
+          ) || 0;
+          const oldPrice = parseFloat(
+            get(row, 'السعر القديم (USD)', 'السعر القديم')
+          ) || null;
 
           return {
             id: `import_${Date.now()}_${idx}`,
-            title: String(row['العنوان'] || '').trim(),
+            title: String(get(row, 'اسم المنتج *', 'اسم المنتج', 'العنوان') || '').trim(),
             price,
             oldPrice: oldPrice || undefined,
-            category: String(row['القسم'] || '').trim(),
+            category: String(get(row, 'القسم', 'القسم *', 'تصنيف المنتج') || '').trim(),
             productType,
-            stock: parseInt(row['الكمية في المخزن']) || 0,
-            badge: String(row['الشارة (Badge)'] || '').trim(),
-            descriptionHtml: String(row['وصف المنتج'] || '').trim(),
+            stock: parseInt(get(row, 'الكمية في المخزن') || 0) || 0,
+            badge: String(get(row, 'الشارة (Badge)', 'الشارة') || '').trim(),
+            descriptionHtml: String(get(row, 'وصف المنتج', 'الوصف') || '').trim(),
             data: {
               productType,
               productKeys: rawKeys,
-              descriptionHtml: String(row['وصف المنتج'] || '').trim(),
+              descriptionHtml: String(get(row, 'وصف المنتج', 'الوصف') || '').trim(),
               hasQuantityTiers: rawTiers.length > 0,
               quantityTiers: rawTiers,
-              minQuantity: parseInt(row['الحد الأدنى للطلب']) || 1,
-              exchangeCurrencyName: String(row['عملة الاستبدال'] || '').trim(),
-              exchangeRequiredProductName: String(row['منتج الاستبدال المطلوب'] || '').trim(),
-              exchangeAmount: parseFloat(row['كمية الاستبدال']) || '',
+              minQuantity: parseInt(get(row, 'الحد الأدنى للطلب') || 1) || 1,
+              exchangeCurrencyName: String(get(row, 'عملة الاستبدال') || '').trim(),
+              exchangeRequiredProductName: String(get(row, 'منتج الاستبدال المطلوب') || '').trim(),
+              exchangeAmount: parseFloat(get(row, 'كمية الاستبدال') || '') || '',
             },
           };
         });
+
 
         // تصفية الصفوف الفارغة أو التعليمات
         const valid = imported.filter(p => p.title && p.price > 0);
