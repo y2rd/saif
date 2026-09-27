@@ -1201,27 +1201,27 @@ export default function AdminDashboard({
 
     const wb = XLSX.utils.book_new();
 
-    // ── إنشاء ورقة مخفية للبيانات المرجعية (القوائم المنسدلة) ──
+    // ── إنشاء ورقة مرئية للبيانات المرجعية (القوائم المنسدلة) بدلاً من المخفية لتجنب تلف الملف ──
     const maxLen = Math.max(catList.length, typeList.length);
-    const hiddenData = [];
+    const hiddenData = [
+      ['الأقسام', 'أنواع المنتجات']
+    ];
     for(let i=0; i<maxLen; i++) {
       hiddenData.push([ catList[i] || '', typeList[i] || '' ]);
     }
     const wsHidden = XLSX.utils.aoa_to_sheet(hiddenData);
-    XLSX.utils.book_append_sheet(wb, wsHidden, 'HiddenLists');
-    // إخفاء الورقة تماماً حتى لا تزعج المستخدم
-    wb.Workbook = wb.Workbook || {};
-    wb.Workbook.Views = wb.Workbook.Views || [];
-    wb.Workbook.Views.push({});
-    wb.Workbook.Sheets = wb.Workbook.Sheets || [];
-    wb.Workbook.Sheets[0] = { Hidden: 1 }; // Hide the HiddenLists sheet (index will be fixed when added)
+    wsHidden['!cols'] = [{wch:30}, {wch:30}];
+    if(wsHidden['A1']) wsHidden['A1'].s = getStyle(HEADER_BG, 'FFFFFF', true, 'center');
+    if(wsHidden['B1']) wsHidden['B1'].s = getStyle(HEADER_BG, 'FFFFFF', true, 'center');
+
+    XLSX.utils.book_append_sheet(wb, wsHidden, 'بيانات_مرجعية');
 
     // إضافة القوائم المنسدلة المرجعية (Data Validation) - تعمل في كل نسخ وإعدادات Excel
     if (!ws['!dataValidations']) ws['!dataValidations'] = [];
     
     ws['!dataValidations'].push({
       type: 'list', 
-      formula1: `HiddenLists!$A$1:$A$${catList.length}`,
+      formula1: `بيانات_مرجعية!$A$2:$A$${catList.length + 1}`,
       allowBlank: true,
       showErrorMessage: true,
       sqref: 'D5:D104'
@@ -1229,16 +1229,13 @@ export default function AdminDashboard({
     
     ws['!dataValidations'].push({
       type: 'list', 
-      formula1: `HiddenLists!$B$1:$B$${typeList.length}`,
+      formula1: `بيانات_مرجعية!$B$2:$B$${typeList.length + 1}`,
       allowBlank: true,
       showErrorMessage: true,
       sqref: 'E5:E104'
     });
 
     XLSX.utils.book_append_sheet(wb, ws, 'نموذج المنتجات');
-
-    // إخفاء الورقة الأولى (HiddenLists) لتكون نظيفة
-    if(!wb.Workbook.Sheets[0]) wb.Workbook.Sheets[0] = { Hidden: 1 };
 
     // دليل الاستخدام
     const guideData = [
@@ -1261,7 +1258,7 @@ export default function AdminDashboard({
       [],
       ['⚠️ ملاحظات هامة:', '1. الأعمدة التي بجانبها (★) هي أعمدة إلزامية ولا يمكن تركها فارغة.', ''],
       ['', '2. لا تقم بتعديل أسماء الأعمدة في الصف الأول حتى لا تفشل عملية الاستيراد.', ''],
-      ['', '3. احفظ الملف بصيغة (.xlsx) قبل رفعه إلى المتجر.', '']
+      ['', '3. يرجى عدم حذف ورقة "بيانات_مرجعية" لأنها تشغل القوائم المنسدلة.', '']
     ];
     
     const ws2 = XLSX.utils.aoa_to_sheet(guideData);
@@ -1300,7 +1297,7 @@ export default function AdminDashboard({
     XLSX.utils.book_append_sheet(wb, ws2, 'دليل الاستخدام');
 
     XLSX.writeFile(wb, 'نموذج_استيراد_المنتجات.xlsx');
-    showToast(`✅ تم تحميل النموذج الملون مع ${realCategories.length} قسم حقيقي والقوائم المنسدلة تعمل`);
+    showToast(`✅ تم تحميل النموذج الملون مع ${realCategories.length} قسم والقوائم المنسدلة تعمل`);
   };
   const excelImportRef = useRef(null);
 
