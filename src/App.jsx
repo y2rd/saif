@@ -1241,7 +1241,7 @@ export default function App() {
     let receivedProducts = false;
 
     const checkSyncDone = () => {
-      if (receivedConfig || receivedProducts) {
+      if (receivedConfig && receivedProducts) {
         setIsInitialSyncing(false);
       }
     };
