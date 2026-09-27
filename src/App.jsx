@@ -1072,7 +1072,7 @@ export default function App() {
   });
 
   // فتح المتجر وعرض المنتجات مباشرة وفوراً مثل المتاجر الكبرى بدون أي شاشة انتظار معطلة
-  const [isInitialSyncing, setIsInitialSyncing] = useState(false);
+  const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 
   // حفظ فوري في التخزين المحلي (localStorage) عند أي تعديل أو حذف
   useEffect(() => {
