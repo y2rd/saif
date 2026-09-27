@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import hayDayPresetImages from './hayday_presets.json';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { 
   syncStoreConfigToCloud, 
   syncProductsToCloud, 
