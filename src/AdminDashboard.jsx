@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import hayDayPresetImages from './hayday_presets.json';
+import * as XLSX from 'xlsx';
 import { 
   syncStoreConfigToCloud, 
   syncProductsToCloud, 
@@ -1059,6 +1060,268 @@ export default function AdminDashboard({
       }
       showToast('تم حذف المنتج سحابياً بنجاح');
     }
+  };
+
+  // ─── تصدير المنتجات إلى Excel ───────────────────────────────────────────────
+  const handleExportProductsExcel = () => {
+    if (products.length === 0) {
+      showToast('⚠️ لا توجد منتجات للتصدير');
+      return;
+    }
+
+    const rows = products.map(p => {
+      // استخراج الأكواد من data.productKeys إن وجدت
+      const keys = (p.data?.productKeys || []).join('\n');
+      // استخراج شرائح الكميات
+      const tiers = (p.data?.quantityTiers || [])
+        .map(t => `${t.min}-${t.max || '∞'}:${t.price}`)
+        .join(' | ');
+
+      return {
+        'العنوان': p.title || '',
+        'السعر (USD)': p.price || 0,
+        'السعر القديم (USD)': p.oldPrice || '',
+        'القسم': p.category || '',
+        'نوع المنتج': p.productType === 'digital'
+          ? 'رقمي'
+          : p.productType === 'physical'
+          ? 'مادي'
+          : p.productType === 'exchange'
+          ? 'استبدال'
+          : p.productType || 'رقمي',
+        'الكمية في المخزن': p.stock ?? 0,
+        'الشارة (Badge)': p.badge || '',
+        'وصف المنتج': (p.descriptionHtml || p.data?.descriptionHtml || '').replace(/<[^>]*>/g, '').trim(),
+        'أكواد البطاقات (كل كود في سطر)': keys,
+        'شرائح الكميات (min-max:price)': tiers,
+        'الحد الأدنى للطلب': p.data?.minQuantity || '',
+        'عملة الاستبدال': p.data?.exchangeCurrencyName || '',
+        'منتج الاستبدال المطلوب': p.data?.exchangeRequiredProductName || '',
+        'كمية الاستبدال': p.data?.exchangeAmount || '',
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+
+    // ضبط عرض الأعمدة تلقائياً
+    const colWidths = Object.keys(rows[0] || {}).map(key => ({
+      wch: Math.max(key.length + 4, 18)
+    }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'المنتجات');
+    XLSX.writeFile(wb, `منتجات_المتجر_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.xlsx`);
+    showToast('✅ تم تصدير المنتجات إلى Excel بنجاح');
+  };
+
+  // ─── تحميل نموذج Excel فارغ للتعبئة ──────────────────────────────────────
+  const handleDownloadProductTemplate = () => {
+    const headers = [
+      'العنوان',
+      'السعر (USD)',
+      'السعر القديم (USD)',
+      'القسم',
+      'نوع المنتج',
+      'الكمية في المخزن',
+      'الشارة (Badge)',
+      'وصف المنتج',
+      'أكواد البطاقات (كل كود في سطر)',
+      'شرائح الكميات (min-max:price)',
+      'الحد الأدنى للطلب',
+      'عملة الاستبدال',
+      'منتج الاستبدال المطلوب',
+      'كمية الاستبدال',
+    ];
+
+    // صفوف توضيحية كمثال
+    const exampleRows = [
+      {
+        'العنوان': 'بطاقة iTunes 25$',
+        'السعر (USD)': 27,
+        'السعر القديم (USD)': 30,
+        'القسم': 'بطاقات',
+        'نوع المنتج': 'رقمي',
+        'الكمية في المخزن': 50,
+        'الشارة (Badge)': 'جديد',
+        'وصف المنتج': 'بطاقة iTunes أمريكية بقيمة 25 دولار',
+        'أكواد البطاقات (كل كود في سطر)': 'XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY',
+        'شرائح الكميات (min-max:price)': '1-4:27 | 5-9:25 | 10-:23',
+        'الحد الأدنى للطلب': 1,
+        'عملة الاستبدال': '',
+        'منتج الاستبدال المطلوب': '',
+        'كمية الاستبدال': '',
+      },
+      {
+        'العنوان': 'بطاقة Google Play 10$',
+        'السعر (USD)': 11.5,
+        'السعر القديم (USD)': '',
+        'القسم': 'بطاقات',
+        'نوع المنتج': 'رقمي',
+        'الكمية في المخزن': 100,
+        'الشارة (Badge)': '',
+        'وصف المنتج': 'بطاقة Google Play أمريكية 10 دولار',
+        'أكواد البطاقات (كل كود في سطر)': 'AAAA-BBBB-CCCC',
+        'شرائح الكميات (min-max:price)': '',
+        'الحد الأدنى للطلب': 1,
+        'عملة الاستبدال': '',
+        'منتج الاستبدال المطلوب': '',
+        'كمية الاستبدال': '',
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(exampleRows, { header: headers });
+
+    // تنسيق رأس الجدول — عرض مناسب لكل عمود
+    ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 4, 20) }));
+
+    // إضافة صف تعليمي ملون (ملاحظات)
+    const notesRow = {
+      'العنوان': '★ مطلوب',
+      'السعر (USD)': '★ مطلوب — رقم عشري مثل 9.99',
+      'السعر القديم (USD)': 'اختياري — يُعرض مشطوباً',
+      'القسم': '★ يجب أن يطابق اسم قسم موجود',
+      'نوع المنتج': 'رقمي | مادي | استبدال',
+      'الكمية في المخزن': 'رقم صحيح ≥ 0',
+      'الشارة (Badge)': 'نص قصير مثل: جديد، خصم، الأفضل',
+      'وصف المنتج': 'نص حر — يدعم التنسيق',
+      'أكواد البطاقات (كل كود في سطر)': 'للمنتجات الرقمية فقط — كود في كل سطر',
+      'شرائح الكميات (min-max:price)': 'اختياري — مثال: 1-4:27 | 5-9:25 | 10-:23',
+      'الحد الأدنى للطلب': 'اختياري — رقم صحيح',
+      'عملة الاستبدال': 'للاستبدال فقط',
+      'منتج الاستبدال المطلوب': 'للاستبدال فقط',
+      'كمية الاستبدال': 'للاستبدال فقط',
+    };
+    XLSX.utils.sheet_add_json(ws, [notesRow], { skipHeader: true, origin: -1 });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'نموذج المنتجات');
+
+    // إضافة ورقة تعليمات
+    const instrData = [
+      { 'تعليمات الاستخدام': '1. احذف صفوف المثال واحتفظ بصف العناوين فقط' },
+      { 'تعليمات الاستخدام': '2. أضف منتجاتك — كل منتج في صف جديد' },
+      { 'تعليمات الاستخدام': '3. عمود "نوع المنتج": اكتب فقط أحد الخيارات: رقمي | مادي | استبدال' },
+      { 'تعليمات الاستخدام': '4. عمود "القسم": يجب أن يطابق اسم قسم موجود في المتجر تماماً' },
+      { 'تعليمات الاستخدام': '5. الأكواد: اكتب كل كود في سطر داخل نفس الخلية (Alt+Enter في Excel)' },
+      { 'تعليمات الاستخدام': '6. شرائح الكميات: استخدم الصيغة min-max:price وافصل بين الشرائح بـ |' },
+      { 'تعليمات الاستخدام': '7. السعر القديم: اتركه فارغاً إذا لم يكن هناك خصم' },
+      { 'تعليمات الاستخدام': '8. احفظ الملف بصيغة .xlsx ثم ارفعه من لوحة التحكم' },
+    ];
+    const wsInstr = XLSX.utils.json_to_sheet(instrData);
+    wsInstr['!cols'] = [{ wch: 70 }];
+    XLSX.utils.book_append_sheet(wb, wsInstr, 'تعليمات');
+
+    XLSX.writeFile(wb, 'نموذج_استيراد_المنتجات.xlsx');
+    showToast('✅ تم تحميل نموذج Excel — ابدأ بالتعبئة وارفعه من الاستيراد');
+  };
+
+  // ─── استيراد المنتجات من Excel ──────────────────────────────────────────────
+  const excelImportRef = useRef(null);
+
+  const handleImportProductsExcel = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ''; // السماح بإعادة رفع نفس الملف
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        if (!rows.length) {
+          showToast('⚠️ الملف فارغ أو لا يحتوي على بيانات');
+          return;
+        }
+
+        // تحويل الصفوف إلى منتجات
+        const typeMap = { 'رقمي': 'digital', 'مادي': 'physical', 'استبدال': 'exchange' };
+        const imported = rows.map((row, idx) => {
+          const rawKeys = String(row['أكواد البطاقات (كل كود في سطر)'] || '')
+            .split(/\r?\n/)
+            .map(k => k.trim())
+            .filter(Boolean);
+
+          const rawTiers = String(row['شرائح الكميات (min-max:price)'] || '')
+            .split('|')
+            .map(t => t.trim())
+            .filter(Boolean)
+            .map(t => {
+              const [range, price] = t.split(':');
+              const [min, max] = (range || '').split('-');
+              return {
+                min: parseInt(min) || 1,
+                max: max === '' || max === '∞' ? null : parseInt(max) || null,
+                price: parseFloat(price) || 0,
+              };
+            });
+
+          const productType = typeMap[String(row['نوع المنتج'] || 'رقمي')] || 'digital';
+          const price = parseFloat(row['السعر (USD)']) || 0;
+          const oldPrice = parseFloat(row['السعر القديم (USD)']) || null;
+
+          return {
+            id: `import_${Date.now()}_${idx}`,
+            title: String(row['العنوان'] || '').trim(),
+            price,
+            oldPrice: oldPrice || undefined,
+            category: String(row['القسم'] || '').trim(),
+            productType,
+            stock: parseInt(row['الكمية في المخزن']) || 0,
+            badge: String(row['الشارة (Badge)'] || '').trim(),
+            descriptionHtml: String(row['وصف المنتج'] || '').trim(),
+            data: {
+              productType,
+              productKeys: rawKeys,
+              descriptionHtml: String(row['وصف المنتج'] || '').trim(),
+              hasQuantityTiers: rawTiers.length > 0,
+              quantityTiers: rawTiers,
+              minQuantity: parseInt(row['الحد الأدنى للطلب']) || 1,
+              exchangeCurrencyName: String(row['عملة الاستبدال'] || '').trim(),
+              exchangeRequiredProductName: String(row['منتج الاستبدال المطلوب'] || '').trim(),
+              exchangeAmount: parseFloat(row['كمية الاستبدال']) || '',
+            },
+          };
+        });
+
+        // تصفية الصفوف الفارغة أو التعليمات
+        const valid = imported.filter(p => p.title && p.price > 0);
+
+        if (!valid.length) {
+          showToast('⚠️ لم يتم العثور على منتجات صالحة — تأكد من تعبئة العنوان والسعر');
+          return;
+        }
+
+        const confirmMsg = `سيتم استيراد ${valid.length} منتج إلى المتجر وحفظهم في السحابة.\n\nهل تريد المتابعة؟`;
+        if (!window.confirm(confirmMsg)) return;
+
+        // حفظ المنتجات المستوردة في السحابة
+        showToast(`⏳ جاري رفع ${valid.length} منتج...`);
+
+        try {
+          await syncProductsToCloud(valid);
+
+          // تحديث الحالة المحلية
+          const merged = [...products, ...valid];
+          setProducts(merged);
+          try {
+            localStorage.setItem('haider_store_products', JSON.stringify(merged));
+            localStorage.setItem('haider_store_products_updatedAt', String(Date.now()));
+          } catch (e) {}
+
+          showToast(`✅ تم استيراد ${valid.length} منتج بنجاح وحفظهم في السحابة`);
+        } catch (err) {
+          console.error('فشل رفع المنتجات المستوردة:', err);
+          showToast('❌ فشل رفع المنتجات — تحقق من الاتصال وحاول مرة أخرى');
+        }
+      } catch (err) {
+        console.error('خطأ في قراءة ملف Excel:', err);
+        showToast('❌ تعذّر قراءة الملف — تأكد أنه ملف Excel صالح (.xlsx)');
+      }
+    };
+    reader.readAsBinaryString(file);
   };
 
   // تحديث حالة الطلب مع تسليم أكواد البطاقات الرقمية وخصم رصيد المحفظة تلقائياً عند تغيير الحالة إلى "مكتمل"
@@ -3272,18 +3535,63 @@ export default function AdminDashboard({
         {/* ========================================================= */}
         {activeTab === 'products' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <h2 className="text-xl font-bold text-gray-800">إدارة المنتجات الرقمية والمخزون</h2>
                 <p className="text-xs text-gray-500 mt-1">إضافة تراخيص برامج، بطاقات شحن، أو ملفات قابلة للتحميل</p>
               </div>
-              <button
-                onClick={handleOpenNewProduct}
-                className="w-fit px-3 py-1.5 bg-[#004956] text-white text-[13px] font-bold rounded-xl shadow-2xs hover:opacity-95 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
-              >
-                <span className="text-[14px] leading-none">+</span>
-                <span className="leading-none">أضف منتج جديد</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                {/* ─── input مخفي لاستيراد Excel ─── */}
+                <input
+                  ref={excelImportRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="hidden"
+                  onChange={handleImportProductsExcel}
+                />
+
+                {/* زر تحميل نموذج فارغ */}
+                <button
+                  type="button"
+                  onClick={handleDownloadProductTemplate}
+                  title="تحميل نموذج Excel جاهز لتعبئة المنتجات"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-2xs cursor-pointer transition-all active:scale-95"
+                >
+                  <i className="fa-solid fa-file-excel text-green-600 text-[13px]"></i>
+                  <span className="leading-none">نموذج فارغ</span>
+                </button>
+
+                {/* زر استيراد من Excel */}
+                <button
+                  type="button"
+                  onClick={() => excelImportRef.current?.click()}
+                  title="استيراد منتجات من ملف Excel"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-2xs cursor-pointer transition-all active:scale-95"
+                >
+                  <i className="fa-solid fa-file-import text-[13px]"></i>
+                  <span className="leading-none">استيراد Excel</span>
+                </button>
+
+                {/* زر تصدير Excel */}
+                <button
+                  type="button"
+                  onClick={handleExportProductsExcel}
+                  title="تصدير جميع المنتجات إلى ملف Excel"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-2xs cursor-pointer transition-all active:scale-95"
+                >
+                  <i className="fa-solid fa-file-export text-[13px]"></i>
+                  <span className="leading-none">تصدير Excel</span>
+                </button>
+
+                {/* زر إضافة منتج */}
+                <button
+                  onClick={handleOpenNewProduct}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#004956] text-white text-[13px] font-bold rounded-xl shadow-2xs hover:opacity-95 cursor-pointer transition-all active:scale-95"
+                >
+                  <span className="text-[14px] leading-none">+</span>
+                  <span className="leading-none">أضف منتج جديد</span>
+                </button>
+              </div>
             </div>
 
             {/* تخطيط المنتجات: قائمة التصنيفات على اليمين وعرض المنتجات في الجهة المقابلة */}
