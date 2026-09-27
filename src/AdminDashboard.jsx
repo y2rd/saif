@@ -1096,9 +1096,9 @@ export default function AdminDashboard({
         'أكواد البطاقات (كل كود في سطر)': keys,
         'شرائح الكميات (min-max:price)': tiers,
         'الحد الأدنى للطلب': p.data?.minQuantity || '',
-        'عملة الاستبدال': p.data?.exchangeCurrencyName || '',
-        'منتج الاستبدال المطلوب': p.data?.exchangeRequiredProductName || '',
-        'كمية الاستبدال': p.data?.exchangeAmount || '',
+        'اسم المنتج اللي نسلمك': p.data?.exchangeCurrencyName || '',
+        'اسم المنتج المطلوب من العميل': p.data?.exchangeRequiredProductName || '',
+        'الكمية التي نسلمها لكل وحدة': p.data?.exchangeAmount || '',
       };
     });
 
@@ -1143,9 +1143,9 @@ export default function AdminDashboard({
       { key: 'I', title: 'أكواد البطاقات', width: 45, bg: NORMAL_BG, note: 'كود في كل سطر (لنوع بطاقات رقمية)' },
       { key: 'J', title: 'شرائح الكميات', width: 38, bg: NORMAL_BG, note: '1-4:27 | 5-9:25 | 10-∞:23' },
       { key: 'K', title: 'الحد الأدنى للطلب', width: 18, bg: NORMAL_BG, note: 'افتراضي 1' },
-      { key: 'L', title: 'عملة الاستبدال', width: 20, bg: NORMAL_BG, note: 'للمبادلة فقط' },
-      { key: 'M', title: 'منتج الاستبدال المطلوب', width: 30, bg: NORMAL_BG, note: 'للمبادلة فقط' },
-      { key: 'N', title: 'كمية الاستبدال', width: 18, bg: NORMAL_BG, note: 'للمبادلة فقط' }
+      { key: 'L', title: 'اسم المنتج اللي نسلمك', width: 20, bg: NORMAL_BG, note: 'للمبادلة فقط' },
+      { key: 'M', title: 'اسم المنتج المطلوب من العميل', width: 30, bg: NORMAL_BG, note: 'للمبادلة فقط' },
+      { key: 'N', title: 'الكمية التي نسلمها لكل وحدة', width: 18, bg: NORMAL_BG, note: 'للمبادلة فقط' }
     ];
 
     const wsData = [
@@ -1255,9 +1255,9 @@ export default function AdminDashboard({
       ['أكواد البطاقات', 'للمنتجات (بطاقات رقمية) — ادخل الكود، ولإضافة كود آخر بنفس الخلية اضغط Alt+Enter', 'XXXX-XXXX'],
       ['شرائح الكميات', 'لتسعير الجملة — التنسيق: (الكمية:السعر) وافصل بينها بـ |', '1-4:27 | 5-9:25 | 10-∞:23'],
       ['الحد الأدنى للطلب', 'أقل كمية يمكن للعميل طلبها', '1'],
-      ['عملة الاستبدال', 'خاص بمنتجات (منتج مبادلة) - اسم عملة الموقع', 'نقاط'],
-      ['منتج الاستبدال المطلوب', 'خاص بمنتجات (منتج مبادلة) - اسم المنتج المطلوب للتبديل', 'بطاقة مكافآت'],
-      ['كمية الاستبدال', 'خاص بمنتجات (منتج مبادلة) - كمية المنتج المطلوب', '5'],
+      ['اسم المنتج اللي نسلمك', 'خاص بمنتجات (منتج مبادلة) - اسم المنتج أو العملة التي تعطيها للعميل', 'نقاط'],
+      ['اسم المنتج المطلوب من العميل', 'خاص بمنتجات (منتج مبادلة) - اسم المنتج أو المورد الذي يدفعه العميل لك', 'بطاقة مكافآت'],
+      ['الكمية التي نسلمها لكل وحدة', 'خاص بمنتجات (منتج مبادلة) - الكمية التي سيحصل عليها العميل مقابل وحدة واحدة', '5'],
       [],
       ['⚠️ ملاحظات هامة:', '1. الأعمدة التي بجانبها (★) هي أعمدة إلزامية ولا يمكن تركها فارغة.', ''],
       ['', '2. لا تقم بتعديل أسماء الأعمدة في الصف الأول حتى لا تفشل عملية الاستيراد.', ''],
@@ -1394,9 +1394,9 @@ export default function AdminDashboard({
               hasQuantityTiers: rawTiers.length > 0,
               quantityTiers: rawTiers,
               minQuantity: parseInt(get(row, 'الحد الأدنى للطلب') || 1) || 1,
-              exchangeCurrencyName: String(get(row, 'عملة الاستبدال') || '').trim(),
-              exchangeRequiredProductName: String(get(row, 'منتج الاستبدال المطلوب') || '').trim(),
-              exchangeAmount: parseFloat(get(row, 'كمية الاستبدال') || '') || '',
+              exchangeCurrencyName: String(get(row, 'اسم المنتج اللي نسلمك') || '').trim(),
+              exchangeRequiredProductName: String(get(row, 'اسم المنتج المطلوب من العميل') || '').trim(),
+              exchangeAmount: parseFloat(get(row, 'الكمية التي نسلمها لكل وحدة') || '') || '',
             },
           };
         });
