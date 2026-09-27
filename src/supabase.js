@@ -770,11 +770,11 @@ export function subscribeToStoreData({
       const pCats = onCategoriesUpdate
         ? supabase.from('categories').select('*').order('display_order', { ascending: true })
         : Promise.resolve({});
-      // جلب بيانات المنتجات بدون عمود الصورة (image) أو data لأنهما يحتويان base64 ضخمة
+      // جلب جميع المنتجات دفعة واحدة
       const pProdsLight = onProductsUpdate
         ? supabase
             .from('products')
-          .select('id, title, price, old_price, category, product_type, stock, badge, description, is_deleted, updated_at, created_at, data')
+          .select('*')
             .eq('is_deleted', false)
             .order('created_at', { ascending: false })
         : Promise.resolve({});
@@ -803,67 +803,14 @@ export function subscribeToStoreData({
         onCategoriesUpdate(list, Date.now());
       }
 
-      // المرحلة 1: عرض المنتجات الخفيفة مع إضافة الصور من الكاش المحلي
+      // عرض المنتجات مباشرة ببيانات كاملة والصور (بدون مرحلتين)
       if (resProdsLight.status === 'fulfilled' && Array.isArray(resProdsLight.value?.data) && onProductsUpdate) {
-        // بناء خريطة صور من localStorage لتعويض غياب الصور في الجلب الخفيف
-        let imageCache = {};
-        try {
-          const savedProds = localStorage.getItem('haider_store_products');
-          if (savedProds) {
-            const cachedList = JSON.parse(savedProds);
-            if (Array.isArray(cachedList)) {
-              cachedList.forEach(p => {
-                if (p.id && (p.image || p.imageUrl)) {
-                  imageCache[String(p.id)] = p.image || p.imageUrl;
-                }
-              });
-            }
-          }
-        } catch {}
-
-        const lightList = resProdsLight.value.data.map(r => {
-          const cachedImg = imageCache[String(r.id)] || '';
-          return {
-            ...r.data,
-            ...r,
-            id: r.id,
-            image: cachedImg,
-            imageUrl: cachedImg,
-            _imageNotLoaded: !cachedImg
-          };
-        });
-
-        // عرض فوري للمنتجات بدون صور جديدة (الصور القديمة من الكاش)
-        onProductsUpdate(lightList, Date.now());
-
-        // ── المرحلة 2: جلب الصور الكاملة في الخلفية ──────────────
-        // فقط للمنتجات التي ليس لها صورة في الكاش المحلي
-        const productsNeedingImages = lightList.filter(p => p._imageNotLoaded);
-        if (productsNeedingImages.length > 0) {
-          const idsNeedImg = productsNeedingImages.map(p => String(p.id));
-          supabase
-            .from('products')
-            .select('id, image, data')
-            .in('id', idsNeedImg)
-            .then(({ data: imgData }) => {
-              if (!Array.isArray(imgData)) return;
-              const imgMap = {};
-              imgData.forEach(r => {
-                imgMap[String(r.id)] = r.image || r.data?.image || r.data?.imageUrl || '';
-              });
-              // تحديث المنتجات بالصور الجديدة
-              const updatedList = lightList.map(p => {
-                const sId = String(p.id);
-                if (sId in imgMap) {
-                  const newImg = imgMap[sId] || '';
-                  return { ...p, image: newImg, imageUrl: newImg, _imageNotLoaded: false };
-                }
-                return p;
-              });
-              onProductsUpdate(updatedList, Date.now());
-            })
-            .catch(() => {});
-        }
+        const fullList = resProdsLight.value.data.map(r => ({
+          ...r.data,
+          ...r,
+          id: r.id
+        }));
+        onProductsUpdate(fullList, Date.now());
       }
 
       if (resCusts.status === 'fulfilled' && Array.isArray(resCusts.value?.data) && onCustomersUpdate) {
@@ -920,7 +867,7 @@ export function subscribeToStoreData({
     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
       if (onProductsUpdate) {
         const { data } = await supabase.from('products')
-          .select('id, title, price, old_price, category, product_type, stock, badge, description, is_deleted, updated_at, created_at, data')
+          .select('*')
           .eq('is_deleted', false).order('created_at', { ascending: false });
         if (Array.isArray(data)) {
           // جلب الصور من الكاش المحلي لمنع إعادة التحميل الضخمة
