@@ -1256,27 +1256,26 @@ export default function AdminDashboard({
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFDF2' } };
           }
         }
-
-        // العمود 4 (القسم): قائمة منسدلة فعلية
-        row.getCell(4).dataValidation = {
-          type: 'list',
-          allowBlank: true,
-          formulae: ['بيانات_مرجعية!$A$2:$A$' + (catCount + 1)],
-          showErrorMessage: true,
-          errorTitle: 'قسم غير صحيح',
-          error: 'يرجى اختيار القسم من القائمة المنسدلة'
-        };
-
-        // العمود 5 (نوع المنتج): قائمة منسدلة فعلية
-        row.getCell(5).dataValidation = {
-          type: 'list',
-          allowBlank: true,
-          formulae: ['بيانات_مرجعية!$B$2:$B$' + (typeCount + 1)],
-          showErrorMessage: true,
-          errorTitle: 'نوع منتج غير صحيح',
-          error: 'يرجى اختيار نوع المنتج من القائمة المنسدلة'
-        };
       }
+
+      // تطبيق القوائم المنسدلة على كامل نطاق الأعمدة (D5:D100) و (E5:E100)
+      ws.dataValidations.add('D5:D100', {
+        type: 'list',
+        allowBlank: true,
+        formulae: ["'بيانات_مرجعية'!$A$2:$A$" + (catCount + 1)],
+        showErrorMessage: true,
+        errorTitle: 'قسم غير صحيح',
+        error: 'يرجى اختيار القسم من القائمة المنسدلة'
+      });
+
+      ws.dataValidations.add('E5:E100', {
+        type: 'list',
+        allowBlank: true,
+        formulae: ["'بيانات_مرجعية'!$B$2:$B$" + (typeCount + 1)],
+        showErrorMessage: true,
+        errorTitle: 'نوع منتج غير صحيح',
+        error: 'يرجى اختيار نوع المنتج من القائمة المنسدلة'
+      });
 
       // ──────────────── ورقة دليل الاستخدام ────────────────
       const guideWs = wb.addWorksheet('دليل الاستخدام');
