@@ -1230,7 +1230,7 @@ export default function App() {
     if (isInitialSyncing) {
       const safetyTimer = setTimeout(() => {
         setIsInitialSyncing(false);
-      }, 1800);
+      }, 4000);
       return () => clearTimeout(safetyTimer);
     }
   }, [isInitialSyncing]);

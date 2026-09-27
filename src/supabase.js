@@ -870,61 +870,12 @@ export function subscribeToStoreData({
           .select('*')
           .eq('is_deleted', false).order('created_at', { ascending: false });
         if (Array.isArray(data)) {
-          // جلب الصور من الكاش المحلي لمنع إعادة التحميل الضخمة
-          let imageCache = {};
-          try {
-            const savedProds = localStorage.getItem('haider_store_products');
-            if (savedProds) {
-              const cachedList = JSON.parse(savedProds);
-              if (Array.isArray(cachedList)) {
-                cachedList.forEach(p => {
-                  if (p.id && (p.image || p.imageUrl)) {
-                    imageCache[String(p.id)] = p.image || p.imageUrl;
-                  }
-                });
-              }
-            }
-          } catch {}
-
-          const lightList = data.map(r => {
-            const cachedImg = imageCache[String(r.id)] || '';
-            return {
-              ...r.data,
-              ...r,
-              id: r.id,
-              image: cachedImg,
-              imageUrl: cachedImg,
-              _imageNotLoaded: !cachedImg
-            };
-          });
-          onProductsUpdate(lightList, Date.now());
-
-          // المرحلة 2: جلب الصور المطلوبة في الخلفية
-          const productsNeedingImages = lightList.filter(p => p._imageNotLoaded);
-          if (productsNeedingImages.length > 0) {
-            const idsNeedImg = productsNeedingImages.map(p => String(p.id));
-            supabase
-              .from('products')
-              .select('id, image, data')
-              .in('id', idsNeedImg)
-              .then(({ data: imgData }) => {
-                if (!Array.isArray(imgData)) return;
-                const imgMap = {};
-                imgData.forEach(r => {
-                  imgMap[String(r.id)] = r.image || r.data?.image || r.data?.imageUrl || '';
-                });
-                const updatedList = lightList.map(p => {
-                  const sId = String(p.id);
-                  if (sId in imgMap) {
-                    const newImg = imgMap[sId] || '';
-                    return { ...p, image: newImg, imageUrl: newImg, _imageNotLoaded: false };
-                  }
-                  return p;
-                });
-                onProductsUpdate(updatedList, Date.now());
-              })
-              .catch(() => {});
-          }
+          const list = data.map(r => ({
+            ...r.data,
+            ...r,
+            id: r.id
+          }));
+          onProductsUpdate(list, Date.now());
         }
       }
     })
