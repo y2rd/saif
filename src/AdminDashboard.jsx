@@ -1117,14 +1117,179 @@ export default function AdminDashboard({
 
   // ─── تحميل نموذج Excel فارغ للتعبئة ──────────────────────────────────────
   const handleDownloadProductTemplate = () => {
-    // تحميل النموذج الجاهز المحترف مباشرةً
-    const a = document.createElement('a');
-    a.href = import.meta.env.BASE_URL + 'product_import_template.xlsx';
-    a.download = 'نموذج_استيراد_المنتجات.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showToast('✅ تم تحميل النموذج — عبّئه وارفعه من "استيراد Excel"');
+    // ─── بناء النموذج ديناميكياً مع أسماء الأقسام الحقيقية ───────────────
+    const HEADER_COLOR  = "004956";
+    const HEADER_FG     = "FFFFFF";
+    const NOTES_BG      = "F4F4F4";
+    const EXAMPLE_BG    = "E8F6F0";
+    const REQUIRED_BG   = "FFF9E6";
+    const OPTIONAL_BG   = "FFFFFF";
+    const KEYS_BG       = "EEF2FF";
+    const TIERS_BG      = "FFF5F0";
+
+    // أسماء الأقسام الحقيقية من المتجر (بدون "الكل")
+    const realCategories = categories
+      .filter(c => c.name !== 'الكل')
+      .map(c => c.name);
+
+    const catList   = realCategories.length ? realCategories.join(',') : 'بطاقات,ألعاب,متفرقات';
+    const typeList  = 'رقمي,مادي,استبدال';
+
+    // ── تعريف الأعمدة ──────────────────────────────────────────────────────
+    const cols = [
+      { key:'A', title:'اسم المنتج ★',              width:40, bg:REQUIRED_BG, note:'مطلوب — اسم المنتج كما سيظهر للعميل' },
+      { key:'B', title:'السعر (USD) ★',             width:16, bg:REQUIRED_BG, note:'مطلوب — رقم مثل: 9.99' },
+      { key:'C', title:'السعر القديم (USD)',         width:18, bg:OPTIONAL_BG, note:'اختياري — يُعرض مشطوباً لإظهار الخصم' },
+      { key:'D', title:'القسم ★',                   width:22, bg:REQUIRED_BG, note:`مطلوب — اختر من: ${catList}` },
+      { key:'E', title:'نوع المنتج ★',              width:18, bg:REQUIRED_BG, note:'رقمي | مادي | استبدال' },
+      { key:'F', title:'الكمية في المخزن',          width:18, bg:OPTIONAL_BG, note:'رقم صحيح ≥ 0 (افتراضي: 0)' },
+      { key:'G', title:'الشارة (Badge)',             width:18, bg:OPTIONAL_BG, note:'نص قصير: جديد، خصم، الأفضل' },
+      { key:'H', title:'وصف المنتج',               width:50, bg:OPTIONAL_BG, note:'نص حر للوصف التفصيلي' },
+      { key:'I', title:'أكواد البطاقات',            width:45, bg:KEYS_BG,    note:'للمنتجات الرقمية — كود في كل سطر (Alt+Enter)' },
+      { key:'J', title:'شرائح الكميات',            width:38, bg:TIERS_BG,   note:'مثال: 1-4:27 | 5-9:25 | 10-∞:23' },
+      { key:'K', title:'الحد الأدنى للطلب',        width:18, bg:OPTIONAL_BG, note:'رقم صحيح — افتراضي 1' },
+      { key:'L', title:'عملة الاستبدال',           width:20, bg:OPTIONAL_BG, note:'للاستبدال فقط' },
+      { key:'M', title:'منتج الاستبدال المطلوب',   width:30, bg:OPTIONAL_BG, note:'للاستبدال فقط' },
+      { key:'N', title:'كمية الاستبدال',           width:18, bg:OPTIONAL_BG, note:'للاستبدال فقط' },
+    ];
+
+    const wb = XLSX.utils.book_new();
+
+    // ═══ ورقة 1: نموذج المنتجات ═══════════════════════════════════════════
+    const wsData = [
+      // صف 1: عنوان كبير
+      ['📦  نموذج استيراد المنتجات — المتجر'],
+      // صف 2: رأس الجدول
+      cols.map(c => c.title),
+      // صف 3: ملاحظات
+      cols.map(c => c.note),
+      // صف 4: مثال
+      [
+        'بطاقة iTunes 25$', 27, 30,
+        realCategories[0] || 'بطاقات',
+        'رقمي', 50, 'جديد',
+        'بطاقة iTunes أمريكية بقيمة 25 دولار',
+        'XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY',
+        '1-4:27 | 5-9:25 | 10-∞:23',
+        1, '', '', '',
+      ],
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // ── أعرض الأعمدة ──────────────────────────────────────────────────────
+    ws['!cols'] = cols.map(c => ({ wch: c.width }));
+
+    // ── دمج خلايا العنوان الكبير ──────────────────────────────────────────
+    ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:cols.length-1} }];
+
+    // ── ارتفاع الصفوف ─────────────────────────────────────────────────────
+    ws['!rows'] = [
+      { hpt: 36 },  // صف 1 (عنوان)
+      { hpt: 38 },  // صف 2 (رأس)
+      { hpt: 28 },  // صف 3 (ملاحظات)
+      { hpt: 42 },  // صف 4 (مثال)
+    ];
+
+    // ── تلوين الخلايا يدوياً ─────────────────────────────────────────────
+    const cellStyle = (bg, fg='000000', bold=false, italic=false, sz=11, wrap=true, halign='right') => ({
+      fill:      { patternType:'solid', fgColor:{ rgb: bg } },
+      font:      { name:'Calibri', sz, bold, italic, color:{ rgb: fg } },
+      alignment: { horizontal: halign, vertical:'center', wrapText: wrap, readingOrder: 2 },
+      border: {
+        top:    { style:'thin', color:{ rgb:'CCCCCC' } },
+        bottom: { style:'thin', color:{ rgb:'CCCCCC' } },
+        left:   { style:'thin', color:{ rgb:'CCCCCC' } },
+        right:  { style:'thin', color:{ rgb:'CCCCCC' } },
+      }
+    });
+
+    // صف 1 — العنوان
+    const titleCell = ws['A1'];
+    if (titleCell) titleCell.s = cellStyle('003845', HEADER_FG, true, false, 15, false, 'center');
+
+    // صف 2 — رأس الجدول
+    cols.forEach((c,i) => {
+      const addr = XLSX.utils.encode_cell({r:1, c:i});
+      if (ws[addr]) ws[addr].s = cellStyle(HEADER_COLOR, HEADER_FG, true, false, 12, true, 'center');
+    });
+
+    // صف 3 — ملاحظات
+    cols.forEach((c,i) => {
+      const addr = XLSX.utils.encode_cell({r:2, c:i});
+      if (ws[addr]) ws[addr].s = cellStyle(NOTES_BG, '777777', false, true, 9);
+    });
+
+    // صف 4 — مثال
+    cols.forEach((c,i) => {
+      const addr = XLSX.utils.encode_cell({r:3, c:i});
+      if (ws[addr]) ws[addr].s = cellStyle(EXAMPLE_BG, '1A6550', false, false, 11);
+    });
+
+    // الصفوف 5-104 — فراغ ملوّن حسب نوع العمود
+    for (let r=4; r<104; r++) {
+      cols.forEach((c,i) => {
+        const addr = XLSX.utils.encode_cell({r, c:i});
+        ws[addr] = ws[addr] || { v:'', t:'s' };
+        ws[addr].s = cellStyle(c.bg, '111111');
+      });
+    }
+
+    // ── Data Validation: قائمة منسدلة للقسم ─────────────────────────────
+    // (xlsx المجاني يدعم كتابة التحقق لكن قد لا يُطبّق في كل برامج)
+    if (!ws['!dataValidations']) ws['!dataValidations'] = [];
+    ws['!dataValidations'].push({
+      type: 'list', formula1: `"${catList}"`,
+      sqref: 'D5:D104', showDropDown: false,
+      errorMessage: `القيم المتاحة: ${catList}`, errorTitle: 'قسم غير صحيح',
+    });
+    ws['!dataValidations'].push({
+      type: 'list', formula1: `"${typeList}"`,
+      sqref: 'E5:E104', showDropDown: false,
+      errorMessage: 'القيم المتاحة: رقمي | مادي | استبدال', errorTitle: 'نوع غير صحيح',
+    });
+
+    XLSX.utils.book_append_sheet(wb, ws, 'نموذج المنتجات');
+
+    // ═══ ورقة 2: دليل الاستخدام ═══════════════════════════════════════════
+    const guideData = [
+      ['📖  دليل استخدام نموذج استيراد المنتجات'],
+      ['العمود', 'الوصف', 'قيم مقبولة / مثال'],
+      ['اسم المنتج ★',           'اسم المنتج كما سيظهر للعميل',                      'بطاقة iTunes 25$'],
+      ['السعر (USD) ★',          'سعر البيع — رقم عشري مقبول',                       '27 أو 9.99'],
+      ['السعر القديم (USD)',      'السعر قبل الخصم — اتركه فارغاً إن لم يكن هناك خصم', '30.00'],
+      ['القسم ★',                'يجب مطابقة اسم قسم موجود في المتجر',               catList],
+      ['نوع المنتج ★',           'اختر من القائمة المنسدلة في الخلية',               typeList],
+      ['الكمية في المخزن',       'عدد صحيح ≥ 0',                                     '50'],
+      ['الشارة (Badge)',          'نص قصير يظهر فوق صورة المنتج',                     'جديد | خصم | الأفضل'],
+      ['وصف المنتج',             'نص وصفي للمنتج',                                   'بطاقة iTunes أمريكية...'],
+      ['أكواد البطاقات',         'للمنتجات الرقمية — كود في كل سطر (Alt+Enter)',     'XXXX-XXXX-XXXX'],
+      ['شرائح الكميات',         'لتسعير الجملة — افصل بـ |',                        '1-4:27 | 5-9:25 | 10-∞:23'],
+      ['الحد الأدنى للطلب',     'أقل كمية يمكن طلبها',                              '1'],
+      ['عملة الاستبدال',         'للاستبدال فقط',                                    'نقاط'],
+      ['منتج الاستبدال المطلوب', 'للاستبدال فقط',                                    'بطاقة مكافآت'],
+      ['كمية الاستبدال',         'للاستبدال فقط',                                    '5'],
+      [],
+      ['⚠️  ملاحظات مهمة:',
+       'لا تعدّل صف العناوين • الأعمدة ذات ★ إلزامية • احفظ بصيغة .xlsx قبل الرفع', ''],
+    ];
+
+    const ws2 = XLSX.utils.aoa_to_sheet(guideData);
+    ws2['!cols'] = [{wch:28},{wch:55},{wch:45}];
+    ws2['!merges'] = [
+      {s:{r:0,c:0}, e:{r:0,c:2}},
+      {s:{r:guideData.length-1,c:1}, e:{r:guideData.length-1,c:2}},
+    ];
+    // تلوين رأس الدليل
+    if (ws2['A1']) ws2['A1'].s = cellStyle('003845', HEADER_FG, true, false, 14, false, 'center');
+    ['A2','B2','C2'].forEach(a => {
+      if (ws2[a]) ws2[a].s = cellStyle(HEADER_COLOR, HEADER_FG, true, false, 12, false, 'center');
+    });
+
+    XLSX.utils.book_append_sheet(wb, ws2, 'دليل الاستخدام');
+
+    XLSX.writeFile(wb, 'نموذج_استيراد_المنتجات.xlsx');
+    showToast(`✅ تم تحميل النموذج مع ${realCategories.length} قسم — عبّئه وارفعه من "استيراد Excel"`);
   };
 
 
