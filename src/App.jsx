@@ -6692,9 +6692,6 @@ export default function App() {
           {/* محتوى الصفحة بتصميم نظيف وراقي */}
           <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-10 space-y-6">
             <div className="border-b border-gray-100 pb-5">
-              <span className="text-[11px] font-bold text-[#004956] bg-teal-50 border border-teal-200/60 px-2.5 py-1 rounded-lg inline-block mb-2">
-                صفحة تعريفية
-              </span>
               <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
                 {activeCustomPage.title}
               </h1>
