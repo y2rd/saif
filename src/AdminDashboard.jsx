@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import hayDayPresetImages from './hayday_presets.json';
 import * as XLSX from 'xlsx-js-style';
+import ExcelJS from 'exceljs/dist/exceljs.min.js';
 
 import { 
   syncStoreConfigToCloud, 
@@ -1117,187 +1118,259 @@ export default function AdminDashboard({
   };
 
   // ─── تحميل نموذج Excel فارغ للتعبئة ──────────────────────────────────────
-  const handleDownloadProductTemplate = () => {
-    // الأقسام من المتجر
-    const realCategories = categories.filter(c => c.name !== 'الكل').map(c => c.name);
-    const catList = realCategories.length ? realCategories : ['بطاقات','ألعاب','متفرقات'];
-    
-    // أنواع المنتجات الصحيحة
-    const typeList = ['منتج رقمي','بطاقات رقمية','منتج حسب الطلب','منتج مبادلة','منتج ملموس'];
-
-    const HEADER_BG = "004956";
-    const NOTES_BG = "F4F4F4";
-    const EXAMPLE_BG = "E8F6F0";
-    const REQUIRED_BG = "FFF9E6";
-    const NORMAL_BG = "FFFFFF";
-
-    const cols = [
-      { key: 'A', title: 'اسم المنتج ★', width: 40, bg: REQUIRED_BG, note: 'مطلوب — اسم المنتج كما سيظهر' },
-      { key: 'B', title: 'السعر (USD) ★', width: 16, bg: REQUIRED_BG, note: 'مطلوب — رقم مثل: 9.99' },
-      { key: 'C', title: 'السعر القديم (USD)', width: 18, bg: NORMAL_BG, note: 'اختياري — يُعرض مشطوباً' },
-      { key: 'D', title: 'القسم ★', width: 22, bg: REQUIRED_BG, note: `اختر من القائمة المنسدلة` },
-      { key: 'E', title: 'نوع المنتج ★', width: 20, bg: REQUIRED_BG, note: `اختر من القائمة المنسدلة` },
-      { key: 'F', title: 'الكمية في المخزن', width: 18, bg: NORMAL_BG, note: 'رقم صحيح ≥ 0' },
-      { key: 'G', title: 'الشارة (Badge)', width: 18, bg: NORMAL_BG, note: 'جديد، خصم، الأفضل' },
-      { key: 'H', title: 'وصف المنتج', width: 50, bg: NORMAL_BG, note: 'نص حر للوصف' },
-      { key: 'I', title: 'أكواد البطاقات', width: 45, bg: NORMAL_BG, note: 'كود في كل سطر (لنوع بطاقات رقمية)' },
-      { key: 'J', title: 'شرائح الكميات', width: 38, bg: NORMAL_BG, note: '1-4:27 | 5-9:25 | 10-∞:23' },
-      { key: 'K', title: 'الحد الأدنى للطلب', width: 18, bg: NORMAL_BG, note: 'افتراضي 1' },
-      { key: 'L', title: 'اسم المنتج اللي نسلمك', width: 20, bg: NORMAL_BG, note: 'للمبادلة فقط' },
-      { key: 'M', title: 'اسم المنتج المطلوب من العميل', width: 30, bg: NORMAL_BG, note: 'للمبادلة فقط' },
-      { key: 'N', title: 'الكمية التي نسلمها لكل وحدة', width: 18, bg: NORMAL_BG, note: 'للمبادلة فقط' }
-    ];
-
-    const wsData = [
-      ['📦  نموذج استيراد المنتجات — المتجر'], // 1
-      cols.map(c => c.title), // 2
-      cols.map(c => c.note),  // 3
-      [ // 4
-        'بطاقة iTunes 25$', 27, 30,
-        catList[0],
-        'بطاقات رقمية', 50, 'جديد',
-        'بطاقة أمريكية', 'XXXX-XXXX-XXXX',
-        '', 1, '', '', ''
-      ]
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-    ws['!cols'] = cols.map(c => ({ wch: c.width }));
-    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: cols.length - 1 } }];
-    ws['!rows'] = [{ hpt: 36 }, { hpt: 30 }, { hpt: 25 }, { hpt: 30 }];
-
-    const getStyle = (bg, fg = '000000', bold = false, align = 'center') => ({
-      fill: { fgColor: { rgb: bg } },
-      font: { name: 'Calibri', sz: 11, bold: bold, color: { rgb: fg } },
-      alignment: { horizontal: align, vertical: 'center', wrapText: true },
-      border: {
-        top: { style: 'thin', color: { rgb: 'CCCCCC' } },
-        bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
-        left: { style: 'thin', color: { rgb: 'CCCCCC' } },
-        right: { style: 'thin', color: { rgb: 'CCCCCC' } }
-      }
-    });
-
-    // ستايل العنوان
-    if(ws['A1']) ws['A1'].s = getStyle('003845', 'FFFFFF', true, 'center');
-    ws['A1'].s.font.sz = 14;
-
-    for (let c = 0; c < cols.length; c++) {
-      const colLetter = XLSX.utils.encode_col(c);
-      const headCell = ws[colLetter + '2'];
-      if(headCell) headCell.s = getStyle(HEADER_BG, 'FFFFFF', true, 'center');
-      const noteCell = ws[colLetter + '3'];
-      if(noteCell) noteCell.s = getStyle(NOTES_BG, '777777', false, 'right');
-      const exCell = ws[colLetter + '4'];
-      if(exCell) exCell.s = getStyle(EXAMPLE_BG, '1A6550', false, 'right');
+  const handleDownloadProductTemplate = async () => {
+    try {
+      // 1. الأقسام الحقيقية من المتجر
+      const realCategories = categories
+        .filter(c => c && c.name && c.name !== 'الكل')
+        .map(c => c.name.trim());
+      const catList = realCategories.length ? realCategories : ['بطاقات', 'ألعاب', 'متفرقات'];
       
-      for(let r = 5; r <= 104; r++) {
-        const addr = colLetter + r;
-        if(!ws[addr]) ws[addr] = { v: '', t: 's' };
-        ws[addr].s = getStyle(cols[c].bg, '000000', false, 'right');
+      // 2. أنواع المنتجات المعتمدة في المتجر
+      const typeList = ['منتج رقمي', 'بطاقات رقمية', 'منتج حسب الطلب', 'منتج مبادلة', 'منتج ملموس'];
+
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'دكان هاي داي';
+
+      // ──────────────── ورقة بيانات مرجعية ────────────────
+      const refWs = wb.addWorksheet('بيانات_مرجعية');
+      refWs.columns = [
+        { header: 'الأقسام المتاحة', key: 'cats', width: 25 },
+        { header: 'أنواع المنتجات', key: 'types', width: 25 },
+      ];
+      
+      const maxRows = Math.max(catList.length, typeList.length);
+      for (let i = 0; i < maxRows; i++) {
+        refWs.addRow([catList[i] || '', typeList[i] || '']);
       }
-    }
+      
+      refWs.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      refWs.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF004956' } };
+      refWs.getRow(1).alignment = { horizontal: 'center' };
 
-    const wb = XLSX.utils.book_new();
+      // ──────────────── ورقة نموذج المنتجات ────────────────
+      const ws = wb.addWorksheet('نموذج المنتجات', {
+        views: [{ rightToLeft: true, state: 'frozen', ySplit: 3 }]
+      });
 
-    // ── إنشاء ورقة مرئية للبيانات المرجعية (القوائم المنسدلة) بدلاً من المخفية لتجنب تلف الملف ──
-    const maxLen = Math.max(catList.length, typeList.length);
-    const hiddenData = [
-      ['الأقسام', 'أنواع المنتجات']
-    ];
-    for(let i=0; i<maxLen; i++) {
-      hiddenData.push([ catList[i] || '', typeList[i] || '' ]);
-    }
-    const wsHidden = XLSX.utils.aoa_to_sheet(hiddenData);
-    wsHidden['!cols'] = [{wch:30}, {wch:30}];
-    if(wsHidden['A1']) wsHidden['A1'].s = getStyle(HEADER_BG, 'FFFFFF', true, 'center');
-    if(wsHidden['B1']) wsHidden['B1'].s = getStyle(HEADER_BG, 'FFFFFF', true, 'center');
+      const cols = [
+        { key: 'title', title: 'اسم المنتج ★', width: 38, note: 'مطلوب — اسم المنتج كما سيظهر للعميل' },
+        { key: 'price', title: 'السعر (USD) ★', width: 16, note: 'مطلوب — رقم مثل: 9.99' },
+        { key: 'oldPrice', title: 'السعر القديم (USD)', width: 18, note: 'اختياري — يُعرض مشطوباً لإظهار الخصم' },
+        { key: 'category', title: 'القسم ★', width: 22, note: 'مطلوب — اختر من القائمة المنسدلة' },
+        { key: 'productType', title: 'نوع المنتج ★', width: 20, note: 'مطلوب — اختر من القائمة المنسدلة' },
+        { key: 'stock', title: 'الكمية في المخزن', width: 18, note: 'رقم صحيح ≥ 0 (افتراضي: 0)' },
+        { key: 'badge', title: 'الشارة (Badge)', width: 18, note: 'نص قصير: جديد، خصم، الأفضل' },
+        { key: 'desc', title: 'وصف المنتج', width: 45, note: 'نص حر للوصف التفصيلي' },
+        { key: 'keys', title: 'أكواد البطاقات', width: 40, note: 'لنوع بطاقات رقمية — كود في كل سطر' },
+        { key: 'tiers', title: 'شرائح الكميات', width: 35, note: 'مثال: 1-4:27 | 5-9:25 | 10-∞:23' },
+        { key: 'minQty', title: 'الحد الأدنى للطلب', width: 18, note: 'أقل كمية يقبل الطلب بها (افتراضي 1)' },
+        { key: 'exCurr', title: 'اسم المنتج اللي نسلمك', width: 25, note: 'خاص بمنتجات المبادلة فقط' },
+        { key: 'exReq', title: 'اسم المنتج المطلوب من العميل', width: 28, note: 'خاص بمنتجات المبادلة فقط' },
+        { key: 'exAmt', title: 'الكمية التي نسلمها لكل وحدة', width: 22, note: 'خاص بمنتجات المبادلة فقط' },
+      ];
 
-    XLSX.utils.book_append_sheet(wb, wsHidden, 'بيانات_مرجعية');
+      ws.columns = cols.map(c => ({ width: c.width }));
 
-    // إضافة القوائم المنسدلة المرجعية (Data Validation) - تعمل في كل نسخ وإعدادات Excel
-    if (!ws['!dataValidations']) ws['!dataValidations'] = [];
-    
-    ws['!dataValidations'].push({
-      type: 'list', 
-      formula1: `بيانات_مرجعية!$A$2:$A$${catList.length + 1}`,
-      allowBlank: true,
-      showErrorMessage: true,
-      sqref: 'D5:D104'
-    });
-    
-    ws['!dataValidations'].push({
-      type: 'list', 
-      formula1: `بيانات_مرجعية!$B$2:$B$${typeList.length + 1}`,
-      allowBlank: true,
-      showErrorMessage: true,
-      sqref: 'E5:E104'
-    });
+      // صف 1: العنوان الرئيسي
+      ws.mergeCells(1, 1, 1, cols.length);
+      const titleCell = ws.getCell(1, 1);
+      titleCell.value = '📦  نموذج استيراد المنتجات — متجر دكان هاي داي';
+      titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003845' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 40;
 
-    XLSX.utils.book_append_sheet(wb, ws, 'نموذج المنتجات');
+      // صف 2: رؤوس الأعمدة
+      const row2 = ws.getRow(2);
+      row2.height = 36;
+      cols.forEach((col, idx) => {
+        const cell = row2.getCell(idx + 1);
+        cell.value = col.title;
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF004956' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+        };
+      });
 
-    // دليل الاستخدام
-    const guideData = [
-      ['📖  دليل استخدام نموذج استيراد المنتجات'],
-      ['العمود', 'الوصف', 'مثال'],
-      ['اسم المنتج ★', 'اسم المنتج كما سيظهر للعميل في المتجر', 'بطاقة iTunes 25$'],
-      ['السعر (USD) ★', 'سعر البيع بالدولار — رقم عشري', '27 أو 9.99'],
-      ['السعر القديم (USD)', 'السعر قبل الخصم (لإظهاره مشطوباً) — اتركه فارغاً إن لم يكن هناك خصم', '30.00'],
-      ['القسم ★', 'يطابق اسم قسم موجود في المتجر (يُرجى الاختيار من القائمة المنسدلة)', 'بطاقات'],
-      ['نوع المنتج ★', 'يجب اختيار أحد الأنواع الصحيحة من القائمة المنسدلة للخلية', 'بطاقات رقمية'],
-      ['الكمية في المخزن', 'عدد صحيح للمخزون (للمنتجات غير الرقمية عادة)', '50'],
-      ['الشارة (Badge)', 'نص قصير يظهر فوق صورة المنتج', 'جديد | خصم | الأفضل'],
-      ['وصف المنتج', 'نص وصفي للمنتج يظهر للعميل', 'بطاقة iTunes أمريكية...'],
-      ['أكواد البطاقات', 'للمنتجات (بطاقات رقمية) — ادخل الكود، ولإضافة كود آخر بنفس الخلية اضغط Alt+Enter', 'XXXX-XXXX'],
-      ['شرائح الكميات', 'لتسعير الجملة — التنسيق: (الكمية:السعر) وافصل بينها بـ |', '1-4:27 | 5-9:25 | 10-∞:23'],
-      ['الحد الأدنى للطلب', 'أقل كمية يمكن للعميل طلبها', '1'],
-      ['اسم المنتج اللي نسلمك', 'خاص بمنتجات (منتج مبادلة) - اسم المنتج أو العملة التي تعطيها للعميل', 'نقاط'],
-      ['اسم المنتج المطلوب من العميل', 'خاص بمنتجات (منتج مبادلة) - اسم المنتج أو المورد الذي يدفعه العميل لك', 'بطاقة مكافآت'],
-      ['الكمية التي نسلمها لكل وحدة', 'خاص بمنتجات (منتج مبادلة) - الكمية التي سيحصل عليها العميل مقابل وحدة واحدة', '5'],
-      [],
-      ['⚠️ ملاحظات هامة:', '1. الأعمدة التي بجانبها (★) هي أعمدة إلزامية ولا يمكن تركها فارغة.', ''],
-      ['', '2. لا تقم بتعديل أسماء الأعمدة في الصف الأول حتى لا تفشل عملية الاستيراد.', ''],
-      ['', '3. يرجى عدم حذف ورقة "بيانات_مرجعية" لأنها تشغل القوائم المنسدلة.', '']
-    ];
-    
-    const ws2 = XLSX.utils.aoa_to_sheet(guideData);
-    ws2['!cols'] = [{wch:25}, {wch:65}, {wch:25}];
-    ws2['!merges'] = [
-      {s:{r:0,c:0}, e:{r:0,c:2}},
-      {s:{r:17,c:1}, e:{r:17,c:2}},
-      {s:{r:18,c:1}, e:{r:18,c:2}},
-      {s:{r:19,c:1}, e:{r:19,c:2}}
-    ];
-    
-    if(ws2['A1']) ws2['A1'].s = getStyle('003845', 'FFFFFF', true, 'center');
-    for(let i=0; i<3; i++) {
-       const cell = ws2[XLSX.utils.encode_col(i) + '2'];
-       if(cell) cell.s = getStyle(HEADER_BG, 'FFFFFF', true, 'center');
-    }
+      // صف 3: التوضيحات
+      const row3 = ws.getRow(3);
+      row3.height = 28;
+      cols.forEach((col, idx) => {
+        const cell = row3.getCell(idx + 1);
+        cell.value = col.note;
+        cell.font = { name: 'Calibri', size: 9, italic: true, color: { argb: 'FF666666' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+        };
+      });
 
-    // تلوين الجدول
-    for(let r=3; r<=16; r++) {
-      const isAlt = r % 2 === 0;
-      const rowBg = isAlt ? 'F0F9F7' : 'FFFFFF';
-      for(let c=0; c<3; c++) {
-        const addr = XLSX.utils.encode_col(c) + r;
-        if(ws2[addr]) ws2[addr].s = getStyle(rowBg, '111111', c===0, 'right');
+      // صف 4: مثال
+      const row4 = ws.getRow(4);
+      row4.height = 32;
+      const exampleData = [
+        'بطاقة iTunes 25$', 27, 30, catList[0], 'بطاقات رقمية', 50, 'الأفضل',
+        'بطاقة آيتونز أمريكية فورية', 'XXXX-XXXX-XXXX', '1-4:27 | 5-9:25 | 10-∞:23',
+        1, '', '', ''
+      ];
+      exampleData.forEach((val, idx) => {
+        const cell = row4.getCell(idx + 1);
+        cell.value = val;
+        cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF1A6550' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F6F0' } };
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+        };
+      });
+
+      // الصفوف 5 إلى 100: تجهيز وتطبيق القوائم المنسدلة الحقيقية
+      const catCount = catList.length;
+      const typeCount = typeList.length;
+      for (let r = 5; r <= 100; r++) {
+        const row = ws.getRow(r);
+        row.height = 24;
+        for (let c = 1; c <= cols.length; c++) {
+          const cell = row.getCell(c);
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFEAEAEA' } },
+            bottom: { style: 'thin', color: { argb: 'FFEAEAEA' } },
+            left: { style: 'thin', color: { argb: 'FFEAEAEA' } },
+            right: { style: 'thin', color: { argb: 'FFEAEAEA' } }
+          };
+          // خلفية خفيفة للأعمدة المطلوبة
+          if (c === 1 || c === 2 || c === 4 || c === 5) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFDF2' } };
+          }
+        }
+
+        // العمود 4 (القسم): قائمة منسدلة فعلية
+        row.getCell(4).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['بيانات_مرجعية!$A$2:$A$' + (catCount + 1)],
+          showErrorMessage: true,
+          errorTitle: 'قسم غير صحيح',
+          error: 'يرجى اختيار القسم من القائمة المنسدلة'
+        };
+
+        // العمود 5 (نوع المنتج): قائمة منسدلة فعلية
+        row.getCell(5).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['بيانات_مرجعية!$B$2:$B$' + (typeCount + 1)],
+          showErrorMessage: true,
+          errorTitle: 'نوع منتج غير صحيح',
+          error: 'يرجى اختيار نوع المنتج من القائمة المنسدلة'
+        };
       }
-    }
-    
-    // تلوين الملاحظات
-    for(let r=18; r<=20; r++) {
-      for(let c=0; c<3; c++) {
-        const addr = XLSX.utils.encode_col(c) + r;
-        if(ws2[addr]) ws2[addr].s = getStyle('FFF8E1', '7B5800', r===18 && c===0, 'right');
-      }
-    }
 
-    XLSX.utils.book_append_sheet(wb, ws2, 'دليل الاستخدام');
+      // ──────────────── ورقة دليل الاستخدام ────────────────
+      const guideWs = wb.addWorksheet('دليل الاستخدام');
+      guideWs.views = [{ rightToLeft: true }];
+      guideWs.columns = [{ width: 28 }, { width: 65 }, { width: 30 }];
 
-    XLSX.writeFile(wb, 'نموذج_استيراد_المنتجات.xlsx');
-    showToast(`✅ تم تحميل النموذج الملون مع ${realCategories.length} قسم والقوائم المنسدلة تعمل`);
+      guideWs.mergeCells(1, 1, 1, 3);
+      const gTitle = guideWs.getCell(1, 1);
+      gTitle.value = '📖  دليل استخدام نموذج استيراد المنتجات';
+      gTitle.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+      gTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF003845' } };
+      gTitle.alignment = { horizontal: 'center', vertical: 'middle' };
+      guideWs.getRow(1).height = 36;
+
+      const gHeaders = ['العمود', 'الوصف', 'مثال'];
+      const gRow2 = guideWs.getRow(2);
+      gRow2.height = 30;
+      gHeaders.forEach((h, i) => {
+        const c = gRow2.getCell(i + 1);
+        c.value = h;
+        c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF004956' } };
+        c.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+
+      const guideRows = [
+        ['اسم المنتج ★', 'اسم المنتج كما سيظهر للعميل في المتجر', 'بطاقة iTunes 25$'],
+        ['السعر (USD) ★', 'سعر البيع بالدولار — رقم عشري', '27 أو 9.99'],
+        ['السعر القديم (USD)', 'السعر قبل الخصم (مشطوباً) — اتركه فارغاً إن لم يكن هناك خصم', '30.00'],
+        ['القسم ★', 'يطابق اسم قسم موجود في المتجر (اختر من القائمة المنسدلة)', catList[0] || 'بطاقات'],
+        ['نوع المنتج ★', 'اختر من القائمة المنسدلة المتاحة في الخلية', 'بطاقات رقمية'],
+        ['الكمية في المخزن', 'عدد صحيح للمخزون (للمنتجات الملموسة أو حسب الطلب)', '50'],
+        ['الشارة (Badge)', 'نص قصير يظهر فوق صورة المنتج', 'جديد | خصم | الأفضل'],
+        ['وصف المنتج', 'نص وصفي للمنتج يظهر للعميل', 'بطاقة آيتونز أمريكية...'],
+        ['أكواد البطاقات', 'للمنتجات الرقمية (بطاقات رقمية) — كود في كل سطر', 'XXXX-XXXX-XXXX'],
+        ['شرائح الكميات', 'لتسعير الجملة — التنسيق: (الكمية:السعر) وافصل بينها بـ |', '1-4:27 | 5-9:25 | 10-∞:23'],
+        ['الحد الأدنى للطلب', 'أقل كمية يقبل الطلب بها', '1'],
+        ['اسم المنتج اللي نسلمك', 'خاص بمنتجات (منتج مبادلة) — المنتج أو العملة التي تسلمها للعميل', 'صكوك / كروت'],
+        ['اسم المنتج المطلوب من العميل', 'خاص بمنتجات (منتج مبادلة) — المورد المطلوب من العميل إحضاره', 'قمح / بيض'],
+        ['الكمية التي نسلمها لكل وحدة', 'خاص بمنتجات (منتج مبادلة) — الكمية المسلمة مقابل وحدة واحدة', '5'],
+      ];
+
+      guideRows.forEach((rData, idx) => {
+        const row = guideWs.getRow(idx + 3);
+        row.height = 26;
+        const isAlt = idx % 2 === 0;
+        rData.forEach((val, cIdx) => {
+          const cell = row.getCell(cIdx + 1);
+          cell.value = val;
+          cell.font = { name: 'Calibri', size: 10, bold: cIdx === 0 };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isAlt ? 'FFF0F9F7' : 'FFFFFFFF' } };
+          cell.alignment = { horizontal: cIdx === 0 ? 'center' : 'right', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFD5E5E0' } },
+            bottom: { style: 'thin', color: { argb: 'FFD5E5E0' } },
+            left: { style: 'thin', color: { argb: 'FFD5E5E0' } },
+            right: { style: 'thin', color: { argb: 'FFD5E5E0' } }
+          };
+        });
+      });
+
+      // تنبيهات مهمة
+      const noteRowIdx = guideRows.length + 4;
+      guideWs.mergeCells(noteRowIdx, 1, noteRowIdx + 2, 3);
+      const noteCell = guideWs.getCell(noteRowIdx, 1);
+      noteCell.value = '⚠️ ملاحظات هامة:\n1. الأعمدة التي بجانبها (★) هي أعمدة إلزامية.\n2. القوائم المنسدلة في عمود (القسم) و(نوع المنتج) تعمل تلقائياً من ورقة (بيانات_مرجعية).\n3. احفظ الملف بصيغة (.xlsx) قبل رفعه إلى المتجر.';
+      noteCell.font = { name: 'Calibri', size: 10, color: { argb: 'FF7B5800' } };
+      noteCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF8E1' } };
+      noteCell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
+      noteCell.border = {
+        top: { style: 'thin', color: { argb: 'FFE6D5A8' } },
+        bottom: { style: 'thin', color: { argb: 'FFE6D5A8' } },
+        left: { style: 'thin', color: { argb: 'FFE6D5A8' } },
+        right: { style: 'thin', color: { argb: 'FFE6D5A8' } }
+      };
+      guideWs.getRow(noteRowIdx).height = 65;
+
+      // ──────────────── حفظ وتنزيل الملف ────────────────
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'نموذج_استيراد_المنتجات.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast(`✅ تم تحميل النموذج بنجاح مع ${catList.length} قسم وقوائم منسدلة نشطة`);
+    } catch (err) {
+      console.error('فشل إنشاء نموذج Excel:', err);
+      showToast('❌ حدث خطأ أثناء إنشاء ملف Excel: ' + (err.message || err));
+    }
   };
   const excelImportRef = useRef(null);
 
