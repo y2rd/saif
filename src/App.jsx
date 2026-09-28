@@ -3999,13 +3999,13 @@ export default function App() {
                         {products.filter(p => wishlist.includes(p.id)).map(favProd => (
                           <div key={favProd.id} className="p-2.5 bg-gray-50 rounded-xl border border-gray-200/80 flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <img src={favProd.image} alt={favProd.name} className="w-10 h-10 object-cover rounded-lg border border-gray-200" />
+                              <img src={favProd.imageUrl || favProd.image} alt={favProd.title || favProd.name} className="w-10 h-10 object-cover rounded-lg border border-gray-200" />
                               <div className="min-w-0">
-                                <h4 className="text-xs font-bold text-gray-900 truncate">{favProd.name}</h4>
+                                <h4 className="text-xs font-bold text-gray-900 truncate">{favProd.title || favProd.name}</h4>
                                 <span className="text-[11px] font-bold text-[#004956] font-price">
                                   {favProd.productType === 'exchange' || (typeof favProd.exchangeCurrencyName === 'string' && favProd.exchangeCurrencyName.trim().length > 0)
                                     ? 'مبادلة'
-                                    : (favProd.currency === 'IQD' ? `${formatNumberInApp(favProd.price)} د.ع` : `$${formatNumberInApp(favProd.price)}`)}
+                                    : formatPrice(favProd.price, activeCurrency)}
                                 </span>
                               </div>
                             </div>
