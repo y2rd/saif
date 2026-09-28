@@ -2826,7 +2826,10 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-[#FCFCFC] text-gray-700 font-normal leading-normal text-sm relative"
+      className={viewMode === 'admin' 
+        ? "w-full min-h-screen bg-white relative overflow-x-hidden" 
+        : "w-full lg:w-[80%] mx-auto bg-white min-h-screen shadow-sm relative overflow-x-hidden"
+      }
       dir="rtl"
       style={{
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
@@ -3136,7 +3139,7 @@ export default function App() {
               const moreCats = allTopCats.slice(5);
 
               return (
-                <ul className="flex items-center gap-2 lg:gap-4 text-[11px] font-medium">
+                <ul className="flex items-center gap-2 lg:gap-4 text-[11px] md:text-xs font-medium md:font-semibold lg:font-bold">
                   {visibleCats.map(cat => {
                     const subCats = categories.filter(c => c.parentId === cat.id);
                     const hasSub = subCats.length > 0;
@@ -3154,7 +3157,7 @@ export default function App() {
                               handleCategoryClick(cat.name);
                               setActiveNavDropdown(null);
                             }}
-                            className={`cursor-pointer transition px-2 py-1 rounded-lg ${
+                            className={`cursor-pointer transition px-2 py-1 rounded-lg text-[11px] md:text-xs font-medium md:font-semibold lg:font-bold ${
                               cat.name.includes('تخفيض') || cat.name.includes('عروض')
                                 ? 'text-[#8b1c1c] hover:opacity-70'
                                 : 'text-gray-700 hover:text-black hover:bg-gray-50'
@@ -3180,7 +3183,7 @@ export default function App() {
                             e.preventDefault();
                             setActiveNavDropdown(prev => prev === cat.id ? null : cat.id);
                           }}
-                          className={`cursor-pointer transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium ${
+                          className={`cursor-pointer transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] md:text-xs font-medium md:font-semibold lg:font-bold ${
                             isMainSelected || isAnySubSelected
                               ? 'text-black font-extrabold bg-gray-100/80 shadow-2xs'
                               : 'text-gray-700 hover:text-black hover:bg-gray-50'
@@ -3266,7 +3269,7 @@ export default function App() {
                           e.preventDefault();
                           setActiveNavDropdown(prev => prev === 'more' ? null : 'more');
                         }}
-                        className={`cursor-pointer transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium ${
+                        className={`cursor-pointer transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] md:text-xs font-medium md:font-semibold lg:font-bold ${
                           activeNavDropdown === 'more'
                             ? 'text-black font-extrabold bg-gray-100/80 shadow-2xs'
                             : 'text-gray-700 hover:text-black hover:bg-gray-50'
@@ -5584,7 +5587,7 @@ export default function App() {
                             key={cat.id || idx}
                             type="button"
                             onClick={() => handleCategoryClick(cat.name)}
-                            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-2 shrink-0 border ${
+                            className={`px-3 sm:px-4 py-2 rounded-xl text-xs md:text-[13px] font-semibold md:font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-2 shrink-0 border ${
                               isSelected
                                 ? 'bg-[#004956] text-white border-[#004956] shadow-xs'
                                 : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-200/80'
@@ -5940,7 +5943,7 @@ export default function App() {
                         <p className="text-[11px] text-gray-400">يمكنك البدء بإضافة منتجاتك وأقسامك عبر لوحة التحكم.</p>
                       </div>
                     ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                       {filteredProducts.map((item) => {
                         const isInWishlist = wishlist.includes(item.id);
                         const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -6254,7 +6257,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {categoryProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -6502,7 +6505,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {sectionProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
