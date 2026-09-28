@@ -5930,15 +5930,15 @@ export default function App() {
                 const buttonText = (rawBtn && !rawBtn.includes('قسم المبادلة') && !rawBtn.includes('المبادلة')) ? rawBtn : 'إضافة للسلة';
 
                 return (
-                  <div key={section.id} ref={productsSectionRef} className="rounded-2xl border border-gray-200/80 p-2.5 sm:p-6 bg-[#FCFCFC] shadow-2xs">
-                    <div className="flex items-center justify-between mb-4 sm:mb-6 pb-2.5 sm:pb-3 border-b border-gray-200/60 px-1">
+                  <div key={section.id} ref={productsSectionRef} className="space-y-3 bg-transparent p-0 border-0 shadow-none">
+                    <div className="flex items-center justify-between mb-2 sm:mb-4 pb-1 sm:pb-2 px-1">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-black rounded-full"></span>
                         <h3 className="text-sm sm:text-base font-semibold text-black tracking-normal">
                           {gridTitle}
                         </h3>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-normal text-gray-500 bg-gray-100 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">{filteredProducts.length} منتج</span>
+                      <span className="text-[10px] sm:text-xs font-normal text-gray-500 bg-white/80 border border-gray-200/60 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">{filteredProducts.length} منتج</span>
                     </div>
 
                     {filteredProducts.length === 0 ? (
