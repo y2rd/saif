@@ -147,17 +147,17 @@ export default function ProductDetailPage({
       </div>
 
       {/* المحتوى الرئيسي لصفحة تفاصيل المنتج بطراز موقع y2rd / سلة */}
-      <main className="w-full px-3 py-4">
-        <div className="bg-white rounded-2xl p-2">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        <div className="bg-[#F9FAFB] rounded-2xl sm:rounded-3xl p-3 sm:p-8">
           
           {/* تخطيط مرن: في الجوال الصورة فوق والوصف تحت بالكامل | وفي الكمبيوتر والشاشات الأكبر تخطيط جانبي متناسق */}
-          <div className="flex flex-col gap-4 items-start w-full">
+          <div className="flex flex-col md:grid md:grid-cols-12 gap-4 sm:gap-8 lg:gap-10 items-start">
             
             {/* ========================================================================= */}
             {/* الصورة الرئيسية (في الجوال فوق بعرض كامل | في الكمبيوتر في العمود الأيمن) */}
             {/* ========================================================================= */}
             <div 
-              className="w-full flex flex-col gap-2 shrink-0"
+              className="w-full md:col-span-5 flex flex-col gap-2 sm:gap-3 md:sticky md:top-16 z-10 self-start shrink-0"
             >
               {/* صورة المنتج */}
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-white aspect-square w-full max-w-sm sm:max-w-md md:max-w-none mx-auto group flex items-center justify-center border border-gray-100/80 shadow-xs">
@@ -183,7 +183,7 @@ export default function ProductDetailPage({
             {/* ========================================================================= */}
             {/* العنوان + الوصف + الباقات + الشراء (في الجوال تحت الصورة مباشرة | في الكمبيوتر في العمود الأيسر) */}
             {/* ========================================================================= */}
-            <div className="w-full flex flex-col justify-between">
+            <div className="w-full md:col-span-7 flex flex-col justify-between pr-0 md:pr-1 pl-0 md:pl-1">
               <div className="w-full pr-0.5">
                 {/* أزرار المشاركة والرجوع */}
                 <div className="flex items-center justify-between text-[11px] sm:text-xs text-gray-500 mb-1.5 pb-1">
