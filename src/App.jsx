@@ -3782,13 +3782,11 @@ export default function App() {
       {/* نافذة تسجيل الدخول والتسجيل والملف الشخصي والإعدادات                       */}
       {/* ======================================================================== */}
       {isAuthModalOpen && typeof document !== 'undefined' && createPortal(
-        <div className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto ${
-          profileTab === 'settings' ? 'p-0 m-0 px-0 mx-0 w-screen h-screen bg-white' : 'p-4'
-        }`} dir="rtl">
-          {/* الخلفية الضبابية الناعمة (مخفية في تبويب الإعدادات لملء كامل النافذة بالأبيض) */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto p-4" dir="rtl">
+          {/* الخلفية الضبابية الناعمة */}
           <div 
             onClick={closeAuthModal}
-            className={`fixed inset-0 ${profileTab === 'settings' ? 'bg-white' : 'bg-black/35 backdrop-blur-xs'} transition-opacity duration-250 ease-out ${
+            className={`fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-250 ease-out ${
               authModalAnimating ? 'opacity-100' : 'opacity-0'
             }`}
           />
@@ -3796,10 +3794,8 @@ export default function App() {
           {/* صندوق النافذة المنبثق */}
           <div
             className={`relative w-full ${
-              profileTab === 'settings'
-                ? 'fixed inset-0 w-full h-full min-h-screen min-w-full max-w-none max-h-none rounded-none border-0 shadow-none bg-white p-0 m-0 px-0 mx-0'
-                : (currentUser ? 'max-w-lg min-h-[460px] max-h-[85vh]' : 'max-w-[320px] min-h-[390px]') + ' bg-white/98 backdrop-blur-2xl rounded-3xl border border-gray-100 shadow-2xl p-4 sm:p-5 my-auto'
-            } flex flex-col justify-between z-10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform overflow-hidden ${
+              currentUser ? 'max-w-lg min-h-[460px] max-h-[85vh]' : 'max-w-[320px] min-h-[390px]'
+            } bg-white/98 backdrop-blur-2xl rounded-3xl border border-gray-100 shadow-2xl p-4 sm:p-5 my-auto flex flex-col justify-between z-10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform overflow-hidden ${
               authModalAnimating
                 ? 'opacity-100 scale-100 translate-y-0 rotate-0'
                 : 'opacity-0 scale-90 translate-y-6 pointer-events-none'
@@ -3809,14 +3805,14 @@ export default function App() {
             <button
               type="button"
               onClick={closeAuthModal}
-              className={`absolute top-2 left-2 ${profileTab === 'settings' ? 'w-5 h-5 text-[9px] bg-gray-100 text-gray-700' : 'w-6 h-6 text-xs bg-gray-50 text-gray-400'} rounded-full hover:bg-gray-200 hover:text-black transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer z-20`}
+              className="absolute top-3 left-3 w-7 h-7 text-xs bg-gray-100 text-gray-500 rounded-full hover:bg-gray-200 hover:text-black transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer z-20 shadow-2xs"
             >
               ✕
             </button>
 
             {/* في حال كان العميل مسجلاً للدخول بالفعل: عرض ملفه وأقسامه */}
             {currentUser ? (
-              <div className={`flex-1 overflow-y-auto ${profileTab === 'settings' ? 'p-0 m-0 px-0 mx-0 space-y-1 w-full' : 'pr-1 space-y-4'} flex flex-col`}>
+              <div className="flex-1 overflow-y-auto pr-1 space-y-4 flex flex-col">
                 {/* رأس النافذة: عنوان وأيقونة الخيار المحدد فقط */}
                 {(() => {
                   const currentTabInfo = {
@@ -3830,12 +3826,12 @@ export default function App() {
                   }[profileTab] || { title: 'تفاصيل الحساب', icon: 'fa-solid fa-circle-user' };
 
                   return (
-                    <div className={`flex items-center justify-between ${profileTab === 'settings' ? 'pb-1 border-0' : 'pb-3 border-b border-gray-100'}`}>
-                      <div className={`flex items-center gap-1.5 text-gray-900 font-bold ${profileTab === 'settings' ? 'text-[10px]' : 'text-sm sm:text-base'}`}>
-                        <div className={`${profileTab === 'settings' ? 'w-5 h-5 text-[10px] rounded-md' : 'w-8 h-8 text-sm rounded-xl'} bg-gray-100/80 flex items-center justify-center text-gray-800`}>
+                    <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-2 text-gray-900 font-bold text-sm sm:text-base">
+                        <div className="w-8 h-8 text-sm rounded-xl bg-gray-100/80 flex items-center justify-center text-gray-800">
                           <i className={currentTabInfo.icon}></i>
                         </div>
-                        <span className={profileTab === 'settings' ? 'text-[10px] font-bold' : ''}>{currentTabInfo.title}</span>
+                        <span>{currentTabInfo.title}</span>
                       </div>
                     </div>
                   );
@@ -4083,9 +4079,9 @@ export default function App() {
 
                 {/* 4. تبويب الإعدادات (تعديل الاسم وكلمة المرور وتفضيلات الحساب) */}
                 {profileTab === 'settings' && (
-                  <div className="p-0 m-0 px-0 mx-0 space-y-1 bg-white border-0 w-full animate-field-switch">
+                  <div className="space-y-4 animate-field-switch">
                     {editProfileSuccess && (
-                      <div style={{ fontSize: '10px' }} className="p-1 bg-emerald-50 text-emerald-800 text-center font-medium border-0 m-0 text-[10px]">
+                      <div className="p-3 bg-emerald-50 text-emerald-800 text-center font-bold text-xs rounded-xl border border-emerald-200">
                         {editProfileSuccess}
                       </div>
                     )}
@@ -4107,36 +4103,33 @@ export default function App() {
                         setEditProfileSuccess('تم حفظ وتحديث البيانات بنجاح!');
                         setTimeout(() => setEditProfileSuccess(''), 3000);
                       }}
-                      className="space-y-1 p-0 m-0 px-0 mx-0 border-0 w-full"
+                      className="space-y-3.5"
                     >
-                      <div className="border-0 p-0 m-0 px-0 mx-0">
-                        <label style={{ fontSize: '10px' }} className="block font-bold text-gray-700 mb-0.5 p-0 m-0 text-[10px]">تعديل الاسم الكامل</label>
+                      <div className="space-y-1 text-right">
+                        <label className="block text-xs font-bold text-gray-700">تعديل الاسم الكامل</label>
                         <input
                           type="text"
                           required
                           value={editProfileName}
                           onChange={(e) => setEditProfileName(e.target.value)}
-                          style={{ fontSize: '10px' }}
-                          className="w-full px-1.5 py-1 bg-gray-50 focus:bg-white outline-none border-0 shadow-none m-0 text-[10px]"
+                          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-black outline-none transition"
                         />
                       </div>
 
-                      <div className="border-0 p-0 m-0 px-0 mx-0">
-                        <label style={{ fontSize: '10px' }} className="block font-bold text-gray-700 mb-0.5 p-0 m-0 text-[10px]">تغيير كلمة المرور</label>
+                      <div className="space-y-1 text-right">
+                        <label className="block text-xs font-bold text-gray-700">تغيير كلمة المرور</label>
                         <input
                           type="password"
                           value={editProfilePassword}
                           onChange={(e) => setEditProfilePassword(e.target.value)}
                           placeholder="اتركها فارغة إذا لا ترغب بالتغيير"
-                          style={{ fontSize: '10px' }}
-                          className="w-full px-1.5 py-1 bg-gray-50 focus:bg-white outline-none border-0 shadow-none m-0 text-[10px]"
+                          className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-black outline-none transition"
                         />
                       </div>
 
                       <button
                         type="submit"
-                        style={{ fontSize: '10px' }}
-                        className="w-full py-1.5 bg-black hover:bg-gray-800 text-white font-medium transition active:scale-98 cursor-pointer mt-1 border-0 text-[10px]"
+                        className="w-full py-2.5 bg-black hover:bg-gray-800 text-white font-bold text-xs rounded-xl shadow-xs transition active:scale-98 cursor-pointer mt-2"
                       >
                         حفظ التعديلات
                       </button>
