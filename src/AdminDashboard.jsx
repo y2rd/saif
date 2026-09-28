@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx-js-style';
 import ExcelJS from 'exceljs/dist/exceljs.min.js';
 
 import { 
+  safeSetLocalStorage,
   syncStoreConfigToCloud, 
   syncProductsToCloud, 
   saveProductToCloud,
@@ -350,7 +351,7 @@ export default function AdminDashboard({
           propSetTopupRequests(cloudList);
         }
         try {
-          localStorage.setItem('haider_store_topups', JSON.stringify(cloudList));
+          safeSetLocalStorage('haider_store_topups', JSON.stringify(cloudList));
         } catch {}
       }
     });
@@ -368,7 +369,7 @@ export default function AdminDashboard({
         setInternalTopups(cloudList);
         if (setTopupRequests) setTopupRequests(cloudList);
         try {
-          localStorage.setItem('haider_store_topups', JSON.stringify(cloudList));
+          safeSetLocalStorage('haider_store_topups', JSON.stringify(cloudList));
         } catch {}
         showToast(`✅ تم التحقق والمزامنة الفورية (${cloudList.length} طلب)`);
       } else {
@@ -408,13 +409,13 @@ export default function AdminDashboard({
   // حفظ بيانات العملاء والكوبونات محلياً
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_customers', JSON.stringify(customers));
+      safeSetLocalStorage('haider_store_customers', JSON.stringify(customers));
     } catch {}
   }, [customers]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_coupons', JSON.stringify(coupons));
+      safeSetLocalStorage('haider_store_coupons', JSON.stringify(coupons));
       syncCouponsToCloud(coupons);
     } catch {}
   }, [coupons]);
@@ -504,7 +505,7 @@ export default function AdminDashboard({
     const updatedFonts = [...customFonts, newFontObj];
     setCustomFonts(updatedFonts);
     try {
-      localStorage.setItem('custom_store_fonts', JSON.stringify(updatedFonts));
+      safeSetLocalStorage('custom_store_fonts', JSON.stringify(updatedFonts));
     } catch (err) {
       console.warn('LocalStorage limit reached', err);
     }
@@ -528,7 +529,7 @@ export default function AdminDashboard({
       const updated = customFonts.filter(f => f.id !== fontId);
       setCustomFonts(updated);
       try {
-        localStorage.setItem('custom_store_fonts', JSON.stringify(updated));
+        safeSetLocalStorage('custom_store_fonts', JSON.stringify(updated));
       } catch {}
 
       // إزالة ستايل الخط من المستند
@@ -552,10 +553,10 @@ export default function AdminDashboard({
     setIsSavingGlobalSettings(true);
     try {
       const now = Date.now();
-      localStorage.setItem('haider_store_config', JSON.stringify(storeConfig));
-      localStorage.setItem('haider_store_config_updatedAt', String(now));
-      localStorage.setItem('haider_store_categories', JSON.stringify(categories));
-      localStorage.setItem('haider_store_categories_updatedAt', String(now));
+      safeSetLocalStorage('haider_store_config', JSON.stringify(storeConfig));
+      safeSetLocalStorage('haider_store_config_updatedAt', String(now));
+      safeSetLocalStorage('haider_store_categories', JSON.stringify(categories));
+      safeSetLocalStorage('haider_store_categories_updatedAt', String(now));
       
       const pRes = syncProductsToCloud(products);
       const cfgRes = syncStoreConfigToCloud(storeConfig);
@@ -1034,8 +1035,8 @@ export default function AdminDashboard({
         try {
           await saveProductToCloud(updatedProduct); // انتظار تأكيد السحابة أولاً
           setProducts(newProds); // تحديث الواجهة فقط بعد النجاح
-          localStorage.setItem('haider_store_products', JSON.stringify(newProds));
-          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          safeSetLocalStorage('haider_store_products', JSON.stringify(newProds));
+          safeSetLocalStorage('haider_store_products_updatedAt', String(now));
           if (setActiveProductForPage) {
             setActiveProductForPage(prev => (prev && prev.id === editingProduct.id ? updatedProduct : prev));
           }
@@ -1065,8 +1066,8 @@ export default function AdminDashboard({
         try {
           await saveProductToCloud(newProd); // انتظار تأكيد السحابة أولاً
           setProducts(newProds); // تحديث الواجهة فقط بعد النجاح
-          localStorage.setItem('haider_store_products', JSON.stringify(newProds));
-          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          safeSetLocalStorage('haider_store_products', JSON.stringify(newProds));
+          safeSetLocalStorage('haider_store_products_updatedAt', String(now));
           showToast('تمت إضافة المنتج وحفظه سحابياً بنجاح ✅');
         } catch (err) {
           // فشل الحفظ: لا تضف المنتج للواجهة، وأظهر الخطأ الفعلي
@@ -1086,8 +1087,8 @@ export default function AdminDashboard({
       const updated = products.filter(p => p.id !== productId);
       const now = Date.now();
       try {
-        localStorage.setItem('haider_store_products_updatedAt', String(now));
-        localStorage.setItem('haider_store_products', JSON.stringify(updated));
+        safeSetLocalStorage('haider_store_products_updatedAt', String(now));
+        safeSetLocalStorage('haider_store_products', JSON.stringify(updated));
       } catch (e) {}
       setProducts(updated);
       try {
@@ -1527,8 +1528,8 @@ export default function AdminDashboard({
           const merged = [...products, ...valid];
           setProducts(merged);
           try {
-            localStorage.setItem('haider_store_products', JSON.stringify(merged));
-            localStorage.setItem('haider_store_products_updatedAt', String(Date.now()));
+            safeSetLocalStorage('haider_store_products', JSON.stringify(merged));
+            safeSetLocalStorage('haider_store_products_updatedAt', String(Date.now()));
           } catch (e) {}
 
           showToast(`✅ تم استيراد ${valid.length} منتج بنجاح وحفظهم في السحابة`);
@@ -1617,7 +1618,7 @@ export default function AdminDashboard({
             setProducts(prodsCopy);
             syncProductsToCloud(prodsCopy);
             try {
-              localStorage.setItem('haider_store_products', JSON.stringify(prodsCopy));
+              safeSetLocalStorage('haider_store_products', JSON.stringify(prodsCopy));
             } catch (e) {}
           }
         }
@@ -1661,7 +1662,7 @@ export default function AdminDashboard({
             setCustomers(updatedCustomersList);
             syncCustomerToCloud(updatedCust);
             try {
-              localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+              safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedCustomersList));
             } catch (e) {}
 
             // إذا كان هذا العميل مسجلاً دخول الآن كـ currentUser محلياً، نحدث رصيده فوراً
@@ -1671,7 +1672,7 @@ export default function AdminDashboard({
                 const parsedCur = JSON.parse(savedCur);
                 if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
                   const mergedUser = { ...parsedCur, ...updatedCust };
-                  localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+                  safeSetLocalStorage('haider_current_user', JSON.stringify(mergedUser));
                   if (setCurrentUser) setCurrentUser(mergedUser);
                 }
               }
@@ -1729,13 +1730,13 @@ export default function AdminDashboard({
           setCustomers(updatedCustomersList);
           syncCustomerToCloud(updatedCust);
           try {
-            localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+            safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedCustomersList));
             const savedCur = localStorage.getItem('haider_current_user');
             if (savedCur) {
               const parsedCur = JSON.parse(savedCur);
               if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
                 const mergedUser = { ...parsedCur, ...updatedCust };
-                localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+                safeSetLocalStorage('haider_current_user', JSON.stringify(mergedUser));
                 if (setCurrentUser) setCurrentUser(mergedUser);
               }
             }
@@ -1819,13 +1820,13 @@ export default function AdminDashboard({
               const updatedCustomersList = customers.map(c => c.id === targetCust.id ? updatedCust : c);
               setCustomers(updatedCustomersList);
               try {
-                localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+                safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedCustomersList));
                 const savedCur = localStorage.getItem('haider_current_user');
                 if (savedCur) {
                   const parsedCur = JSON.parse(savedCur);
                   if (parsedCur && (parsedCur.id === updatedCust.id || parsedCur.identifier === updatedCust.identifier || parsedCur.phone === updatedCust.phone)) {
                     const mergedUser = { ...parsedCur, ...updatedCust };
-                    localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+                    safeSetLocalStorage('haider_current_user', JSON.stringify(mergedUser));
                     if (setCurrentUser) setCurrentUser(mergedUser);
                   }
                 }
@@ -1864,7 +1865,7 @@ export default function AdminDashboard({
 
     setOrders(updatedOrders);
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrders));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify(updatedOrders));
     } catch (e) {}
 
     const modifiedOrder = updatedOrders.find(o => o.id === orderId);
@@ -1928,7 +1929,7 @@ export default function AdminDashboard({
         setCustomers(updatedCusts);
         syncCustomerToCloud(updatedCust);
         try {
-          localStorage.setItem('haider_store_customers', JSON.stringify(updatedCusts));
+          safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedCusts));
           const savedCur = localStorage.getItem('haider_current_user');
           if (savedCur) {
             const parsedCur = JSON.parse(savedCur);
@@ -1945,7 +1946,7 @@ export default function AdminDashboard({
                 points: updatedCust.points !== undefined ? updatedCust.points : parsedCur.points,
                 notifications: updatedCust.notifications || parsedCur.notifications
               };
-              localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+              safeSetLocalStorage('haider_current_user', JSON.stringify(mergedUser));
               if (setCurrentUser) setCurrentUser(mergedUser);
             }
           }
@@ -2020,7 +2021,7 @@ export default function AdminDashboard({
       alert(`⚠️ تنبيه أمني:\nوجدنا في سجل معاملات محفظة العميل حركة استرجاع مسجلة بالفعل لهذا الطلب رقم #${targetOrder.id}.\nتم قفل الطلب لمنع تدبيل الرصيد.`);
       const updatedOrders = orders.map(o => o.id === orderId ? { ...o, walletRefunded: true, walletRefundedAmount: refundAmount } : o);
       setOrders(updatedOrders);
-      try { localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrders)); } catch (e) {}
+      try { safeSetLocalStorage('haider_store_orders', JSON.stringify(updatedOrders)); } catch (e) {}
       if (selectedOrderDetails?.id === orderId) {
         setSelectedOrderDetails(prev => ({ ...prev, walletRefunded: true, walletRefundedAmount: refundAmount }));
       }
@@ -2083,7 +2084,7 @@ export default function AdminDashboard({
     setCustomers(updatedCustomersList);
 
     try {
-      localStorage.setItem('haider_store_customers', JSON.stringify(updatedCustomersList));
+      safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedCustomersList));
       const savedCur = localStorage.getItem('haider_current_user');
       if (savedCur) {
         const parsedCur = JSON.parse(savedCur);
@@ -2099,7 +2100,7 @@ export default function AdminDashboard({
             balance: updatedCust.balance !== undefined ? updatedCust.balance : parsedCur.balance,
             walletTransactions: updatedCust.walletTransactions || parsedCur.walletTransactions
           };
-          localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+          safeSetLocalStorage('haider_current_user', JSON.stringify(mergedUser));
           if (setCurrentUser) setCurrentUser(mergedUser);
         }
       }
@@ -2122,7 +2123,7 @@ export default function AdminDashboard({
 
     setOrders(updatedOrders);
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrders));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify(updatedOrders));
     } catch (e) {}
 
     const modifiedOrder = updatedOrders.find(o => o.id === orderId);
@@ -2166,13 +2167,13 @@ export default function AdminDashboard({
     if (deletedOrderIdsRef) {
       deletedOrderIdsRef.current.add(strId);
       try {
-        localStorage.setItem('haider_deleted_order_ids', JSON.stringify(Array.from(deletedOrderIdsRef.current)));
+        safeSetLocalStorage('haider_deleted_order_ids', JSON.stringify(Array.from(deletedOrderIdsRef.current)));
       } catch (e) {}
     }
     const updated = orders.filter(o => String(o.id) !== strId);
     setOrders(updated);
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify(updated));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify(updated));
     } catch (e) {}
     if (selectedOrderDetails && String(selectedOrderDetails.id) === strId) {
       setSelectedOrderDetails(null);
@@ -2190,12 +2191,12 @@ export default function AdminDashboard({
     if (deletedOrderIdsRef) {
       allIds.forEach(id => deletedOrderIdsRef.current.add(id));
       try {
-        localStorage.setItem('haider_deleted_order_ids', JSON.stringify(Array.from(deletedOrderIdsRef.current)));
+        safeSetLocalStorage('haider_deleted_order_ids', JSON.stringify(Array.from(deletedOrderIdsRef.current)));
       } catch (e) {}
     }
     setOrders([]);
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify([]));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify([]));
       localStorage.removeItem('haider_store_orders');
     } catch (e) {}
     setSelectedOrderDetails(null);
@@ -2217,7 +2218,7 @@ export default function AdminDashboard({
     const updatedCats = [...categories, newCat];
     setCategories(updatedCats);
     syncCategoriesToCloud(updatedCats);
-    try { localStorage.setItem('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
+    try { safeSetLocalStorage('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
     setNewCatName('');
     setNewCatParentId('');
     setNewCatImage('');
@@ -2246,7 +2247,7 @@ export default function AdminDashboard({
     } : c);
     setCategories(updatedCats);
     syncCategoriesToCloud(updatedCats);
-    try { localStorage.setItem('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
+    try { safeSetLocalStorage('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
     setEditingCatId(null);
     setEditCatParentId('');
     showToast('تم تحديث بيانات القسم بنجاح');
@@ -2266,7 +2267,7 @@ export default function AdminDashboard({
         .filter(c => c.id !== catId)
         .map(c => c.parentId === catId ? { ...c, parentId: null } : c);
       setCategories(updatedCats);
-      try { localStorage.setItem('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
+      try { safeSetLocalStorage('haider_store_categories', JSON.stringify(updatedCats)); } catch (e) {}
       try {
         await deleteCategoryFromCloud(catId);
         await syncCategoriesToCloud(updatedCats);
@@ -2290,7 +2291,7 @@ export default function AdminDashboard({
 
     setCategories(newCats);
     syncCategoriesToCloud(newCats);
-    try { localStorage.setItem('haider_store_categories', JSON.stringify(newCats)); } catch (e) {}
+    try { safeSetLocalStorage('haider_store_categories', JSON.stringify(newCats)); } catch (e) {}
     showToast('تم تحديث ترتيب الأقسام بنجاح');
   };
 
@@ -2313,7 +2314,7 @@ export default function AdminDashboard({
 
     setCategories(newCats);
     syncCategoriesToCloud(newCats);
-    try { localStorage.setItem('haider_store_categories', JSON.stringify(newCats)); } catch (e) {}
+    try { safeSetLocalStorage('haider_store_categories', JSON.stringify(newCats)); } catch (e) {}
     showToast(`تم تحريك قسم "${targetCat.name}" للأعلى وحفظ الترتيب سحابياً`);
   };
 
@@ -2338,7 +2339,7 @@ export default function AdminDashboard({
 
     setCategories(newCats);
     syncCategoriesToCloud(newCats);
-    try { localStorage.setItem('haider_store_categories', JSON.stringify(newCats)); } catch (e) {}
+    try { safeSetLocalStorage('haider_store_categories', JSON.stringify(newCats)); } catch (e) {}
     showToast(`تم تحريك قسم "${targetCat.name}" للأسفل وحفظ الترتيب سحابياً`);
   };
 
@@ -2612,7 +2613,7 @@ export default function AdminDashboard({
             balance: updatedCust.balance !== undefined ? updatedCust.balance : parsedCur.balance,
             walletTransactions: updatedCust.walletTransactions || parsedCur.walletTransactions
           };
-          localStorage.setItem('haider_current_user', JSON.stringify(mergedUser));
+          safeSetLocalStorage('haider_current_user', JSON.stringify(mergedUser));
           if (setCurrentUser) setCurrentUser(mergedUser);
         }
       }
@@ -2638,7 +2639,7 @@ export default function AdminDashboard({
     setTopupRequests(updatedTopups);
     syncTopupsToCloud(updatedTopups);
     try {
-      localStorage.setItem('haider_store_topups', JSON.stringify(updatedTopups));
+      safeSetLocalStorage('haider_store_topups', JSON.stringify(updatedTopups));
     } catch (e) {}
 
     // البحث عن العميل المستهدف
@@ -2674,7 +2675,7 @@ export default function AdminDashboard({
                   balance: updatedCust.balance !== undefined ? updatedCust.balance : parsed.balance,
                   walletTransactions: updatedCust.walletTransactions || parsed.walletTransactions
                 };
-                localStorage.setItem('haider_current_user', JSON.stringify(merged));
+                safeSetLocalStorage('haider_current_user', JSON.stringify(merged));
                 if (setCurrentUser) setCurrentUser(merged);
               }
             }
@@ -2716,7 +2717,7 @@ export default function AdminDashboard({
         setCustomers(updatedCusts);
         syncCustomerToCloud(updatedCust);
         try {
-          localStorage.setItem('haider_store_customers', JSON.stringify(updatedCusts));
+          safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedCusts));
         } catch (e) {}
       }
     }
@@ -2907,33 +2908,33 @@ export default function AdminDashboard({
         const now = Date.now();
         if (Array.isArray(data.products) && data.products.length > 0) {
           setProducts(data.products);
-          localStorage.setItem('haider_store_products', JSON.stringify(data.products));
-          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          safeSetLocalStorage('haider_store_products', JSON.stringify(data.products));
+          safeSetLocalStorage('haider_store_products_updatedAt', String(now));
           syncProductsToCloud(data.products);
         }
         if (Array.isArray(data.categories) && data.categories.length > 0) {
           setCategories(data.categories);
-          localStorage.setItem('haider_store_categories', JSON.stringify(data.categories));
-          localStorage.setItem('haider_store_categories_updatedAt', String(now));
+          safeSetLocalStorage('haider_store_categories', JSON.stringify(data.categories));
+          safeSetLocalStorage('haider_store_categories_updatedAt', String(now));
           syncCategoriesToCloud(data.categories);
         }
         if (data.storeConfig && typeof data.storeConfig === 'object') {
           setStoreConfig(data.storeConfig);
-          localStorage.setItem('haider_store_config', JSON.stringify(data.storeConfig));
-          localStorage.setItem('haider_store_config_updatedAt', String(now));
+          safeSetLocalStorage('haider_store_config', JSON.stringify(data.storeConfig));
+          safeSetLocalStorage('haider_store_config_updatedAt', String(now));
           syncStoreConfigToCloud(data.storeConfig);
         }
         if (Array.isArray(data.coupons)) {
           setCoupons(data.coupons);
-          localStorage.setItem('haider_store_coupons', JSON.stringify(data.coupons));
+          safeSetLocalStorage('haider_store_coupons', JSON.stringify(data.coupons));
         }
         if (Array.isArray(data.customers)) {
           setCustomers(data.customers);
-          localStorage.setItem('haider_store_customers', JSON.stringify(data.customers));
+          safeSetLocalStorage('haider_store_customers', JSON.stringify(data.customers));
         }
         if (Array.isArray(data.orders)) {
           setOrders(data.orders);
-          localStorage.setItem('haider_store_orders', JSON.stringify(data.orders));
+          safeSetLocalStorage('haider_store_orders', JSON.stringify(data.orders));
         }
         showToast('تم استيراد وتطبيق وتثبيت كافة بيانات المتجر (المنتجات، الأقسام، الكوبونات، العملاء، الطلبات، الإعدادات) بنجاح!');
       } catch (err) {
@@ -6067,8 +6068,8 @@ export default function AdminDashboard({
                   type="button"
                   onClick={async () => {
                     try {
-                      localStorage.setItem('haider_store_categories', JSON.stringify(categories));
-                      localStorage.setItem('haider_store_categories_updatedAt', String(Date.now()));
+                      safeSetLocalStorage('haider_store_categories', JSON.stringify(categories));
+                      safeSetLocalStorage('haider_store_categories_updatedAt', String(Date.now()));
                       const res = await syncCategoriesToCloud(categories);
                       if (res && res.success === false) {
                         showToast('تنبيه: ' + (res.error || 'فشلت المزامنة'));
@@ -7618,8 +7619,8 @@ export default function AdminDashboard({
                           type="button"
                           onClick={async () => {
                             try {
-                              localStorage.setItem('haider_store_config', JSON.stringify(storeConfig));
-                              localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+                              safeSetLocalStorage('haider_store_config', JSON.stringify(storeConfig));
+                              safeSetLocalStorage('haider_store_config_updatedAt', String(Date.now()));
                               await syncStoreConfigToCloud(storeConfig);
                               showToast('✅ تم حفظ ترتيب العناصر سحابياً بنجاح!');
                             } catch (e) {

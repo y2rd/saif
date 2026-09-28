@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { safeSetLocalStorage, useState, useRef, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import AdminDashboard from './AdminDashboard';
 import ProductDetailPage from './ProductDetailPage';
@@ -139,10 +139,10 @@ export default function App() {
   useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark-theme');
-      localStorage.setItem('haider_store_theme', 'dark');
+      safeSetLocalStorage('haider_store_theme', 'dark');
     } else {
       document.body.classList.remove('dark-theme');
-      localStorage.setItem('haider_store_theme', 'light');
+      safeSetLocalStorage('haider_store_theme', 'light');
     }
   }, [isDarkMode]);
 
@@ -449,7 +449,7 @@ export default function App() {
 
         setCurrentUser(loggedUser);
         try {
-          localStorage.setItem('haider_current_user', JSON.stringify(loggedUser));
+          safeSetLocalStorage('haider_current_user', JSON.stringify(loggedUser));
         } catch (e) {}
 
         // تحديث آخر تسجيل دخول في السحابة
@@ -492,13 +492,13 @@ export default function App() {
           const filtered = prev.filter(c => c.identifier !== fullContact && c.id !== newCustomer.id);
           const updated = [newCustomer, ...filtered];
           try {
-            localStorage.setItem('haider_store_customers', JSON.stringify(updated));
+            safeSetLocalStorage('haider_store_customers', JSON.stringify(updated));
           } catch (e) {}
           return updated;
         });
 
         try {
-          localStorage.setItem('haider_current_user', JSON.stringify(newCustomer));
+          safeSetLocalStorage('haider_current_user', JSON.stringify(newCustomer));
         } catch (e) {}
 
         setAuthLoading(false);
@@ -562,7 +562,7 @@ export default function App() {
         const updatedAdmin = { ...currentUser, role: 'admin' };
         setCurrentUser(updatedAdmin);
         try {
-          localStorage.setItem('haider_current_user', JSON.stringify(updatedAdmin));
+          safeSetLocalStorage('haider_current_user', JSON.stringify(updatedAdmin));
         } catch (e) {}
       }
       setViewMode('admin');
@@ -585,7 +585,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('haider_cart_items', JSON.stringify(cartItems));
+      safeSetLocalStorage('haider_cart_items', JSON.stringify(cartItems));
     } catch (e) {}
   }, [cartItems]);
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
@@ -641,7 +641,7 @@ export default function App() {
     setWishlist(prev => {
       const updated = prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId];
       try {
-        localStorage.setItem('haider_store_wishlist', JSON.stringify(updated));
+        safeSetLocalStorage('haider_store_wishlist', JSON.stringify(updated));
       } catch (e) {}
       if (currentUser && currentUser.id) {
         const updatedCust = { ...currentUser, wishlist: updated };
@@ -677,7 +677,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_topups', JSON.stringify(topupRequests));
+      safeSetLocalStorage('haider_store_topups', JSON.stringify(topupRequests));
     } catch (e) {}
   }, [topupRequests]);
 
@@ -1039,7 +1039,7 @@ export default function App() {
       const dummyCleared = localStorage.getItem('haider_orders_dummy_cleared_v1');
       if (!dummyCleared) {
         localStorage.removeItem('haider_store_orders');
-        localStorage.setItem('haider_orders_dummy_cleared_v1', 'true');
+        safeSetLocalStorage('haider_orders_dummy_cleared_v1', 'true');
         return [];
       }
       let deletedIds = new Set();
@@ -1072,13 +1072,33 @@ export default function App() {
   });
 
   // فتح المتجر وعرض المنتجات مباشرة وفوراً مثل المتاجر الكبرى بدون أي شاشة انتظار معطلة
+    // تنظيف التخزين المحلي فوراً عند بدء التطبيق لتفادي أخطاء QuotaExceededError
+  useEffect(() => {
+    try {
+      // فحص وإزالة المفاتيح الضخمة أو المؤقتة
+      const oldCats = localStorage.getItem('haider_store_categories');
+      if (oldCats && oldCats.length > 500000) {
+        localStorage.removeItem('haider_store_categories');
+      }
+      const keysToClean = ['custom_store_fonts', 'haider_store_backup', 'temp_image_cache'];
+      keysToClean.forEach(k => {
+        try {
+          const item = localStorage.getItem(k);
+          if (item && item.length > 300000) localStorage.removeItem(k);
+        } catch {}
+      });
+    } catch (e) {
+      console.warn("تنظيف localStorage:", e);
+    }
+  }, []);
+
   const [isInitialSyncing, setIsInitialSyncing] = useState(true);
 
   // حفظ فوري في التخزين المحلي (localStorage) عند أي تعديل أو حذف
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_config', JSON.stringify(storeConfig));
-      localStorage.setItem('haider_store_config_updatedAt', String(Date.now()));
+      safeSetLocalStorage('haider_store_config', JSON.stringify(storeConfig));
+      safeSetLocalStorage('haider_store_config_updatedAt', String(Date.now()));
     } catch {}
 
     // تحديث عنوان تبويب الصفحة (Page Title) تلقائياً
@@ -1136,26 +1156,26 @@ export default function App() {
   useEffect(() => {
     try {
       if (Array.isArray(products) && products.length > 0) {
-        localStorage.setItem('haider_store_products', JSON.stringify(products));
+        safeSetLocalStorage('haider_store_products', JSON.stringify(products));
       }
     } catch {}
   }, [products]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_categories', JSON.stringify(categories));
+      safeSetLocalStorage('haider_store_categories', JSON.stringify(categories));
     } catch {}
   }, [categories]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify(orders));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify(orders));
     } catch {}
   }, [orders]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('haider_store_customers', JSON.stringify(customers));
+      safeSetLocalStorage('haider_store_customers', JSON.stringify(customers));
     } catch {}
   }, [customers]);
 
@@ -1218,7 +1238,7 @@ export default function App() {
           };
           setCurrentUser(merged);
           try {
-            localStorage.setItem('haider_current_user', JSON.stringify(merged));
+            safeSetLocalStorage('haider_current_user', JSON.stringify(merged));
           } catch (e) {}
         }
       }
@@ -1278,8 +1298,8 @@ export default function App() {
         if (Array.isArray(cloudProducts) && cloudProducts.length > 0) {
           const now = typeof cloudUpdatedAt === 'number' ? cloudUpdatedAt : Date.now();
           try {
-            localStorage.setItem('haider_store_products', JSON.stringify(cloudProducts));
-            localStorage.setItem('haider_store_products_updatedAt', String(now));
+            safeSetLocalStorage('haider_store_products', JSON.stringify(cloudProducts));
+            safeSetLocalStorage('haider_store_products_updatedAt', String(now));
           } catch (e) {}
           setProducts(cloudProducts);
         }
@@ -1289,8 +1309,8 @@ export default function App() {
           const filteredCloudCategories = cloudCategories.filter(c => c && c.name !== 'الكل' && c.id !== 'all');
           const now = typeof cloudUpdatedAt === 'number' ? cloudUpdatedAt : Date.now();
           try {
-            localStorage.setItem('haider_store_categories', JSON.stringify(filteredCloudCategories));
-            localStorage.setItem('haider_store_categories_updatedAt', String(now));
+            safeSetLocalStorage('haider_store_categories', JSON.stringify(filteredCloudCategories));
+            safeSetLocalStorage('haider_store_categories_updatedAt', String(now));
           } catch (e) {}
           setCategories(filteredCloudCategories);
         }
@@ -1350,7 +1370,7 @@ export default function App() {
                       role: match.role || base.role
                     };
                     try {
-                      localStorage.setItem('haider_current_user', JSON.stringify(merged));
+                      safeSetLocalStorage('haider_current_user', JSON.stringify(merged));
                     } catch (e) {}
                     return merged;
                   });
@@ -1366,14 +1386,14 @@ export default function App() {
           const filtered = cloudOrders.filter(o => !deletedOrderIdsRef.current.has(String(o.id)));
           setOrders(filtered);
           try {
-            localStorage.setItem('haider_store_orders', JSON.stringify(filtered));
+            safeSetLocalStorage('haider_store_orders', JSON.stringify(filtered));
           } catch (e) {}
         }
       },
       onCouponsUpdate: (cloudCoupons) => {
         if (Array.isArray(cloudCoupons)) {
           try {
-            localStorage.setItem('haider_store_coupons', JSON.stringify(cloudCoupons));
+            safeSetLocalStorage('haider_store_coupons', JSON.stringify(cloudCoupons));
           } catch (e) {}
         }
       },
@@ -1396,7 +1416,7 @@ export default function App() {
             const merged = [...cloudTopups, ...missingFromCloud];
             setTopupRequests(merged);
             try {
-              localStorage.setItem('haider_store_topups', JSON.stringify(merged));
+              safeSetLocalStorage('haider_store_topups', JSON.stringify(merged));
             } catch (e) {}
             if (missingFromCloud.length > 0) {
               syncTopupsToCloud(merged);
@@ -1988,7 +2008,7 @@ export default function App() {
     const updatedOrdersList = [newOrder, ...orders];
     setOrders(updatedOrdersList);
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrdersList));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify(updatedOrdersList));
     } catch (e) {}
 
     // خصم المخزون من المنتجات بدقة وحساب إجمالي الكميات المشتراة
@@ -2207,7 +2227,7 @@ export default function App() {
         return c;
       });
       try {
-        localStorage.setItem('haider_store_customers', JSON.stringify(updated));
+        safeSetLocalStorage('haider_store_customers', JSON.stringify(updated));
       } catch (e) {}
       return updated;
     });
@@ -2218,7 +2238,7 @@ export default function App() {
         const merged = { ...currentUser, notifications: [newNotif, ...curList] };
         setCurrentUser(merged);
         try {
-          localStorage.setItem('haider_current_user', JSON.stringify(merged));
+          safeSetLocalStorage('haider_current_user', JSON.stringify(merged));
         } catch (e) {}
       }
       showNotificationBanner(newNotif.title, newNotif.message, newNotif.type || 'info');
@@ -2257,7 +2277,7 @@ export default function App() {
     const updated = [newTopup, ...topupRequests];
     setTopupRequests(updated);
     try {
-      localStorage.setItem('haider_store_topups', JSON.stringify(updated));
+      safeSetLocalStorage('haider_store_topups', JSON.stringify(updated));
     } catch (e) {}
     syncTopupsToCloud(updated);
 
@@ -2309,7 +2329,7 @@ export default function App() {
         return c;
       });
       try {
-        localStorage.setItem('haider_store_customers', JSON.stringify(updatedList));
+        safeSetLocalStorage('haider_store_customers', JSON.stringify(updatedList));
       } catch (e) {}
       return updatedList;
     });
@@ -2325,7 +2345,7 @@ export default function App() {
     };
     setCurrentUser(updatedUser);
     try {
-      localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
+      safeSetLocalStorage('haider_current_user', JSON.stringify(updatedUser));
     } catch (e) {}
     syncCustomerToCloud(updatedUser);
 
@@ -2392,8 +2412,8 @@ export default function App() {
     setCurrentUser(updatedUser);
     setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
     try {
-      localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
-      localStorage.setItem('haider_store_customers', JSON.stringify(customers.map(c => c.id === updatedUser.id ? updatedUser : c)));
+      safeSetLocalStorage('haider_current_user', JSON.stringify(updatedUser));
+      safeSetLocalStorage('haider_store_customers', JSON.stringify(customers.map(c => c.id === updatedUser.id ? updatedUser : c)));
     } catch (e) {}
     syncCustomerToCloud(updatedUser);
 
@@ -2429,14 +2449,14 @@ export default function App() {
 
     setProducts(updatedProds);
     try {
-      localStorage.setItem('haider_store_products', JSON.stringify(updatedProds));
+      safeSetLocalStorage('haider_store_products', JSON.stringify(updatedProds));
     } catch (e) {}
     syncProductsToCloud(updatedProds);
 
     const updatedOrds = orders.map(o => o.id === reviewModalOrder.id ? { ...o, reviewed: true } : o);
     setOrders(updatedOrds);
     try {
-      localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrds));
+      safeSetLocalStorage('haider_store_orders', JSON.stringify(updatedOrds));
     } catch (e) {}
     syncOrderToCloud({ ...reviewModalOrder, reviewed: true });
 
@@ -2455,7 +2475,7 @@ export default function App() {
     };
     setCurrentUser(updatedUser);
     try {
-      localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
+      safeSetLocalStorage('haider_current_user', JSON.stringify(updatedUser));
     } catch (e) {}
 
     alert('⭐ شكراً جزيلاً لتقييمك! تم حفظ التقييم ومشاركته بنجاح.');
@@ -2548,8 +2568,8 @@ export default function App() {
       setCurrentUser(updatedUser);
       setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
       try {
-        localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
-        localStorage.setItem('haider_store_customers', JSON.stringify(customers.map(c => c.id === updatedUser.id ? updatedUser : c)));
+        safeSetLocalStorage('haider_current_user', JSON.stringify(updatedUser));
+        safeSetLocalStorage('haider_store_customers', JSON.stringify(customers.map(c => c.id === updatedUser.id ? updatedUser : c)));
       } catch (e) {}
 
       // فحص التسليم الفوري للأكواد الرقمية إن وجدت
@@ -2585,7 +2605,7 @@ export default function App() {
         setProducts(prodsCopy);
         syncProductsToCloud(prodsCopy);
         try {
-          localStorage.setItem('haider_store_products', JSON.stringify(prodsCopy));
+          safeSetLocalStorage('haider_store_products', JSON.stringify(prodsCopy));
         } catch (e) {}
       }
 
@@ -2619,7 +2639,7 @@ export default function App() {
       const updatedOrdersList = [newOrder, ...orders];
       setOrders(updatedOrdersList);
       try {
-        localStorage.setItem('haider_store_orders', JSON.stringify(updatedOrdersList));
+        safeSetLocalStorage('haider_store_orders', JSON.stringify(updatedOrdersList));
       } catch (e) {}
       syncOrderToCloud(newOrder);
 
@@ -2709,8 +2729,8 @@ export default function App() {
 
     const now = Date.now();
     try {
-      localStorage.setItem('haider_store_products_updatedAt', String(now));
-      localStorage.setItem('haider_store_products', JSON.stringify(updatedList));
+      safeSetLocalStorage('haider_store_products_updatedAt', String(now));
+      safeSetLocalStorage('haider_store_products', JSON.stringify(updatedList));
     } catch (e) {}
 
     setProducts(updatedList);
@@ -4070,7 +4090,7 @@ export default function App() {
                         };
                         setCurrentUser(updatedUser);
                         try {
-                          localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
+                          safeSetLocalStorage('haider_current_user', JSON.stringify(updatedUser));
                         } catch (err) {}
                         await syncCustomerToCloud(updatedUser);
                         setEditProfileSuccess('تم حفظ وتحديث البيانات بنجاح!');
@@ -4147,7 +4167,7 @@ export default function App() {
                       }
                     });
                     try {
-                      localStorage.setItem('haider_read_notif_ids', JSON.stringify(Array.from(readNotifIdsRef.current)));
+                      safeSetLocalStorage('haider_read_notif_ids', JSON.stringify(Array.from(readNotifIdsRef.current)));
                     } catch (e) {}
 
                     const updatedUserNotifs = userNotifs.map(n => {
@@ -4160,7 +4180,7 @@ export default function App() {
                     setCurrentUser(updatedUser);
                     setCustomers(prev => prev.map(c => c.id === updatedUser.id ? updatedUser : c));
                     try {
-                      localStorage.setItem('haider_current_user', JSON.stringify(updatedUser));
+                      safeSetLocalStorage('haider_current_user', JSON.stringify(updatedUser));
                     } catch (e) {}
                     syncCustomerToCloud(updatedUser);
                   };
