@@ -3722,7 +3722,7 @@ export default function App() {
                                     >
                                       <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-white p-1 flex items-center justify-center border border-gray-200/60 shadow-2xs">
                                         {subCat.imageUrl ? (
-                                          <img src={subCat.imageUrl} alt="" className="w-full h-full object-contain" />
+                                          <img src={subCat.imageUrl} alt={subCat.name} className="w-full h-full object-contain" />
                                         ) : (
                                           <i className={`${subCat.icon || 'fa-solid fa-folder-tree'} text-xs ${isSubSelected ? 'text-[#004956]' : 'text-gray-500'}`}></i>
                                         )}
@@ -3749,7 +3749,7 @@ export default function App() {
                             >
                               <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 bg-gray-100/80 p-2 flex items-center justify-center text-gray-700">
                                 {orphan.imageUrl ? (
-                                  <img src={orphan.imageUrl} alt="" className="w-full h-full object-contain" />
+                                  <img src={orphan.imageUrl} alt={orphan.name} className="w-full h-full object-contain" />
                                 ) : (
                                   <i className={`${orphan.icon || 'fa-solid fa-folder-tree'} text-lg text-[#004956]`}></i>
                                 )}
@@ -4936,7 +4936,7 @@ export default function App() {
                     <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl p-3 bg-gray-50/30">
                       {cartItems.map((item) => (
                         <div key={item.cartItemId} className="py-2.5 flex gap-3 items-center">
-                          <img src={item.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover border border-gray-100" />
+                          <img src={item.imageUrl} alt={item.title} className="w-12 h-12 rounded-xl object-cover border border-gray-100" />
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xs text-gray-800 truncate font-medium">{item.title}</h4>
                             {(() => {
