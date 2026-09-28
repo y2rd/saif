@@ -3094,9 +3094,20 @@ export default function AdminDashboard({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {activeTab === 'products' && (
+            <button
+              type="button"
+              onClick={handleOpenNewProduct}
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#004956] hover:bg-[#00343D] text-white text-[11px] font-bold rounded-lg shadow-2xs cursor-pointer transition active:scale-95"
+              title="إضافة منتج جديد"
+            >
+              <i className="fa-solid fa-plus text-[10px]"></i>
+              <span className="leading-none">منتج جديد</span>
+            </button>
+          )}
           <div className="flex items-center gap-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-0.5 rounded-md font-medium border-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="leading-none">{isSuperAdmin ? '👑 مدير عام' : '🛡️ مشرف مصرح'}</span>
+            <span className="leading-none">{isSuperAdmin ? '👑 مدير' : '🛡️ مشرف'}</span>
           </div>
         </div>
       </div>
@@ -3897,7 +3908,7 @@ export default function AdminDashboard({
                 <h2 className="text-xl font-bold text-gray-800">إدارة المنتجات الرقمية والمخزون</h2>
                 <p className="text-xs text-gray-500 mt-1">إضافة تراخيص برامج، بطاقات شحن، أو ملفات قابلة للتحميل</p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap shrink-0">
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
                 {/* ─── input مخفي لاستيراد Excel ─── */}
                 <input
                   ref={excelImportRef}
@@ -3907,47 +3918,50 @@ export default function AdminDashboard({
                   onChange={handleImportProductsExcel}
                 />
 
-                {/* زر تحميل نموذج فارغ */}
+                {/* زر إضافة منتج جديد (الزر الرئيسي الأهم في البداية وواضح تماماً) */}
                 <button
                   type="button"
-                  onClick={handleDownloadProductTemplate}
-                  title="تحميل نموذج Excel جاهز لتعبئة المنتجات"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-2xs cursor-pointer transition-all active:scale-95"
-                >
-                  <i className="fa-solid fa-file-excel text-green-600 text-[13px]"></i>
-                  <span className="leading-none">نموذج فارغ</span>
-                </button>
-
-                {/* زر استيراد من Excel */}
-                <button
-                  type="button"
-                  onClick={() => excelImportRef.current?.click()}
-                  title="استيراد منتجات من ملف Excel"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-2xs cursor-pointer transition-all active:scale-95"
-                >
-                  <i className="fa-solid fa-file-import text-[13px]"></i>
-                  <span className="leading-none">استيراد Excel</span>
-                </button>
-
-                {/* زر تصدير Excel */}
-                <button
-                  type="button"
-                  onClick={handleExportProductsExcel}
-                  title="تصدير جميع المنتجات إلى ملف Excel"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-2xs cursor-pointer transition-all active:scale-95"
-                >
-                  <i className="fa-solid fa-file-export text-[13px]"></i>
-                  <span className="leading-none">تصدير Excel</span>
-                </button>
-
-                {/* زر إضافة منتج */}
-                <button
                   onClick={handleOpenNewProduct}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#004956] text-white text-[13px] font-bold rounded-xl shadow-2xs hover:opacity-95 cursor-pointer transition-all active:scale-95"
+                  className="order-first flex items-center justify-center gap-1.5 px-4 py-2 sm:py-1.5 bg-[#004956] hover:bg-[#00343D] text-white text-[13px] sm:text-xs font-bold rounded-xl shadow-sm hover:shadow cursor-pointer transition-all active:scale-95 shrink-0"
                 >
-                  <span className="text-[14px] leading-none">+</span>
-                  <span className="leading-none">أضف منتج جديد</span>
+                  <i className="fa-solid fa-plus text-xs"></i>
+                  <span>أضف منتج جديد</span>
                 </button>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* زر تحميل نموذج فارغ */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadProductTemplate}
+                    title="تحميل نموذج Excel جاهز لتعبئة المنتجات"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] sm:text-[12px] font-semibold rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-2xs cursor-pointer transition-all active:scale-95"
+                  >
+                    <i className="fa-solid fa-file-excel text-green-600 text-xs"></i>
+                    <span className="leading-none">نموذج فارغ</span>
+                  </button>
+
+                  {/* زر استيراد من Excel */}
+                  <button
+                    type="button"
+                    onClick={() => excelImportRef.current?.click()}
+                    title="استيراد منتجات من ملف Excel"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] sm:text-[12px] font-semibold rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-2xs cursor-pointer transition-all active:scale-95"
+                  >
+                    <i className="fa-solid fa-file-import text-xs"></i>
+                    <span className="leading-none">استيراد</span>
+                  </button>
+
+                  {/* زر تصدير Excel */}
+                  <button
+                    type="button"
+                    onClick={handleExportProductsExcel}
+                    title="تصدير جميع المنتجات إلى ملف Excel"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] sm:text-[12px] font-semibold rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-2xs cursor-pointer transition-all active:scale-95"
+                  >
+                    <i className="fa-solid fa-file-export text-xs"></i>
+                    <span className="leading-none">تصدير</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -4094,7 +4108,7 @@ export default function AdminDashboard({
                     </div>
                   </div>
 
-                  {/* شريط الإحصائيات ورأس القسم النشط مع زر إعادة الضبط بجانبه مباشرة */}
+                  {/* شريط الإحصائيات ورأس القسم النشط مع زر إعادة الضبط بجانبه وزر إضافة منتج سريع */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 text-xs">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-gray-800">
@@ -4120,6 +4134,16 @@ export default function AdminDashboard({
                         </button>
                       )}
                     </div>
+
+                    {/* زر إضافة منتج سريع في رأس القائمة */}
+                    <button
+                      type="button"
+                      onClick={handleOpenNewProduct}
+                      className="flex items-center gap-1.5 px-3 py-1 bg-[#004956] hover:bg-[#00343D] text-white text-[11px] font-bold rounded-lg shadow-2xs cursor-pointer transition active:scale-95"
+                    >
+                      <i className="fa-solid fa-plus text-[10px]"></i>
+                      <span>أضف منتج</span>
+                    </button>
                   </div>
                 </div>
 

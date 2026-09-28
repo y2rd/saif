@@ -3374,12 +3374,12 @@ export default function App() {
                     openAuthModal('login');
                   }
                 }}
-                className="relative p-2 sm:px-3 sm:py-1.5 rounded-full btn-soft-blur text-gray-700 hover:text-black transition flex items-center gap-1.5 cursor-pointer shrink-0 active:scale-95 text-xs font-light"
+                className="relative min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full btn-soft-blur text-gray-700 hover:text-black transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 text-xs font-light"
                 title={currentUser ? `حساب: ${currentUser.name}` : "تسجيل الدخول / إنشاء حساب"}
               >
-                <i className="fa-regular fa-user text-xs text-gray-700"></i>
-                <span className="hidden md:inline font-light text-gray-800">
-                  {currentUser ? currentUser.name : 'تسجيل الدخول'}
+                <i className="fa-regular fa-user text-sm sm:text-xs text-gray-700"></i>
+                <span className="font-light text-gray-800 text-[11px] sm:text-xs max-w-[80px] sm:max-w-none truncate">
+                  {currentUser ? (currentUser.name || 'حسابي') : 'دخول'}
                 </span>
                 {/* إشعار أحمر غامق بالعدد عند وجود إشعارات / طلبات شحن جديدة */}
                 {managerNotificationsCount > 0 && (
