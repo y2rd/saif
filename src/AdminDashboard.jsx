@@ -3014,7 +3014,7 @@ export default function AdminDashboard({
 
   return (
     <div 
-      className="admin-dashboard-container flex flex-col md:flex-row min-h-[calc(100vh-65px)] bg-white relative font-normal"
+      className="admin-dashboard-container w-full lg:w-[80%] mx-auto bg-white min-h-screen shadow-sm flex flex-col md:flex-row relative font-normal"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)'
