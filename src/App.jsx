@@ -2826,10 +2826,7 @@ export default function App() {
 
   return (
     <div
-      className={viewMode === 'admin' 
-        ? "w-full min-h-screen bg-white relative overflow-x-hidden" 
-        : "w-full lg:w-[80%] mx-auto bg-white min-h-screen shadow-sm relative overflow-x-hidden"
-      }
+      className="w-full min-h-screen bg-white relative overflow-x-hidden"
       dir="rtl"
       style={{
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
@@ -2895,7 +2892,7 @@ export default function App() {
                         </div>
                       </div>
                     ) : (
-                      <div className="max-w-7xl mx-auto text-center font-medium text-xs sm:text-[13px] tracking-wide">
+                      <div className="w-full lg:w-[80%] mx-auto text-center font-medium text-xs sm:text-[13px] tracking-wide">
                         {bar.text}
                       </div>
                     )}
@@ -2907,9 +2904,8 @@ export default function App() {
         </>
       )}
 
-      {/* الشريط العلوي الخاص بأقصى الصفحة: العربية | USD ومعه في نفس الصف البحث بدون حدود */}
       <div className="topbar-soft-blur px-3 sm:px-8 py-2 sticky top-0 z-40" style={{ paddingTop: (!storeConfig.announcements?.length) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+        <div className="w-full lg:w-[80%] mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
           {/* 1. في أقصى اليمين: الأزرار */}
           <div className="relative shrink-0 flex items-center gap-2">
@@ -3079,7 +3075,7 @@ export default function App() {
 
       {/* الهيدر الأساسي للمتجر أسفله: الأقسام + الشعار + زر الإدارة + السلة */}
       <header className="header-soft-blur px-3 sm:px-8 py-2 sm:py-2.5 z-30 relative">
-        <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
+        <div className="w-full lg:w-[80%] mx-auto flex items-center justify-between">
           {/* الجانب الأيمن: زر الأقسام (fa-bars) + الشعار */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* زر فتح قائمة الأقسام بدون حدود (أيقونة فقط) */}
@@ -5442,7 +5438,7 @@ export default function App() {
       {/* ========================================================= */}
       {viewMode === 'store' && (
         <div key="store-view-container" className="animate-page-view">
-          <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal space-y-6">
+          <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal space-y-6">
             {Array.isArray(storeConfig.homeLayout) && storeConfig.homeLayout.filter(s => s.enabled !== false).length === 0 ? (
               <div className="text-center py-20 px-4 bg-[#FCFCFC] rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-[#004956] text-2xl">
@@ -6235,7 +6231,7 @@ export default function App() {
         return (
           <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#FCFCFC] pb-16 animate-page-view" dir="rtl">
             {/* محتوى صفحة القسم: المنتجات فقط */}
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
+            <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {categoryProducts.length === 0 ? (
                 <div className="text-center py-20 px-4 bg-white rounded-2xl border border-dashed border-gray-300 shadow-2xs space-y-3">
                   <div className="w-14 h-14 mx-auto rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 text-2xl">
@@ -6437,7 +6433,7 @@ export default function App() {
 
         return (
           <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#FCFCFC] pb-16 animate-page-view" dir="rtl">
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
+            <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {/* شريط التنقل والترويسة */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-200/80 bg-white p-4 rounded-2xl border shadow-2xs">
                 <div className="flex items-center gap-3">
@@ -6700,7 +6696,7 @@ export default function App() {
       {/* 5. عرض محتوى الصفحة التعريفية المخصصة (Custom Page View) */}
       {/* ========================================================= */}
       {viewMode === 'custom-page' && activeCustomPage && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 animate-in fade-in zoom-in-95 duration-150 font-normal" dir="rtl">
+        <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 py-8 sm:py-12 animate-in fade-in zoom-in-95 duration-150 font-normal" dir="rtl">
           {/* زر الرجوع للمتجر */}
           <button
             type="button"
@@ -6739,7 +6735,7 @@ export default function App() {
 
       {/* الفوتر الأسود الاحترافي */}
       <footer className="bg-black text-white border-t border-neutral-800 mt-16 py-6 sm:py-7" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-4">
+        <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 space-y-4">
           {/* روابط الصفحات التعريفية في الفوتر */}
           {Array.isArray(storeConfig.customPages) && storeConfig.customPages.filter(p => p.showInFooter !== false).length > 0 && (
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-b border-neutral-800/80 pb-4 text-xs font-medium text-gray-300">

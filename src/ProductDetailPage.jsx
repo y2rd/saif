@@ -116,7 +116,7 @@ export default function ProductDetailPage({
     >
       {/* شريط مسار التنقل (Breadcrumbs) مثل منصة سلة وموقع y2rd */}
       <div className="bg-[#F9FAFB]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between text-xs text-gray-500">
+        <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
             <button
               onClick={onBack}
@@ -147,7 +147,7 @@ export default function ProductDetailPage({
       </div>
 
       {/* المحتوى الرئيسي لصفحة تفاصيل المنتج بطراز موقع y2rd / سلة */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+      <main className="w-full lg:w-[80%] mx-auto px-2 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         <div className="bg-[#F9FAFB] rounded-2xl sm:rounded-3xl p-3 sm:p-8">
           
           {/* تخطيط مرن: في الجوال الصورة فوق والوصف تحت بالكامل | وفي الكمبيوتر والشاشات الأكبر تخطيط جانبي متناسق */}
