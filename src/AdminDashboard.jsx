@@ -26,6 +26,34 @@ import {
   atomicRefundOrderBalance
 } from './supabase';
 
+// دالة ضغط الصور لتحويلها إلى Base64 بحجم خفيف لتجنب خطأ 413 Payload Too Large
+const compressImage = (file, maxWidth = 800, quality = 0.7) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+};
+
 export default function AdminDashboard({
   storeConfig,
   setStoreConfig,
@@ -535,12 +563,19 @@ export default function AdminDashboard({
       const cpnRes = syncCouponsToCloud(coupons);
       const topRes = Array.isArray(topupRequests) ? syncTopupsToCloud(topupRequests) : Promise.resolve();
 
-      await Promise.allSettled([pRes, cfgRes, catRes, cpnRes, topRes]);
+      const results = await Promise.allSettled([pRes, cfgRes, catRes, cpnRes, topRes]);
+      const allFulfilled = results.every(r => r.status === 'fulfilled');
 
-      showToast('✅ تم حفظ ومزامنة كافة إعدادات ومنتجات المتجر سحابياً بنجاح!');
+      if (allFulfilled) {
+        showToast('✅ تم حفظ ومزامنة كافة إعدادات ومنتجات المتجر سحابياً بنجاح!');
+      } else {
+        const failures = results.filter(r => r.status === 'rejected');
+        console.error('فشل بعض عمليات الحفظ السحابي:', failures);
+        showToast('❌ فشل حفظ بعض الإعدادات في السحابة، يرجى التحقق من الاتصال', 'error');
+      }
     } catch (err) {
       console.error('Error saving settings:', err);
-      showToast('تم حفظ الإعدادات بنجاح!');
+      showToast('❌ حدث خطأ أثناء حفظ الإعدادات', 'error');
     } finally {
       setIsSavingGlobalSettings(false);
     }
@@ -996,19 +1031,18 @@ export default function AdminDashboard({
         const newProds = products.map(p => p.id === editingProduct.id ? updatedProduct : p);
         const now = Date.now();
         try {
-          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          await saveProductToCloud(updatedProduct); // انتظار تأكيد السحابة أولاً
+          setProducts(newProds); // تحديث الواجهة فقط بعد النجاح
           localStorage.setItem('haider_store_products', JSON.stringify(newProds));
-        } catch (e) {}
-        setProducts(newProds);
-        try {
-          await saveProductToCloud(updatedProduct);
+          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          if (setActiveProductForPage) {
+            setActiveProductForPage(prev => (prev && prev.id === editingProduct.id ? updatedProduct : prev));
+          }
+          showToast('تم تحديث وحفظ بيانات المنتج سحابياً بنجاح ✅');
         } catch (err) {
-          console.error("فشل الحفظ المباشر للمنتج في السحابة:", err);
+          console.error("فشل الحفظ السحابي للمنتج:", err);
+          showToast(`فشل حفظ المنتج: ${err.message || 'تحقق من حجم الصورة أو الاتصال'} ❌`, 'error');
         }
-        if (setActiveProductForPage) {
-          setActiveProductForPage(prev => (prev && prev.id === editingProduct.id ? updatedProduct : prev));
-        }
-        showToast('تم تحديث وحفظ بيانات المنتج سحابياً بنجاح ✅');
       } else {
         const newProd = {
           id: Date.now(),
@@ -1028,16 +1062,16 @@ export default function AdminDashboard({
         const newProds = [newProd, ...products];
         const now = Date.now();
         try {
-          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          await saveProductToCloud(newProd); // انتظار تأكيد السحابة أولاً
+          setProducts(newProds); // تحديث الواجهة فقط بعد النجاح
           localStorage.setItem('haider_store_products', JSON.stringify(newProds));
-        } catch (e) {}
-        setProducts(newProds);
-        try {
-          await saveProductToCloud(newProd);
+          localStorage.setItem('haider_store_products_updatedAt', String(now));
+          showToast('تمت إضافة المنتج وحفظه سحابياً بنجاح ✅');
         } catch (err) {
-          console.error("فشل الحفظ المباشر للمنتج في السحابة:", err);
+          // فشل الحفظ: لا تضف المنتج للواجهة، وأظهر الخطأ الفعلي
+          console.error("فشل الحفظ السحابي للمنتج:", err);
+          showToast(`فشل حفظ المنتج: ${err.message || 'تحقق من حجم الصورة أو الاتصال'} ❌`, 'error');
         }
-        showToast('تمت إضافة المنتج وحفظه سحابياً بنجاح ✅');
       }
       setShowProductModal(false);
     } finally {
@@ -6733,12 +6767,22 @@ export default function AdminDashboard({
                       </h4>
                     </div>
 
-                    {(storeConfig.announcements || []).length > 1 && (
+                    {(storeConfig.announcements || []).length > 0 && (
                       <button
                         type="button"
-                        onClick={() => {
-                          const updated = storeConfig.announcements.filter(b => b.id !== bar.id);
-                          setStoreConfig(prev => ({ ...prev, announcements: updated }));
+                        onClick={async () => {
+                          if (!window.confirm('هل أنت متأكد من حذف هذا الشريط؟')) return;
+                          const updatedAnnouncements = (storeConfig.announcements || []).filter(b => b.id !== bar.id);
+                          try {
+                            // 1. تحديث السحابة أولاً
+                            await syncStoreConfigToCloud({ ...storeConfig, announcements: updatedAnnouncements, announcement: '' });
+                            // 2. إذا نجح، حدث الواجهة المحلية
+                            setStoreConfig(prev => ({ ...prev, announcements: updatedAnnouncements, announcement: '' }));
+                            showToast('تم حذف الشريط وحفظ التغييرات سحابياً ✅');
+                          } catch (err) {
+                            console.error("فشل حذف الشريط من السحابة:", err);
+                            showToast('فشل حذف الشريط من السحابة، يرجى المحاولة مجدداً ❌', 'error');
+                          }
                         }}
                         className="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer"
                       >
@@ -10299,12 +10343,19 @@ export default function AdminDashboard({
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setProductForm(prev => ({ ...prev, imageUrl: reader.result }));
-                              reader.readAsDataURL(file);
+                              if (file.size > 5 * 1024 * 1024) {
+                                alert('تنبيه: حجم الصورة كبير (أكبر من 5MB)، سيتم ضغطها وتصغيرها تلقائياً لتناسب المتجر.');
+                              }
+                              try {
+                                const compressed = await compressImage(file, 800, 0.7);
+                                setProductForm(prev => ({ ...prev, imageUrl: compressed }));
+                              } catch (err) {
+                                console.error('خطأ في معالجة الصورة:', err);
+                                alert('تعذر ضغط الصورة، يرجى اختيار صورة أخرى.');
+                              }
                             }
                           }}
                           className="hidden"
@@ -10330,12 +10381,19 @@ export default function AdminDashboard({
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => setProductForm(prev => ({ ...prev, imageUrl: reader.result }));
-                                reader.readAsDataURL(file);
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert('تنبيه: حجم الصورة كبير (أكبر من 5MB)، سيتم ضغطها وتصغيرها تلقائياً لتناسب المتجر.');
+                                }
+                                try {
+                                  const compressed = await compressImage(file, 800, 0.7);
+                                  setProductForm(prev => ({ ...prev, imageUrl: compressed }));
+                                } catch (err) {
+                                  console.error('خطأ في معالجة الصورة:', err);
+                                  alert('تعذر ضغط الصورة، يرجى اختيار صورة أخرى.');
+                                }
                               }
                             }}
                             className="hidden"

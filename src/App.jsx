@@ -2848,45 +2848,43 @@ export default function App() {
           {storeConfig.announcements && storeConfig.announcements.length > 0 ? (
             <div className="flex flex-col relative z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
               {storeConfig.announcements.map((bar) => (
-                <div
-                  key={bar.id}
-                  className="w-full text-xs py-2 px-4 overflow-hidden relative"
-                  style={{
-                    backgroundColor: bar.bgColor || storeConfig.bannerBgColor || '#00343D',
-                    color: bar.textColor || '#FFFFFF'
-                  }}
-                >
-                  {bar.isMarquee ? (
-                    <div className="w-full overflow-hidden flex items-center">
-                      <div
-                        className={`${bar.direction === 'en' ? 'animate-marquee-rtl' : 'animate-marquee-ltr'} font-medium text-xs sm:text-[13px] tracking-wide whitespace-nowrap`}
-                        style={{ animationDuration: `${bar.speed || 20}s` }}
-                      >
-                        <span className="mx-6">{bar.text}</span>
-                        <span className="mx-6">•</span>
-                        <span className="mx-6">{bar.text}</span>
-                        <span className="mx-6">•</span>
-                        <span className="mx-6">{bar.text}</span>
+                (bar.isActive !== false) && (
+                  <div
+                    key={bar.id}
+                    className="w-full text-xs py-2 px-4 overflow-hidden relative"
+                    style={{
+                      backgroundColor: bar.bgColor || storeConfig.bannerBgColor || '#00343D',
+                      color: bar.textColor || '#FFFFFF'
+                    }}
+                  >
+                    {bar.isMarquee ? (
+                      <div className="w-full overflow-hidden flex items-center">
+                        <div
+                          className={`${bar.direction === 'en' ? 'animate-marquee-rtl' : 'animate-marquee-ltr'} font-medium text-xs sm:text-[13px] tracking-wide whitespace-nowrap`}
+                          style={{ animationDuration: `${bar.speed || 20}s` }}
+                        >
+                          <span className="mx-6">{bar.text}</span>
+                          <span className="mx-6">•</span>
+                          <span className="mx-6">{bar.text}</span>
+                          <span className="mx-6">•</span>
+                          <span className="mx-6">{bar.text}</span>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="max-w-7xl mx-auto text-center font-medium text-xs sm:text-[13px] tracking-wide">
-                      {bar.text}
-                    </div>
-                  )}
-                </div>
+                    ) : (
+                      <div className="max-w-7xl mx-auto text-center font-medium text-xs sm:text-[13px] tracking-wide">
+                        {bar.text}
+                      </div>
+                    )}
+                  </div>
+                )
               ))}
-            </div>
-          ) : storeConfig.announcement ? (
-            <div className="text-white text-xs py-1.5 px-4 text-center font-medium relative z-50" style={{ backgroundColor: storeConfig.bannerBgColor, paddingTop: 'calc(env(safe-area-inset-top) + 6px)' }}>
-              {storeConfig.announcement}
             </div>
           ) : null}
         </>
       )}
 
       {/* الشريط العلوي الخاص بأقصى الصفحة: العربية | USD ومعه في نفس الصف البحث بدون حدود */}
-      <div className="topbar-soft-blur px-3 sm:px-8 py-2 sticky top-0 z-40" style={{ paddingTop: (!storeConfig.announcements?.length && !storeConfig.announcement) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
+      <div className="topbar-soft-blur px-3 sm:px-8 py-2 sticky top-0 z-40" style={{ paddingTop: (!storeConfig.announcements?.length) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
           {/* 1. في أقصى اليمين: الأزرار */}
