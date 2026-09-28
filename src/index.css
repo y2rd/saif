@@ -28,7 +28,7 @@ html, body {
 body {
   font-family: 'Tajawal', sans-serif;
   color: #000000;
-  background-color: #F9FAFB;
+  background-color: #f3f4f6;
 }
 
 /* ========================================================================= */
@@ -217,6 +217,7 @@ html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  background-color: #f3f4f6 !important;
 }
 
 *, *:before, *:after {
@@ -227,6 +228,7 @@ html, body {
   overflow-x: hidden !important;
   max-width: 100vw !important;
   width: 100% !important;
+  background-color: #f3f4f6 !important;
 }
 
 /* ========================================================================= */

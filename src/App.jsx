@@ -2826,7 +2826,7 @@ export default function App() {
 
   return (
     <div
-      className="w-full min-h-screen bg-white relative overflow-x-hidden"
+      className="w-full min-h-screen bg-[#f3f4f6] relative overflow-x-hidden"
       dir="rtl"
       style={{
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
@@ -6229,7 +6229,7 @@ export default function App() {
         });
 
         return (
-          <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#FCFCFC] pb-16 animate-page-view" dir="rtl">
+          <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#f3f4f6] pb-16 animate-page-view" dir="rtl">
             {/* محتوى صفحة القسم: المنتجات فقط */}
             <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {categoryProducts.length === 0 ? (
@@ -6432,7 +6432,7 @@ export default function App() {
           });
 
         return (
-          <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#FCFCFC] pb-16 animate-page-view" dir="rtl">
+          <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#f3f4f6] pb-16 animate-page-view" dir="rtl">
             <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {/* شريط التنقل والترويسة */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-200/80 bg-white p-4 rounded-2xl border shadow-2xs">
@@ -7564,7 +7564,7 @@ function AutoMovingProductsCarousel({
               setViewMode('product-detail');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="w-44 sm:w-48 md:w-56 lg:w-[230px] shrink-0 bg-white border-0 shadow-none hover:shadow-none rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
+            className="s-product-card-entry w-44 sm:w-48 md:w-56 lg:w-[230px] shrink-0 bg-white border-0 shadow-none hover:shadow-none rounded-xl sm:rounded-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer group overflow-hidden relative"
           >
             <div>
               {/* 1. حاوية صورة المنتج ممتدة طولياً لإبراز تفاصيل المنتج */}
