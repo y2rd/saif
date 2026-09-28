@@ -7438,20 +7438,32 @@ export default function AdminDashboard({
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (file.size > 3 * 1024 * 1024) {
-                                  alert('حجم صورة الشعار كبير! يرجى اختيار صورة أقل من 3 ميجابايت.');
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert('حجم صورة الشعار كبير! يرجى اختيار صورة أقل من 5 ميجابايت.');
                                   return;
                                 }
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  const base64Logo = reader.result;
-                                  setStoreConfig(prev => ({ ...prev, logoUrl: base64Logo }));
-                                  showToast('تم تجهيز الشعار، اضغط "حفظ الإعدادات" في الأعلى للتثبيت');
-                                };
-                                reader.readAsDataURL(file);
+                                try {
+                                  // ضغط صورة الشعار بأبعاد 400x400 وجودة 0.8 ليكون الحجم صغيراً جداً وخفيفاً ومقاوماً للانهيار
+                                  const compressedLogo = await compressImage(file, 400, 0.8);
+                                  const updatedConfig = { ...storeConfig, logoUrl: compressedLogo };
+                                  
+                                  // 1. تحديث الحالة
+                                  setStoreConfig(updatedConfig);
+                                  
+                                  // 2. الحفظ في التخزين المحلي الآمن
+                                  safeSetLocalStorage('haider_store_config', JSON.stringify(updatedConfig));
+                                  safeSetLocalStorage('haider_store_config_updatedAt', String(Date.now()));
+                                  
+                                  // 3. المزامنة الفورية مع قاعدة البيانات السحابية (Supabase)
+                                  await syncStoreConfigToCloud(updatedConfig);
+                                  showToast('✅ تم حفظ الشعار ومزامنته سحابياً بنجاح');
+                                } catch (err) {
+                                  console.error("فشل في ضغط أو حفظ الشعار سحابياً:", err);
+                                  showToast('حدث خطأ أثناء معالجة أو رفع الشعار');
+                                }
                               }
                             }}
                           />
@@ -7469,9 +7481,17 @@ export default function AdminDashboard({
                               />
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setStoreConfig(prev => ({ ...prev, logoUrl: '' }));
-                                  showToast('تمت إزالة الشعار، اضغط "حفظ الإعدادات" للتثبيت');
+                                onClick={async () => {
+                                  const updatedConfig = { ...storeConfig, logoUrl: '' };
+                                  setStoreConfig(updatedConfig);
+                                  safeSetLocalStorage('haider_store_config', JSON.stringify(updatedConfig));
+                                  safeSetLocalStorage('haider_store_config_updatedAt', String(Date.now()));
+                                  try {
+                                    await syncStoreConfigToCloud(updatedConfig);
+                                    showToast('✅ تمت إزالة الشعار وحفظ التغيير سحابياً');
+                                  } catch (err) {
+                                    showToast('تمت إزالة الشعار محلياً، اضغط حفظ الإعدادات للتثبيت');
+                                  }
                                 }}
                                 className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] flex items-center justify-center shadow-xs cursor-pointer hover:bg-red-700"
                                 title="حذف الشعار"
