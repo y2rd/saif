@@ -22,6 +22,11 @@ class ErrorBoundary extends React.Component {
           <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
           <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>حدث خطأ أثناء تحميل التطبيق</h2>
           <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>يرجى إعادة تشغيل التطبيق أو مسح الذاكرة المؤقتة.</p>
+          {this.state.error && (
+            <pre style={{ fontSize: '11px', color: '#c00', background: '#fff0f0', padding: '8px', borderRadius: '6px', direction: 'ltr', textAlign: 'left', overflow: 'auto', maxWidth: '600px', margin: '0 auto 16px auto' }}>
+              {this.state.error.toString()}
+            </pre>
+          )}
           <button 
             onClick={() => {
               try { localStorage.clear(); } catch(e){}
@@ -29,7 +34,7 @@ class ErrorBoundary extends React.Component {
             }}
             style={{ padding: '10px 20px', background: '#004956', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
           >
-            إعادة المحاولة
+            إعادة المحاولة ومسح الكاش
           </button>
         </div>
       );

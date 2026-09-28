@@ -1,4 +1,5 @@
-import { safeSetLocalStorage, useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { safeSetLocalStorage } from './utils';
 import { createPortal } from 'react-dom';
 import AdminDashboard from './AdminDashboard';
 import ProductDetailPage from './ProductDetailPage';

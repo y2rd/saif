@@ -4,8 +4,8 @@ import hayDayPresetImages from './hayday_presets.json';
 import * as XLSX from 'xlsx-js-style';
 import ExcelJS from 'exceljs/dist/exceljs.min.js';
 
+import { safeSetLocalStorage } from './utils';
 import { 
-  safeSetLocalStorage,
   syncStoreConfigToCloud, 
   syncProductsToCloud, 
   saveProductToCloud,
