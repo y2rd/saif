@@ -105,17 +105,20 @@ export default function ProductDetailPage({
     setCustomBoxes(prev => prev.map(b => b.id === id ? { ...b, [field]: val } : b));
   };
 
+  const storeBgColor = storeConfig?.bgColor || '#f3f4f6';
+
   return (
     <div
       key={product.id}
-      className="min-h-screen bg-[#f3f4f6] pb-16 animate-product-page"
+      className="min-h-screen pb-16 animate-product-page"
       dir="rtl"
       style={{
+        backgroundColor: storeBgColor,
         fontFamily: `'${storeConfig?.fontFamily || 'DIN Next LT Arabic'}', 'Tajawal', sans-serif`
       }}
     >
       {/* شريط مسار التنقل (Breadcrumbs) مثل منصة سلة وموقع y2rd */}
-      <div className="bg-[#f3f4f6]">
+      <div style={{ backgroundColor: storeBgColor }}>
         <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
             <button
@@ -148,7 +151,7 @@ export default function ProductDetailPage({
 
       {/* المحتوى الرئيسي لصفحة تفاصيل المنتج بطراز موقع y2rd / سلة */}
       <main className="w-full lg:w-[80%] mx-auto px-2 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        <div className="bg-[#f3f4f6] rounded-2xl sm:rounded-3xl p-3 sm:p-8">
+        <div className="rounded-2xl sm:rounded-3xl p-3 sm:p-8" style={{ backgroundColor: storeBgColor }}>
           
           {/* تخطيط مرن: في الجوال الصورة فوق والوصف تحت بالكامل | وفي الكمبيوتر والشاشات الأكبر تخطيط جانبي متناسق */}
           <div className="flex flex-col md:grid md:grid-cols-12 gap-4 sm:gap-8 lg:gap-10 items-start">

@@ -7196,11 +7196,12 @@ export default function AdminDashboard({
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
                   <span className="text-[10px] text-gray-500 font-bold shrink-0">ثيمات سريعة:</span>
                   {[
-                    { name: 'سلة الرسمي (زمردي)', primary: '#004956', accent: '#76e5d0', banner: '#00343D' },
-                    { name: 'كلاسيك (أسود)', primary: '#111827', accent: '#374151', banner: '#000000' },
-                    { name: 'كحلي فاخر', primary: '#0f172a', accent: '#38bdf8', banner: '#1e293b' },
-                    { name: 'عنابي راقي', primary: '#4a0404', accent: '#f87171', banner: '#2b0202' },
-                    { name: 'بنفسجي عصري', primary: '#4c1d95', accent: '#c084fc', banner: '#2e1065' }
+                    { name: 'سلة الرسمي (زمردي)', primary: '#004956', accent: '#76e5d0', banner: '#00343D', bg: '#f3f4f6' },
+                    { name: 'كلاسيك (أسود)', primary: '#111827', accent: '#374151', banner: '#000000', bg: '#f3f4f6' },
+                    { name: 'كحلي فاخر', primary: '#0f172a', accent: '#38bdf8', banner: '#1e293b', bg: '#f1f5f9' },
+                    { name: 'عنابي راقي', primary: '#4a0404', accent: '#f87171', banner: '#2b0202', bg: '#fdf2f2' },
+                    { name: 'بنفسجي عصري', primary: '#4c1d95', accent: '#c084fc', banner: '#2e1065', bg: '#faf5ff' },
+                    { name: 'أبيض ناصع', primary: '#004956', accent: '#76e5d0', banner: '#00343D', bg: '#ffffff' }
                   ].map((preset, pIdx) => (
                     <button
                       key={pIdx}
@@ -7210,7 +7211,8 @@ export default function AdminDashboard({
                           ...prev,
                           primaryColor: preset.primary,
                           accentColor: preset.accent,
-                          bannerBgColor: preset.banner
+                          bannerBgColor: preset.banner,
+                          bgColor: preset.bg
                         }));
                       }}
                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-200 hover:border-black text-[10px] text-gray-700 bg-white transition cursor-pointer shrink-0"
@@ -7223,7 +7225,7 @@ export default function AdminDashboard({
               </div>
 
               {/* شبكة مدخلات الألوان لجميع عناصر المتجر */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 
                 {/* 1. اللون الأساسي للهوية */}
                 <div className="p-3 bg-gray-50/70 rounded-xl border border-gray-200 space-y-2">
@@ -7245,7 +7247,7 @@ export default function AdminDashboard({
                       className="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs font-mono font-bold text-black uppercase outline-none focus:border-black"
                     />
                   </div>
-                  <span className="text-[9px] text-gray-400 block">شعار المتجر، الأزرار الرئيسية، وروابط التبويب</span>
+                  <span className="text-[9px] text-gray-400 block">شعار المتجر، الأزرار الرئيسية، والروابط</span>
                 </div>
 
                 {/* 2. اللون الثانوي والتمييز */}
@@ -7268,7 +7270,7 @@ export default function AdminDashboard({
                       className="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs font-mono font-bold text-black uppercase outline-none focus:border-black"
                     />
                   </div>
-                  <span className="text-[9px] text-gray-400 block">شارات التمييز، الحواف النشطة، والتأثيرات</span>
+                  <span className="text-[9px] text-gray-400 block">شارات التمييز والحواف والتأثيرات</span>
                 </div>
 
                 {/* 3. لون البانر والترويج */}
@@ -7294,17 +7296,66 @@ export default function AdminDashboard({
                   <span className="text-[9px] text-gray-400 block">شريط الترحيب والبانر الترويجي العلوي</span>
                 </div>
 
+                {/* 4. لون خلفية المتجر الأساسية */}
+                <div className="p-3 bg-gray-50/70 rounded-xl border border-gray-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-black">لون خلفية المتجر (Background)</label>
+                    <span className="text-[10px] font-mono text-gray-400 font-bold">{storeConfig.bgColor || '#f3f4f6'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={storeConfig.bgColor || '#f3f4f6'}
+                      onChange={(e) => setStoreConfig(prev => ({ ...prev, bgColor: e.target.value }))}
+                      className="w-7 h-7 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0"
+                    />
+                    <input
+                      type="text"
+                      value={storeConfig.bgColor || '#f3f4f6'}
+                      onChange={(e) => setStoreConfig(prev => ({ ...prev, bgColor: e.target.value }))}
+                      className="w-full p-2 bg-white border border-gray-200 rounded-lg text-xs font-mono font-bold text-black uppercase outline-none focus:border-black"
+                    />
+                  </div>
+                  {/* أزرار سريعة لأشهر ألوان الخلفيات */}
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    {[
+                      { name: 'رمادي فاتح', val: '#f3f4f6' },
+                      { name: 'رمادي ناعم', val: '#e5e7eb' },
+                      { name: 'رمادي بارد', val: '#f1f5f9' },
+                      { name: 'أبيض', val: '#ffffff' }
+                    ].map((bgP, bgIdx) => (
+                      <button
+                        key={bgIdx}
+                        type="button"
+                        onClick={() => setStoreConfig(prev => ({ ...prev, bgColor: bgP.val }))}
+                        className="px-1.5 py-0.5 rounded text-[9px] font-medium border border-gray-200 bg-white hover:border-black text-gray-700 transition cursor-pointer"
+                        title={bgP.val}
+                      >
+                        {bgP.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
               {/* معاينة حية لشكل ألوان المتجر المختارة */}
               <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-                <span className="text-[10px] text-gray-500 font-bold block">معاينة حية لتطبيق الألوان على بطاقات وأزرار المتجر:</span>
-                <div className="flex flex-wrap items-center gap-3 p-3 bg-white rounded-lg border border-gray-100">
+                <span className="text-[10px] text-gray-500 font-bold block">معاينة حية لتطبيق الألوان على بطاقات وأزرار وخلفية المتجر:</span>
+                <div 
+                  className="flex flex-wrap items-center gap-3 p-3 rounded-lg border border-gray-200 transition-colors duration-300"
+                  style={{ backgroundColor: storeConfig.bgColor || '#f3f4f6' }}
+                >
                   <div
                     className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-2xs"
                     style={{ backgroundColor: storeConfig.primaryColor }}
                   >
                     {storeConfig.logoText || 'س'}
+                  </div>
+
+                  <div className="bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-xs flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-900">بطاقة منتج بيضاء</span>
+                    <span className="text-[10px] text-gray-400">فوق الخلفية</span>
                   </div>
 
                   <button
@@ -7316,7 +7367,7 @@ export default function AdminDashboard({
                   </button>
 
                   <span
-                    className="px-2.5 py-0.5 rounded-md text-[10px] font-bold border"
+                    className="px-2.5 py-0.5 rounded-md text-[10px] font-bold border bg-white"
                     style={{ borderColor: storeConfig.accentColor, color: storeConfig.primaryColor }}
                   >
                     شارة ترويجية مميزة

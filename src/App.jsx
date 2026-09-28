@@ -830,6 +830,7 @@ export default function App() {
     primaryColor: '#004956',
     accentColor: '#76e5d0',
     bannerBgColor: '#00343D',
+    bgColor: '#f3f4f6', // لون خلفية المتجر قابل للتغيير من الإدارة
     fontFamily: 'Tajawal',
     usdToIqdRate: 1500,
     whatsapp: '966500000000',
@@ -978,7 +979,16 @@ export default function App() {
 
   // ref لتتبع أحدث قيمة لإعدادات المتجر بدون إعادة تشغيل الـ effects
   const storeConfigRef = useRef(storeConfig);
-  useEffect(() => { storeConfigRef.current = storeConfig; }, [storeConfig]);
+  useEffect(() => { 
+    storeConfigRef.current = storeConfig; 
+    const currentBg = storeConfig?.bgColor || '#f3f4f6';
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--store-bg', currentBg);
+      if (document.body) {
+        document.body.style.backgroundColor = currentBg;
+      }
+    }
+  }, [storeConfig?.bgColor, storeConfig]);
 
   const sizeSpecs = {
     2: { desktopSize: '1200 × 500 بكسل', mobileSize: '600 × 350 بكسل', ratio: '16:7', cardHeight: 'h-48 sm:h-64', gridClass: 'grid-cols-1 sm:grid-cols-2' },
@@ -2826,9 +2836,10 @@ export default function App() {
 
   return (
     <div
-      className="w-full min-h-screen bg-[#f3f4f6] relative overflow-x-hidden"
+      className="w-full min-h-screen relative overflow-x-hidden"
       dir="rtl"
       style={{
+        backgroundColor: storeConfig.bgColor || '#f3f4f6',
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
         fontWeight: 400
       }}
@@ -6229,7 +6240,12 @@ export default function App() {
         });
 
         return (
-          <div key={`category-page-${selectedCat}`} className="min-h-[70vh] bg-[#f3f4f6] pb-16 animate-page-view" dir="rtl">
+          <div 
+            key={`category-page-${selectedCat}`} 
+            className="min-h-[70vh] pb-16 animate-page-view" 
+            dir="rtl"
+            style={{ backgroundColor: storeConfig.bgColor || '#f3f4f6' }}
+          >
             {/* محتوى صفحة القسم: المنتجات فقط */}
             <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {categoryProducts.length === 0 ? (
@@ -6432,7 +6448,12 @@ export default function App() {
           });
 
         return (
-          <div key={`section-page-${activeSectionForPage.id}`} className="min-h-[70vh] bg-[#f3f4f6] pb-16 animate-page-view" dir="rtl">
+          <div 
+            key={`section-page-${activeSectionForPage.id}`} 
+            className="min-h-[70vh] pb-16 animate-page-view" 
+            dir="rtl"
+            style={{ backgroundColor: storeConfig.bgColor || '#f3f4f6' }}
+          >
             <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {/* شريط التنقل والترويسة */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-200/80 bg-white p-4 rounded-2xl border shadow-2xs">
