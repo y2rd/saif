@@ -2826,7 +2826,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-[#FCFCFC] text-gray-700 font-normal leading-normal text-sm relative"
+      className={viewMode === 'admin' ? "w-full min-h-screen bg-white relative overflow-x-hidden" : "w-full max-w-[480px] mx-auto bg-white min-h-screen shadow-2xl relative overflow-x-hidden"}
       dir="rtl"
       style={{
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
@@ -2905,7 +2905,7 @@ export default function App() {
       )}
 
       {/* الشريط العلوي الخاص بأقصى الصفحة: العربية | USD ومعه في نفس الصف البحث بدون حدود */}
-      <div className="topbar-soft-blur px-3 sm:px-8 py-2 sticky top-0 z-40" style={{ paddingTop: (!storeConfig.announcements?.length) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
+      <div className="topbar-soft-blur px-3 sm:px-4 py-2 sticky top-0 z-40" style={{ paddingTop: (!storeConfig.announcements?.length) ? 'calc(env(safe-area-inset-top) + 8px)' : undefined }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
           {/* 1. في أقصى اليمين: الأزرار */}
@@ -3075,7 +3075,7 @@ export default function App() {
       </div>
 
       {/* الهيدر الأساسي للمتجر أسفله: الأقسام + الشعار + زر الإدارة + السلة */}
-      <header className="header-soft-blur px-3 sm:px-8 py-2 sm:py-2.5 z-30 relative">
+      <header className="header-soft-blur px-4 py-2 sm:py-2.5 z-30 relative">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
           {/* الجانب الأيمن: زر الأقسام (fa-bars) + الشعار */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -5940,7 +5940,7 @@ export default function App() {
                         <p className="text-[11px] text-gray-400">يمكنك البدء بإضافة منتجاتك وأقسامك عبر لوحة التحكم.</p>
                       </div>
                     ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                       {filteredProducts.map((item) => {
                         const isInWishlist = wishlist.includes(item.id);
                         const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -6254,7 +6254,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                   {categoryProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -6502,7 +6502,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                   {sectionProducts.map((item) => {
                     const isInWishlist = wishlist.includes(item.id);
                     const hasDiscount = item.oldPrice && item.oldPrice > item.price;
@@ -7320,7 +7320,7 @@ export default function App() {
       {/* زر الدعم الفني المباشر العائم مع قائمة سريعة (WhatsApp & Telegram) */}
       {/* ========================================================= */}
       {storeConfig.enableFloatingSupport !== false && viewMode === 'store' && (
-        <div className="fixed bottom-5 left-5 z-999 flex flex-col items-start gap-2 select-none" dir="ltr">
+        <div className="fixed bottom-5 left-4 sm:left-[calc(50%-224px)] z-999 flex flex-col items-start gap-2 select-none" dir="ltr">
           {isSupportMenuOpen && (
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 space-y-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200 text-right" dir="rtl">
               {storeConfig.whatsapp && (
@@ -7372,7 +7372,7 @@ export default function App() {
             setViewMode('store');
             setInAppBanner(null);
           }}
-          className="fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-10000 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-emerald-200 p-3.5 flex items-start gap-3 cursor-pointer animate-in slide-in-from-top-4 duration-300 select-none hover:shadow-emerald-100"
+          className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[440px] z-10000 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-emerald-200 p-3.5 flex items-start gap-3 cursor-pointer animate-in slide-in-from-top-4 duration-300 select-none hover:shadow-emerald-100"
           dir="rtl"
         >
           <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 text-base shadow-sm">

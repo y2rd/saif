@@ -23,12 +23,23 @@ html, body {
   padding: 0;
   width: 100%;
   min-height: 100%;
+  overflow-x: hidden;
+  background-color: #f1f5f9;
 }
 
 body {
   font-family: 'Tajawal', sans-serif;
   color: #000000;
-  background-color: #F9FAFB;
+  background-color: #f1f5f9;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f1f5f9;
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
 }
 
 /* ========================================================================= */
