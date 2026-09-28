@@ -122,6 +122,23 @@ export default function AdminDashboard({
 
   const [activeTab, setActiveTab] = useState(getDefaultTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('haider_admin_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('haider_admin_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // عند تغيير التاب من الخارج (مثل الضغط على "مراجعة واعتماد" من الإشعارات)
   // نستخدم ref لتجاهل أول تشغيل عند mount لمنع تجاوز initialTab
@@ -3143,12 +3160,14 @@ export default function AdminDashboard({
         />
       )}
 
-      {/* القائمة الجانبية (Sidebar) بخلفية بيضاء موحدة وبدون حدود مع خط 14px */}
+      {/* القائمة الجانبية (Sidebar) بخلفية بيضاء موحدة وبدون حدود مع إمكانية الإخفاء والإظهار على الكمبيوتر */}
       <aside
-        className={`bg-white border-0 flex flex-col shadow-none transition-all duration-300 z-50 ${
+        className={`bg-white border-l border-gray-100/80 flex flex-col shadow-none transition-all duration-300 z-50 ${
           mobileMenuOpen
             ? 'fixed top-0 right-0 bottom-0 w-64 max-w-[85vw] h-full translate-x-0'
-            : 'fixed top-0 right-0 bottom-0 w-64 max-w-[85vw] h-full translate-x-full md:static md:w-56 md:h-auto md:translate-x-0 md:flex md:justify-between'
+            : `fixed top-0 right-0 bottom-0 w-64 max-w-[85vw] h-full translate-x-full md:static md:h-auto md:translate-x-0 md:flex md:justify-between ${
+                sidebarCollapsed ? 'md:w-16 md:min-w-[4rem]' : 'md:w-56 md:min-w-[14rem]'
+              }`
         }`}
         style={mobileMenuOpen ? {
           paddingTop: 'env(safe-area-inset-top)',
@@ -3169,47 +3188,89 @@ export default function AdminDashboard({
             ✕
           </button>
         </div>
+
+        {/* رأس القائمة للكمبيوتر مع زر تصغير/إخفاء القائمة الجانبية */}
+        <div className="hidden md:flex items-center justify-between px-3 py-2.5 border-b border-gray-100 shrink-0">
+          {!sidebarCollapsed ? (
+            <>
+              <div className="flex items-center gap-2 min-w-0">
+                <i className="fa-solid fa-layer-group text-[#004956] text-xs"></i>
+                <span className="text-xs font-bold text-gray-800 truncate">أقسام الإعدادات</span>
+              </div>
+              <button
+                type="button"
+                onClick={toggleSidebarCollapsed}
+                className="w-6 h-6 rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 flex items-center justify-center transition active:scale-95 cursor-pointer text-xs"
+                title="تصغير / إخفاء أسماء الأقسام"
+              >
+                <i className="fa-solid fa-angles-right text-[11px]"></i>
+              </button>
+            </>
+          ) : (
+            <div className="w-full flex items-center justify-center">
+              <button
+                type="button"
+                onClick={toggleSidebarCollapsed}
+                className="w-8 h-8 rounded-xl bg-gray-50 hover:bg-teal-50 hover:text-[#004956] text-gray-600 flex items-center justify-center transition active:scale-95 cursor-pointer text-xs"
+                title="توسيع قائمة الأقسام"
+              >
+                <i className="fa-solid fa-angles-left text-xs"></i>
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="flex-1 overflow-y-auto overscroll-contain">
-          <div className="p-2 space-y-3">
+          <div className={`${sidebarCollapsed ? 'p-1.5 space-y-2' : 'p-2 space-y-3'}`}>
             
             {/* المجموعة الأولى: نظرة عامة والمبيعات */}
             {(canAccessTab('analytics') || canAccessTab('orders')) && (
               <div>
-                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  الرئيسية والمبيعات
-                </div>
+                {!sidebarCollapsed && (
+                  <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                    الرئيسية والمبيعات
+                  </div>
+                )}
                 <div className="space-y-1">
                   {canAccessTab('analytics') && (
                     <button
                       onClick={() => { setActiveTab('analytics'); setMobileMenuOpen(false); }}
-                      className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      title="التحليلات والمؤشرات"
+                      className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'gap-2.5 px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                         activeTab === 'analytics' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
                       <i className={`fa-solid fa-chart-line text-sm ${activeTab === 'analytics' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                      <span>التحليلات والمؤشرات</span>
+                      {!sidebarCollapsed && <span>التحليلات والمؤشرات</span>}
                     </button>
                   )}
 
                   {canAccessTab('orders') && (
                     <button
                       onClick={() => { setActiveTab('orders'); setMobileMenuOpen(false); }}
-                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      title="الطلبات والمبيعات"
+                      className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5 relative' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                         activeTab === 'orders' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                         <i className={`fa-solid fa-bag-shopping text-sm ${activeTab === 'orders' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                        <span>الطلبات والمبيعات</span>
+                        {!sidebarCollapsed && <span>الطلبات والمبيعات</span>}
                       </div>
-                      {pendingOrdersCount > 0 ? (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold animate-pulse">
-                          {pendingOrdersCount} جديد
-                        </span>
+                      {sidebarCollapsed ? (
+                        pendingOrdersCount > 0 ? (
+                          <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        ) : null
                       ) : (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'orders' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                          {orders.length}
-                        </span>
+                        pendingOrdersCount > 0 ? (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold animate-pulse">
+                            {pendingOrdersCount} جديد
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'orders' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                            {orders.length}
+                          </span>
+                        )
                       )}
                     </button>
                   )}
@@ -3220,41 +3281,49 @@ export default function AdminDashboard({
             {/* المجموعة الثانية: الكتالوج والمنتجات */}
             {(canAccessTab('products') || canAccessTab('categories')) && (
               <div>
-                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  المنتجات والكتالوج
-                </div>
+                {!sidebarCollapsed && (
+                  <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                    المنتجات والكتالوج
+                  </div>
+                )}
                 <div className="space-y-1">
                   {canAccessTab('products') && (
                     <button
                       onClick={() => { setActiveTab('products'); setMobileMenuOpen(false); }}
-                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      title="المنتجات والمخزون"
+                      className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                         activeTab === 'products' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                         <i className={`fa-solid fa-boxes-stacked text-sm ${activeTab === 'products' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                        <span>المنتجات والمخزون</span>
+                        {!sidebarCollapsed && <span>المنتجات والمخزون</span>}
                       </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'products' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                        {products.length}
-                      </span>
+                      {!sidebarCollapsed && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'products' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                          {products.length}
+                        </span>
+                      )}
                     </button>
                   )}
 
                   {canAccessTab('categories') && (
                     <button
                       onClick={() => { setActiveTab('categories'); setMobileMenuOpen(false); }}
-                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      title="أقسام المتجر"
+                      className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                         activeTab === 'categories' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                         <i className={`fa-solid fa-folder-tree text-sm ${activeTab === 'categories' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                        <span>أقسام المتجر</span>
+                        {!sidebarCollapsed && <span>أقسام المتجر</span>}
                       </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'categories' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                        {categories.length}
-                      </span>
+                      {!sidebarCollapsed && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'categories' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                          {categories.length}
+                        </span>
+                      )}
                     </button>
                   )}
                 </div>
@@ -3264,41 +3333,49 @@ export default function AdminDashboard({
             {/* المجموعة الثالثة: العملاء والتسويق */}
             {(canAccessTab('customers') || canAccessTab('coupons')) && (
               <div>
-                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  العملاء والتسويق
-                </div>
+                {!sidebarCollapsed && (
+                  <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                    العملاء والتسويق
+                  </div>
+                )}
                 <div className="space-y-1">
                   {canAccessTab('customers') && (
                     <button
                       onClick={() => { setActiveTab('customers'); setMobileMenuOpen(false); }}
-                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      title="قاعدة العملاء"
+                      className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                         activeTab === 'customers' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                         <i className={`fa-solid fa-users text-sm ${activeTab === 'customers' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                        <span>قاعدة العملاء</span>
+                        {!sidebarCollapsed && <span>قاعدة العملاء</span>}
                       </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'customers' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                        {customers.length}
-                      </span>
+                      {!sidebarCollapsed && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'customers' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                          {customers.length}
+                        </span>
+                      )}
                     </button>
                   )}
 
                   {canAccessTab('coupons') && (
                     <button
                       onClick={() => { setActiveTab('coupons'); setMobileMenuOpen(false); }}
-                      className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      title="كوبونات الخصم"
+                      className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                         activeTab === 'coupons' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                         <i className={`fa-solid fa-tags text-sm ${activeTab === 'coupons' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                        <span>كوبونات الخصم</span>
+                        {!sidebarCollapsed && <span>كوبونات الخصم</span>}
                       </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'coupons' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                        {coupons.length}
-                      </span>
+                      {!sidebarCollapsed && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'coupons' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                          {coupons.length}
+                        </span>
+                      )}
                     </button>
                   )}
                 </div>
@@ -3308,114 +3385,139 @@ export default function AdminDashboard({
             {/* المجموعة الرابعة: إعدادات المتجر والتخصيص (للمدير العام فقط) */}
             {isSuperAdmin && (
               <div>
-                <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  التخصيص والإعدادات
-                </div>
+                {!sidebarCollapsed && (
+                  <div className="px-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                    التخصيص والإعدادات
+                  </div>
+                )}
                 <div className="space-y-1">
                   <button
                     onClick={() => { setActiveTab('store-design'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                    title="تصميم المتجر"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                       activeTab === 'store-design' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                       <i className={`fa-solid fa-paintbrush text-sm ${activeTab === 'store-design' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                      <span>تصميم المتجر</span>
+                      {!sidebarCollapsed && <span>تصميم المتجر</span>}
                     </div>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                      جديد
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => { setActiveTab('announcements'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                      activeTab === 'announcements' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <i className={`fa-solid fa-bullhorn text-sm ${activeTab === 'announcements' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                      <span>أشرطة الإعلانات</span>
-                    </div>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'announcements' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
-                      {storeConfig.announcements?.length || 1}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => { setActiveTab('fonts'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                      activeTab === 'fonts' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <i className={`fa-solid fa-palette text-sm ${activeTab === 'fonts' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                    <span>مظهر المتجر: الخطوط والألوان</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setActiveTab('features'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                      activeTab === 'features' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <i className={`fa-solid fa-bolt text-sm ${activeTab === 'features' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                      <span>مميزات المنتج</span>
-                    </div>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                      storeConfig.productFeatures?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {storeConfig.productFeatures?.enabled !== false ? 'مفعل' : 'معطل'}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => { setActiveTab('loyalty'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                      activeTab === 'loyalty' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <i className={`fa-solid fa-gift text-sm ${activeTab === 'loyalty' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                      <span>نقاط الولاء والمكافآت</span>
-                    </div>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                      storeConfig.loyaltyConfig?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {storeConfig.loyaltyConfig?.enabled !== false ? 'مفعل' : 'معطل'}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => { setActiveTab('payments'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
-                      activeTab === 'payments' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <i className={`fa-solid fa-credit-card text-sm ${activeTab === 'payments' ? 'text-gray-950' : 'text-gray-500'}`}></i>
-                      <span>وسائل الدفع والباركود</span>
-                    </div>
-                    {pendingTopupsCount > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7F1D1D] text-white font-bold animate-pulse shadow-2xs">
-                        {pendingTopupsCount} طلب شحن
+                    {!sidebarCollapsed && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                        جديد
                       </span>
                     )}
                   </button>
 
                   <button
+                    onClick={() => { setActiveTab('announcements'); setMobileMenuOpen(false); }}
+                    title="أشرطة الإعلانات"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'announcements' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
+                      <i className={`fa-solid fa-bullhorn text-sm ${activeTab === 'announcements' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      {!sidebarCollapsed && <span>أشرطة الإعلانات</span>}
+                    </div>
+                    {!sidebarCollapsed && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === 'announcements' ? 'bg-gray-100 text-gray-900 font-bold' : 'bg-gray-100 text-gray-500'}`}>
+                        {storeConfig.announcements?.length || 1}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('fonts'); setMobileMenuOpen(false); }}
+                    title="مظهر المتجر: الخطوط والألوان"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'gap-2.5 px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'fonts' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <i className={`fa-solid fa-palette text-sm ${activeTab === 'fonts' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                    {!sidebarCollapsed && <span>مظهر المتجر: الخطوط والألوان</span>}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('features'); setMobileMenuOpen(false); }}
+                    title="مميزات المنتج"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'features' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
+                      <i className={`fa-solid fa-bolt text-sm ${activeTab === 'features' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      {!sidebarCollapsed && <span>مميزات المنتج</span>}
+                    </div>
+                    {!sidebarCollapsed && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        storeConfig.productFeatures?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {storeConfig.productFeatures?.enabled !== false ? 'مفعل' : 'معطل'}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('loyalty'); setMobileMenuOpen(false); }}
+                    title="نقاط الولاء والمكافآت"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'loyalty' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
+                      <i className={`fa-solid fa-gift text-sm ${activeTab === 'loyalty' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      {!sidebarCollapsed && <span>نقاط الولاء والمكافآت</span>}
+                    </div>
+                    {!sidebarCollapsed && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        storeConfig.loyaltyConfig?.enabled !== false ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {storeConfig.loyaltyConfig?.enabled !== false ? 'مفعل' : 'معطل'}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('payments'); setMobileMenuOpen(false); }}
+                    title="وسائل الدفع والباركود"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5 relative' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                      activeTab === 'payments' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
+                      <i className={`fa-solid fa-credit-card text-sm ${activeTab === 'payments' ? 'text-gray-950' : 'text-gray-500'}`}></i>
+                      {!sidebarCollapsed && <span>وسائل الدفع والباركود</span>}
+                    </div>
+                    {sidebarCollapsed ? (
+                      pendingTopupsCount > 0 ? (
+                        <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-[#7F1D1D] animate-pulse"></span>
+                      ) : null
+                    ) : (
+                      pendingTopupsCount > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#7F1D1D] text-white font-bold animate-pulse shadow-2xs">
+                          {pendingTopupsCount} طلب شحن
+                        </span>
+                      )
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => { setActiveTab('cloud-backup'); setMobileMenuOpen(false); }}
-                    className={`admin-nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-[14px] transition cursor-pointer border-0 ${
+                    title="النسخ الاحتياطي"
+                    className={`admin-nav-tab-btn w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} rounded-xl text-[14px] transition cursor-pointer border-0 ${
                       activeTab === 'cloud-backup' ? 'bg-white text-gray-950 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-2.5'}`}>
                       <i className={`fa-solid fa-floppy-disk text-sm ${activeTab === 'cloud-backup' ? 'text-gray-950' : 'text-[#004956]'}`}></i>
-                      <span>النسخ الاحتياطي</span>
+                      {!sidebarCollapsed && <span>النسخ الاحتياطي</span>}
                     </div>
-                    <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                      حماية كاملة
-                    </span>
+                    {!sidebarCollapsed && (
+                      <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                        حماية كاملة
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -3425,19 +3527,21 @@ export default function AdminDashboard({
         </div>
 
         {/* بطاقة معلومات المتجر والصلاحيات أسفل القائمة */}
-        <div className="p-3.5 m-2.5 bg-emerald-50/70 border border-emerald-200/60 rounded-xl hidden md:block">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span className="text-xs font-semibold text-emerald-950">
-              {isSuperAdmin ? '👑 مدير عام المتجر' : '🛡️ مشرف مصرح'}
-            </span>
+        {!sidebarCollapsed && (
+          <div className="p-3.5 m-2.5 bg-emerald-50/70 border border-emerald-200/60 rounded-xl hidden md:block transition-all">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span className="text-xs font-semibold text-emerald-950">
+                {isSuperAdmin ? '👑 مدير عام المتجر' : '🛡️ مشرف مصرح'}
+              </span>
+            </div>
+            <p className="text-[11px] text-emerald-800 leading-relaxed">
+              {isSuperAdmin 
+                ? 'تتمتع بكامل الصلاحيات الإدارية وتخصيص النظام.'
+                : `الحساب: ${currentUser?.name || 'مشرف'} — ملتزم بالصلاحيات الممنوحة من المدير.`}
+            </p>
           </div>
-          <p className="text-[11px] text-emerald-800 leading-relaxed">
-            {isSuperAdmin 
-              ? 'تتمتع بكامل الصلاحيات الإدارية وتخصيص النظام.'
-              : `الحساب: ${currentUser?.name || 'مشرف'} — ملتزم بالصلاحيات الممنوحة من المدير.`}
-          </p>
-        </div>
+        )}
       </aside>
 
       {/* المحتوى الرئيسي للوحة التحكم المتجاوب تلقائياً بالكامل */}
@@ -3447,6 +3551,38 @@ export default function AdminDashboard({
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)'
         }}
       >
+        {/* زر إظهار القائمة الجانبية على الكمبيوتر عند طيها/إخفائها */}
+        {sidebarCollapsed && (
+          <div className="hidden md:flex items-center gap-2 mb-3 bg-gray-50/90 border border-gray-200/80 px-3 py-1.5 rounded-xl animate-in fade-in duration-200" dir="rtl">
+            <button
+              type="button"
+              onClick={toggleSidebarCollapsed}
+              className="flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-black transition cursor-pointer active:scale-95"
+              title="إظهار القائمة الجانبية للأقسام"
+            >
+              <i className="fa-solid fa-bars text-[#004956]"></i>
+              <span>إظهار أقسام الإعدادات</span>
+            </button>
+            <span className="text-[10px] text-gray-400">|</span>
+            <span className="text-[11px] text-gray-500 font-medium">
+              القسم الحالي: <span className="font-bold text-gray-800">
+                {activeTab === 'analytics' && 'المؤشرات والتحليلات'}
+                {activeTab === 'orders' && 'إدارة الطلبات'}
+                {activeTab === 'products' && 'كتالوج المنتجات'}
+                {activeTab === 'categories' && 'أقسام المتجر'}
+                {activeTab === 'customers' && 'قاعدة العملاء'}
+                {activeTab === 'coupons' && 'كوبونات الخصم'}
+                {activeTab === 'store-design' && 'تصميم المتجر'}
+                {activeTab === 'announcements' && 'أشرطة الإعلانات'}
+                {activeTab === 'fonts' && 'مظهر المتجر والخطوط'}
+                {activeTab === 'features' && 'المميزات السريعة'}
+                {activeTab === 'loyalty' && 'برنامج الولاء والمكافآت'}
+                {activeTab === 'payments' && 'وسائل الدفع والباركود'}
+                {activeTab === 'cloud-backup' && 'النسخ الاحتياطي'}
+              </span>
+            </span>
+          </div>
+        )}
 
         {/* رسالة منع الوصول في حال محاولة فتح قسم غير مصرح به للمشرف */}
         {!canAccessTab(activeTab) && (
