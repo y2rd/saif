@@ -571,11 +571,12 @@ export default function AdminDashboard({
       } else {
         const failures = results.filter(r => r.status === 'rejected');
         console.error('فشل بعض عمليات الحفظ السحابي:', failures);
-        showToast('❌ فشل حفظ بعض الإعدادات في السحابة، يرجى التحقق من الاتصال', 'error');
+        const errMsg = failures.map(f => f.reason?.message || 'خطأ غير معروف').join(' - ');
+        showToast(`فشل الحفظ: ${errMsg} ❌`, 'error');
       }
     } catch (err) {
-      console.error('Error saving settings:', err);
-      showToast('❌ حدث خطأ أثناء حفظ الإعدادات', 'error');
+      console.error('Supabase Update Failed:', err.message, err.details, err.hint);
+      showToast(`فشل الحفظ: ${err.message || 'حدث خطأ أثناء حفظ الإعدادات'} ❌`, 'error');
     } finally {
       setIsSavingGlobalSettings(false);
     }
@@ -6780,8 +6781,8 @@ export default function AdminDashboard({
                             setStoreConfig(prev => ({ ...prev, announcements: updatedAnnouncements, announcement: '' }));
                             showToast('تم حذف الشريط وحفظ التغييرات سحابياً ✅');
                           } catch (err) {
-                            console.error("فشل حذف الشريط من السحابة:", err);
-                            showToast('فشل حذف الشريط من السحابة، يرجى المحاولة مجدداً ❌', 'error');
+                            console.error("Supabase Update Failed:", err.message, err.details, err.hint);
+                            showToast(`فشل الحفظ: ${err.message || 'فشل حذف الشريط من السحابة'} ❌`, 'error');
                           }
                         }}
                         className="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer"

@@ -17,15 +17,22 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 export async function syncStoreConfigToCloud(config) {
   if (!supabase) return { success: false, error: 'Database not initialized' };
   try {
-    const { error } = await supabase.from('store_settings').upsert({
-      id: 'storeConfig',
-      data: config,
-      updated_at: new Date().toISOString()
-    });
-    if (error) throw error;
-    return { success: true };
+    const { data, error } = await supabase
+      .from('store_settings')
+      .upsert({
+        id: 'storeConfig',
+        data: config,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
+      .select();
+
+    if (error) {
+      console.error("Supabase Error Details:", error.message, error.details, error.hint);
+      throw new Error(error.message);
+    }
+    return { success: true, data };
   } catch (err) {
-    console.error("خطأ في حفظ إعدادات المتجر سحابياً:", err);
+    console.error("Supabase Update Failed:", err.message, err.details, err.hint);
     throw err;
   }
 }
