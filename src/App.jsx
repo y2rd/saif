@@ -162,6 +162,8 @@ export default function App() {
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
   const [currencyMenuAnimating, setCurrencyMenuAnimating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const searchContainerRef = useRef(null);
 
   const openCurrencyMenu = () => {
     setIsCurrencyMenuOpen(true);
@@ -237,20 +239,23 @@ export default function App() {
 
 
 
-  // إغلاق القائمة المنسدلة عند النقر خارجها
+  // إغلاق القوائم المنسدلة عند النقر خارجها
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
       }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchDropdownOpen(false);
+      }
     };
-    if (isUserMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isUserMenuOpen]);
+  }, []);
 
   // إدارة القوائم المنسدلة لشريط الأقسام (للكمبيوتر والتابلت باللمس والنقر)
   const [activeNavDropdown, setActiveNavDropdown] = useState(null); // 'more' أو معرّف القسم cat.id
@@ -3084,12 +3089,18 @@ export default function App() {
           </div>
 
           {/* 2. ومعه في نفس الصف: حقل البحث يغطي المسافة المتبقية بالكامل */}
-          <div className="flex-1 w-full min-w-0">
+          <div className="flex-1 w-full min-w-0" ref={searchContainerRef}>
             <div className="relative w-full flex items-center">
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (searchQuery.trim()) setIsSearchDropdownOpen(true);
+                }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearchDropdownOpen(true);
+                }}
                 placeholder="ابحث عن منتج، باقة، ماسات..."
                 className="w-full pr-7 sm:pr-8 pl-6 sm:pl-7 h-6 sm:h-6.5 search-soft-blur border-0 rounded-full text-[10.5px] sm:text-[11px] outline-none placeholder:text-gray-400 font-light leading-none"
               />
@@ -3097,13 +3108,87 @@ export default function App() {
               {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setIsSearchDropdownOpen(false);
+                  }}
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-[10px] cursor-pointer"
                   title="مسح البحث"
                 >
                   ✕
                 </button>
               )}
+
+              {/* القائمة المنسدلة لنتائج البحث الذكي */}
+              {isSearchDropdownOpen && searchQuery.trim() && (() => {
+                const q = searchQuery.toLowerCase().trim();
+                const matchedProducts = products.filter(p => {
+                  const t = (p.title || p.name || '').toLowerCase();
+                  const c = (p.category || '').toLowerCase();
+                  return t.includes(q) || c.includes(q);
+                }).slice(0, 8);
+
+                return (
+                  <div className="absolute top-full mt-1.5 right-0 left-0 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden divide-y divide-gray-50 animate-in fade-in zoom-in-95 duration-150">
+                    {matchedProducts.length > 0 ? (
+                      <div className="max-h-72 overflow-y-auto p-1.5 space-y-1">
+                        {matchedProducts.map(p => {
+                          const isExchange = p.productType === 'exchange' || (typeof p.exchangeCurrencyName === 'string' && p.exchangeCurrencyName.trim().length > 0);
+                          const outOfStock = isProductOutOfStock(p);
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                setActiveProductForPage(p);
+                                setViewMode('product-detail');
+                                setIsSearchDropdownOpen(false);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-gray-50/80 active:bg-gray-100 cursor-pointer transition group"
+                            >
+                              <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+                                <img
+                                  src={getProductImage(p)}
+                                  alt={p.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0 text-right">
+                                <span className="font-bold text-gray-900 text-xs block truncate group-hover:text-[#004956] transition">
+                                  {p.title}
+                                </span>
+                                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-400">
+                                  <span className="truncate">{p.category || 'عام'}</span>
+                                  <span>•</span>
+                                  <span className="font-bold text-[#004956]">
+                                    {isExchange ? 'مبادلة' : formatPrice(p.price, activeCurrency)}
+                                  </span>
+                                  {outOfStock && (
+                                    <span className="text-[9px] text-red-500 font-medium bg-red-50 px-1.5 py-0.2 rounded">
+                                      نفذت الكمية
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <i className="fa-solid fa-chevron-left text-gray-300 text-[10px] group-hover:text-gray-500 transition"></i>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center">
+                        <i className="fa-regular fa-face-frown text-gray-300 text-xl block mb-1.5"></i>
+                        <span className="text-xs font-medium text-gray-500 block">
+                          لا يوجد نتيجة
+                        </span>
+                        <span className="text-[10px] text-gray-400 mt-0.5 block">
+                          تأكد من كتابة اسم المنتج بشكل صحيح
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
