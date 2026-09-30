@@ -10533,31 +10533,39 @@ export default function AdminDashboard({
         )}
       </main>
 
-      {/* ========================================================= */}
-      {/* نافذة مودال: إضافة / تعديل منتج (Modal Add / Edit Product) */}
-      {/* ========================================================= */}
       {showProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 shadow-xl border border-gray-100" dir="rtl">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+        <div 
+          onClick={() => setShowProductModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-150" 
+            dir="rtl"
+          >
+            {/* رأس النافذة (ثابت دائماً في الأعلى) */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 shrink-0 bg-white z-10">
               <div>
-                <h3 className="text-base font-bold text-gray-900">
-                  {editingProduct ? '✏️ تعديل بيانات المنتج' : '➕ أضف منتج جديد للمتجر'}
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <span>{editingProduct ? '✏️' : '➕'}</span>
+                  <span>{editingProduct ? 'تعديل بيانات المنتج' : 'أضف منتج جديد للمتجر'}</span>
                 </h3>
-                <span className="text-[11px] text-gray-400">اختر نوع المنتج لتخصيص خيارات التسليم والمخزون</span>
+                <span className="text-[11px] text-gray-400 block mt-0.5">اختر نوع المنتج لتخصيص خيارات التسليم والمخزون</span>
               </div>
               <button
+                type="button"
                 onClick={() => setShowProductModal(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm cursor-pointer"
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm cursor-pointer transition active:scale-95"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveProductSubmit} className="space-y-4 mt-4 text-xs">
-              
-              {/* 1. خيارات اختيار نوع المنتج في البداية بنمط سلة */}
-              <div className="p-3.5 bg-gray-50/70 border border-gray-200 rounded-2xl space-y-2">
+            {/* جسم النافذة (قابل للتمرير بسلاسة داخل النافذة نفسها) */}
+            <form onSubmit={handleSaveProductSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0 text-xs">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                {/* 1. خيارات اختيار نوع المنتج في البداية بنمط سلة */}
+                <div className="p-3.5 bg-gray-50/70 border border-gray-200 rounded-2xl space-y-2">
                 <label className="block font-bold text-gray-800 text-xs">
                   أختر نوع المنتج :
                 </label>
@@ -11366,20 +11374,22 @@ export default function AdminDashboard({
                   </div>
                 )}
               </div>
+              </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+              {/* أسفل النافذة (أزرار الحفظ والإلغاء ثابتة دائماً في الأسفل) */}
+              <div className="flex justify-end items-center gap-2.5 p-4 sm:p-5 border-t border-gray-100 shrink-0 bg-gray-50/80 z-10">
                 <button
                   type="button"
                   disabled={isSavingProduct}
                   onClick={() => setShowProductModal(false)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl font-medium cursor-pointer disabled:opacity-50 transition active:scale-95"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingProduct}
-                  className="px-6 py-2 bg-[#004956] text-white rounded-xl font-semibold shadow-xs hover:opacity-90 cursor-pointer disabled:opacity-75 flex items-center justify-center gap-2 min-w-[140px]"
+                  className="px-7 py-2.5 bg-[#004956] hover:bg-[#003842] text-white rounded-xl font-bold shadow-md hover:shadow-lg cursor-pointer disabled:opacity-75 flex items-center justify-center gap-2 min-w-[150px] transition active:scale-95"
                 >
                   {isSavingProduct ? (
                     <>
@@ -11387,7 +11397,7 @@ export default function AdminDashboard({
                       <span>جاري الرفع سحابياً...</span>
                     </>
                   ) : (
-                    <span>{editingProduct ? 'تحديث المنتج' : 'نشر المنتج الآن'}</span>
+                    <span>{editingProduct ? 'حفظ التعديلات' : 'نشر المنتج الآن'}</span>
                   )}
                 </button>
               </div>
