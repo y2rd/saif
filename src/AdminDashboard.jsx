@@ -10533,10 +10533,10 @@ export default function AdminDashboard({
         )}
       </main>
 
-      {showProductModal && (
+      {showProductModal && createPortal(
         <div 
           onClick={() => setShowProductModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
         >
           <div 
             onClick={(e) => e.stopPropagation()}
@@ -11404,11 +11404,12 @@ export default function AdminDashboard({
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* ========================================================= */}
       {/* نافذة مودال: تفاصيل الطلب وإيصال التحويل (Order Details)   */}
       {/* ========================================================= */}
+
       {selectedOrderDetails && (
         <div
           onClick={() => setSelectedOrderDetails(null)}
