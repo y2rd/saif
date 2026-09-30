@@ -10536,34 +10536,56 @@ export default function AdminDashboard({
       {showProductModal && createPortal(
         <div 
           onClick={() => setShowProductModal(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
+            padding: '16px',
+          }}
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-150" 
             dir="rtl"
+            style={{
+              background: '#fff',
+              borderRadius: '24px',
+              width: '100%',
+              maxWidth: '672px',
+              height: '88vh',
+              maxHeight: '88vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+              border: '1px solid #f3f4f6',
+              overflow: 'hidden',
+            }}
           >
             {/* رأس النافذة (ثابت دائماً في الأعلى) */}
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 shrink-0 bg-white z-10">
+            <div style={{ flexShrink: 0, borderBottom: '1px solid #f3f4f6', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff' }}>
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                   <span>{editingProduct ? '✏️' : '➕'}</span>
                   <span>{editingProduct ? 'تعديل بيانات المنتج' : 'أضف منتج جديد للمتجر'}</span>
                 </h3>
-                <span className="text-[11px] text-gray-400 block mt-0.5">اختر نوع المنتج لتخصيص خيارات التسليم والمخزون</span>
+                <span style={{ fontSize: '11px', color: '#9ca3af', display: 'block', marginTop: '2px' }}>اختر نوع المنتج لتخصيص خيارات التسليم والمخزون</span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowProductModal(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm cursor-pointer transition active:scale-95"
+                style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f3f4f6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: '#6b7280', flexShrink: 0 }}
               >
                 ✕
               </button>
             </div>
 
-            {/* جسم النافذة (قابل للتمرير بسلاسة داخل النافذة نفسها) */}
-            <form onSubmit={handleSaveProductSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0 text-xs">
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+            {/* جسم النافذة + footer داخل form */}
+            <form onSubmit={handleSaveProductSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', fontSize: '12px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* 1. خيارات اختيار نوع المنتج في البداية بنمط سلة */}
                 <div className="p-3.5 bg-gray-50/70 border border-gray-200 rounded-2xl space-y-2">
                 <label className="block font-bold text-gray-800 text-xs">
@@ -11377,7 +11399,7 @@ export default function AdminDashboard({
               </div>
 
               {/* أسفل النافذة (أزرار الحفظ والإلغاء ثابتة دائماً في الأسفل) */}
-              <div className="flex justify-end items-center gap-2.5 p-4 sm:p-5 border-t border-gray-100 shrink-0 bg-gray-50/80 z-10">
+              <div style={{ flexShrink: 0, borderTop: '1px solid #f3f4f6', padding: '14px 20px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', background: 'rgba(249,250,251,0.95)' }}>
                 <button
                   type="button"
                   disabled={isSavingProduct}
