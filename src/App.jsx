@@ -7,6 +7,7 @@ import { App as CapApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import bundledInitialProducts from './bundled_products_cache.json';
 import bundledInitialCategories from './bundled_categories_cache.json';
+import productImagesMap from './product_images_map.json';
 import { 
   subscribeToStoreData, 
   syncCustomerToCloud, 
@@ -51,6 +52,14 @@ function compressImage(file, maxWidth = 600, quality = 0.75) {
     reader.onerror = (err) => reject(err);
     reader.readAsDataURL(file);
   });
+}
+
+export function getProductImage(prod) {
+  if (!prod) return '';
+  if (typeof prod === 'string') {
+    return productImagesMap[prod] || '';
+  }
+  return prod.imageUrl || prod.image || productImagesMap[prod.id] || productImagesMap[prod.title] || '';
 }
 
 function isProductRequiringInput(prod) {
@@ -1019,26 +1028,35 @@ export default function App() {
 
   // 3. المنتجات - عرض فوري لحظي دون أي تأخير عند فتح الرابط
   const [products, setProducts] = useState(() => {
+    let initialList = [];
     try {
       const saved = localStorage.getItem('haider_store_products');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           // دمج المنتجات المحلية مع الكاش المدمج: أضف أي منتج في الكاش غير موجود محلياً
-          // هذا يضمن ظهور المنتجات الجديدة حتى لو كان localStorage قديماً
           if (Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0) {
             const localIds = new Set(parsed.map(p => String(p.id)));
             const missingFromLocal = bundledInitialProducts.filter(p => !localIds.has(String(p.id)));
-            if (missingFromLocal.length > 0) {
-              return [...parsed, ...missingFromLocal];
-            }
+            initialList = missingFromLocal.length > 0 ? [...parsed, ...missingFromLocal] : parsed;
+          } else {
+            initialList = parsed;
           }
-          return parsed;
         }
       }
     } catch {}
-    // إذا كان أول دخول للمتصفح، يتم تحميل قائمة المنتجات المدمجة فوراً في أول جزء من الثانية
-    return Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0 ? bundledInitialProducts : [];
+    if (!initialList || initialList.length === 0) {
+      initialList = Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0 ? bundledInitialProducts : [];
+    }
+    // ترميم الصور فوراً لأي منتج فُقدت صورته محلياً بسبب امتلاء الذاكرة
+    return initialList.map(p => {
+      const resolvedImg = getProductImage(p);
+      return {
+        ...p,
+        imageUrl: resolvedImg || p.imageUrl || p.image || '',
+        image: resolvedImg || p.image || p.imageUrl || ''
+      };
+    });
   });
   // ref لتتبع أحدث قيمة للمنتجات بدون إعادة تشغيل الـ effects
   const productsRef = useRef(products);
@@ -1307,12 +1325,20 @@ export default function App() {
         receivedProducts = true;
         checkSyncDone();
         if (Array.isArray(cloudProducts) && cloudProducts.length > 0) {
+          const hydratedProducts = cloudProducts.map(p => {
+            const resolvedImg = getProductImage(p);
+            return {
+              ...p,
+              imageUrl: resolvedImg || p.imageUrl || p.image || '',
+              image: resolvedImg || p.image || p.imageUrl || ''
+            };
+          });
           const now = typeof cloudUpdatedAt === 'number' ? cloudUpdatedAt : Date.now();
           try {
-            safeSetLocalStorage('haider_store_products', JSON.stringify(cloudProducts));
+            safeSetLocalStorage('haider_store_products', JSON.stringify(hydratedProducts));
             safeSetLocalStorage('haider_store_products_updatedAt', String(now));
           } catch (e) {}
-          setProducts(cloudProducts);
+          setProducts(hydratedProducts);
         }
       },
       onCategoriesUpdate: (cloudCategories, cloudUpdatedAt) => {
@@ -3999,7 +4025,7 @@ export default function App() {
                         {products.filter(p => wishlist.includes(p.id)).map(favProd => (
                           <div key={favProd.id} className="p-2.5 bg-gray-50 rounded-xl border border-gray-200/80 flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <img src={favProd.imageUrl || favProd.image} alt={favProd.title || favProd.name} className="w-10 h-10 object-cover rounded-lg border border-gray-200" />
+                              <img src={getProductImage(favProd)} alt={favProd.title || favProd.name} className="w-10 h-10 object-cover rounded-lg border border-gray-200" />
                               <div className="min-w-0">
                                 <h4 className="text-xs font-bold text-gray-900 truncate">{favProd.title || favProd.name}</h4>
                                 <span className="text-[11px] font-bold text-[#004956] font-price">
@@ -4936,7 +4962,7 @@ export default function App() {
                     <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl p-3 bg-gray-50/30">
                       {cartItems.map((item) => (
                         <div key={item.cartItemId} className="py-2.5 flex gap-3 items-center">
-                          <img src={item.imageUrl} alt={item.title} className="w-12 h-12 rounded-xl object-cover border border-gray-100" />
+                          <img src={getProductImage(item)} alt={item.title} className="w-12 h-12 rounded-xl object-cover border border-gray-100" />
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xs text-gray-800 truncate font-medium">{item.title}</h4>
                             {(() => {
@@ -5966,7 +5992,7 @@ export default function App() {
                               {/* 1. حاوية صورة المنتج ممتدة وبارزة طولياً لإبراز تفاصيل المنتج */}
                               <div className="relative pt-[112%] sm:pt-[108%] md:pt-[105%] bg-white overflow-hidden">
                                 <img
-                                  src={item.imageUrl}
+                                  src={getProductImage(item)}
                                   alt={item.title}
                                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                   loading="lazy"
@@ -6282,7 +6308,7 @@ export default function App() {
                           {/* 1. حاوية صورة المنتج ممتدة وبارزة طولياً لإبراز تفاصيل المنتج */}
                           <div className="relative pt-[112%] sm:pt-[108%] md:pt-[105%] bg-white overflow-hidden">
                             <img
-                              src={item.imageUrl}
+                              src={getProductImage(item)}
                               alt={item.title}
                               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                               loading="lazy"
@@ -6535,7 +6561,7 @@ export default function App() {
                           {/* 1. حاوية صورة المنتج ممتدة وبارزة طولياً لإبراز تفاصيل المنتج */}
                           <div className="relative pt-[112%] sm:pt-[108%] md:pt-[105%] bg-white overflow-hidden">
                             <img
-                              src={item.imageUrl}
+                              src={getProductImage(item)}
                               alt={item.title}
                               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                               loading="lazy"
@@ -7584,7 +7610,7 @@ function AutoMovingProductsCarousel({
               {/* 1. حاوية صورة المنتج ممتدة طولياً لإبراز تفاصيل المنتج */}
               <div className="relative pt-[112%] sm:pt-[108%] bg-white overflow-hidden flex items-center justify-center">
                 <img
-                  src={p.imageUrl}
+                  src={getProductImage(p)}
                   alt={p.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"

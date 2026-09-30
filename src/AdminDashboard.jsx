@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import hayDayPresetImages from './hayday_presets.json';
+import productImagesMap from './product_images_map.json';
 import * as XLSX from 'xlsx-js-style';
 import ExcelJS from 'exceljs/dist/exceljs.min.js';
 
@@ -981,7 +982,7 @@ export default function AdminDashboard({
       downloadUrl: prod.downloadUrl || '',
       fileSize: prod.fileSize || '',
       licenseKeys: Array.isArray(prod.licenseKeys) ? prod.licenseKeys.join('\n') : (prod.licenseKeys || ''),
-      imageUrl: prod.imageUrl || '',
+      imageUrl: prod.imageUrl || prod.image || productImagesMap[prod.id] || productImagesMap[prod.title] || '',
       descriptionHtml: desc,
       weight: prod.weight || '0.5 kg',
       sku: prod.sku || '',
@@ -3799,8 +3800,8 @@ export default function AdminDashboard({
                         {/* معلومات المنتج */}
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
-                            {p.imageUrl ? (
-                              <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                            {(p.imageUrl || p.image || productImagesMap[p.id] || productImagesMap[p.title]) ? (
+                              <img src={p.imageUrl || p.image || productImagesMap[p.id] || productImagesMap[p.title]} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
                             ) : (
                               <i className="fa-solid fa-box text-gray-300 text-lg"></i>
                             )}
@@ -4275,7 +4276,7 @@ export default function AdminDashboard({
                                   <div className="flex items-center gap-2.5">
                                     <div className="relative w-7 h-7 rounded-xl bg-gray-50 border border-gray-200/90 overflow-hidden shrink-0 flex items-center justify-center p-0.5">
                                       <img
-                                        src={p.imageUrl}
+                                        src={p.imageUrl || p.image || productImagesMap[p.id] || productImagesMap[p.title] || ''}
                                         alt=""
                                         className="w-full h-full object-cover rounded-lg"
                                         loading="lazy"
@@ -6054,7 +6055,7 @@ export default function AdminDashboard({
                                   {isSelected && '✓'}
                                 </div>
                                 <img
-                                  src={prod.imageUrl}
+                                  src={prod.imageUrl || prod.image || productImagesMap[prod.id] || productImagesMap[prod.title] || ''}
                                   alt=""
                                   className="w-8 h-8 rounded-lg object-cover border border-gray-100 flex-shrink-0"
                                 />
@@ -9273,7 +9274,7 @@ export default function AdminDashboard({
                                     }`}
                                   >
                                     <div className="flex items-center gap-2 min-w-0">
-                                      <img src={p.imageUrl} alt="" className="w-8 h-8 rounded object-cover border border-gray-200 shrink-0" />
+                                      <img src={p.imageUrl || p.image || productImagesMap[p.id] || productImagesMap[p.title] || ''} alt="" className="w-8 h-8 rounded object-cover border border-gray-200 shrink-0" />
                                       <div className="min-w-0">
                                         <span className="text-xs font-bold text-gray-900 block truncate">{p.title}</span>
                                         <span className="text-[10px] text-gray-500 block truncate">{p.category} - {formatPrice(p.price, activeCurrency)}</span>
