@@ -141,6 +141,39 @@ export async function syncProductsToCloud(products) {
   }
 }
 
+// جلب جميع المنتجات مباشرة من السحابة (Force Cloud Fetch)
+export async function getProductsFromCloud() {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    if (Array.isArray(data)) {
+      return data.map(r => {
+        const img = r.image || r.data?.image || r.data?.imageUrl || '';
+        const item = {
+          ...r.data,
+          ...r,
+          id: r.id,
+          image: img,
+          imageUrl: img
+        };
+        if (r.product_type && !item.productType) {
+          item.productType = r.product_type;
+        }
+        return item;
+      });
+    }
+    return [];
+  } catch (err) {
+    console.error("خطأ في جلب المنتجات من السحابة:", err);
+    return [];
+  }
+}
+
 // -------------------------------------------------------------
 // 3. الأقسام (Categories)
 // -------------------------------------------------------------
@@ -829,13 +862,17 @@ export function subscribeToStoreData({
       if (resProdsLight.status === 'fulfilled' && Array.isArray(resProdsLight.value?.data) && onProductsUpdate) {
         const fullList = resProdsLight.value.data.map(r => {
           const img = r.image || r.data?.image || r.data?.imageUrl || '';
-          return {
+          const item = {
             ...r.data,
             ...r,
             id: r.id,
             image: img,
             imageUrl: img
           };
+          if (r.product_type && !item.productType) {
+            item.productType = r.product_type;
+          }
+          return item;
         });
         onProductsUpdate(fullList, Date.now());
       }
@@ -899,13 +936,17 @@ export function subscribeToStoreData({
         if (Array.isArray(data)) {
           const list = data.map(r => {
             const img = r.image || r.data?.image || r.data?.imageUrl || '';
-            return {
+            const item = {
               ...r.data,
               ...r,
               id: r.id,
               image: img,
               imageUrl: img
             };
+            if (r.product_type && !item.productType) {
+              item.productType = r.product_type;
+            }
+            return item;
           });
           onProductsUpdate(list, Date.now());
         }

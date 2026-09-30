@@ -22,6 +22,7 @@ import {
   syncOrderToCloud,
   deleteOrderFromCloud,
   clearAllOrdersFromCloud,
+  getProductsFromCloud,
   atomicApproveTopup,
   atomicAdjustCustomerBalance,
   atomicRefundOrderBalance
@@ -597,6 +598,30 @@ export default function AdminDashboard({
       showToast(`فشل الحفظ: ${err.message || 'حدث خطأ أثناء حفظ الإعدادات'} ❌`, 'error');
     } finally {
       setIsSavingGlobalSettings(false);
+    }
+  };
+
+  // جلب فوري لجميع المنتجات من السحابة وتحديث الواجهة مباشرة
+  const [isSyncingProductsFromCloud, setIsSyncingProductsFromCloud] = useState(false);
+  const handleForceCloudSyncProducts = async () => {
+    setIsSyncingProductsFromCloud(true);
+    try {
+      const cloudProds = await getProductsFromCloud();
+      if (Array.isArray(cloudProds) && cloudProds.length > 0) {
+        setProducts(cloudProds);
+        try {
+          safeSetLocalStorage('haider_store_products', JSON.stringify(cloudProds));
+          safeSetLocalStorage('haider_store_products_updatedAt', String(Date.now()));
+        } catch (e) {}
+        showToast(`✅ تم تحديث ${cloudProds.length} منتج مباشرة من السحابة بنجاح!`);
+      } else {
+        showToast('لم يتم العثور على منتجات سحابية جديدة', 'info');
+      }
+    } catch (err) {
+      console.error('فشل الجلب السحابي:', err);
+      showToast('تعذر جلب المنتجات من السحابة، تأكد من اتصالك بالإنترنت', 'error');
+    } finally {
+      setIsSyncingProductsFromCloud(false);
     }
   };
 
@@ -3949,6 +3974,18 @@ export default function AdminDashboard({
                   >
                     <i className="fa-solid fa-file-import text-xs"></i>
                     <span className="leading-none">استيراد</span>
+                  </button>
+
+                  {/* زر تحديث المنتجات من السحابة */}
+                  <button
+                    type="button"
+                    onClick={handleForceCloudSyncProducts}
+                    disabled={isSyncingProductsFromCloud}
+                    title="تحديث وجلب جميع المنتجات مباشرة من السحابة"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] sm:text-[12px] font-semibold rounded-xl border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 shadow-2xs cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <i className={`fa-solid fa-arrows-rotate text-xs ${isSyncingProductsFromCloud ? 'fa-spin' : ''}`}></i>
+                    <span className="leading-none">{isSyncingProductsFromCloud ? 'جاري المزامنة...' : 'تحديث من السحابة'}</span>
                   </button>
 
                   {/* زر تصدير Excel */}
