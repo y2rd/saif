@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import productImagesMap from './product_images_map.json';
+import { DEFAULT_PRODUCT_IMAGE } from './defaultProductImage';
 
 export default function ProductDetailPage({
   product,
@@ -166,7 +167,7 @@ export default function ProductDetailPage({
               {/* صورة المنتج */}
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-white aspect-square w-full max-w-sm sm:max-w-md md:max-w-none mx-auto group flex items-center justify-center border border-gray-100/80 shadow-xs">
                 <img
-                  src={product.imageUrl || product.image || productImagesMap[product.id] || productImagesMap[product.title] || 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80'}
+                  src={product.imageUrl || product.image || productImagesMap[product.id] || productImagesMap[product.title] || DEFAULT_PRODUCT_IMAGE}
                   alt={product.title}
                   className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
                 />
@@ -703,7 +704,7 @@ export default function ProductDetailPage({
                 >
                   <div>
                     <div className="relative pt-[112%] sm:pt-[108%] bg-white overflow-hidden">
-                      <img src={rel.imageUrl || rel.image || productImagesMap[rel.id] || productImagesMap[rel.title] || ''} alt="" className="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-105" />
+                      <img src={rel.imageUrl || rel.image || productImagesMap[rel.id] || productImagesMap[rel.title] || DEFAULT_PRODUCT_IMAGE} alt="" className="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                     </div>
                     <div className="p-3 sm:p-4 text-right">
                       <span className="text-[10px] text-gray-400 block font-medium mb-1">{rel.category}</span>

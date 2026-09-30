@@ -4,6 +4,7 @@ import hayDayPresetImages from './hayday_presets.json';
 import productImagesMap from './product_images_map.json';
 import * as XLSX from 'xlsx-js-style';
 import ExcelJS from 'exceljs/dist/exceljs.min.js';
+import { DEFAULT_PRODUCT_IMAGE } from './defaultProductImage';
 
 import { safeSetLocalStorage } from './utils';
 import { 
@@ -1101,7 +1102,7 @@ export default function AdminDashboard({
           quantityTiers: isEx ? [] : formattedTiers,
           minQuantity: parsedMinQty,
           exchangeAmount: parsedExAmount,
-          imageUrl: productForm.imageUrl || 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80',
+          imageUrl: productForm.imageUrl || DEFAULT_PRODUCT_IMAGE,
           reviews: []
         };
         const newProds = [newProd, ...products];

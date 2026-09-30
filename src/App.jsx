@@ -8,6 +8,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import bundledInitialProducts from './bundled_products_cache.json';
 import bundledInitialCategories from './bundled_categories_cache.json';
 import productImagesMap from './product_images_map.json';
+import { DEFAULT_PRODUCT_IMAGE } from './defaultProductImage';
 import { 
   subscribeToStoreData, 
   syncCustomerToCloud, 
@@ -55,11 +56,11 @@ function compressImage(file, maxWidth = 600, quality = 0.75) {
 }
 
 export function getProductImage(prod) {
-  if (!prod) return '';
+  if (!prod) return DEFAULT_PRODUCT_IMAGE;
   if (typeof prod === 'string') {
-    return productImagesMap[prod] || '';
+    return productImagesMap[prod] || DEFAULT_PRODUCT_IMAGE;
   }
-  return prod.imageUrl || prod.image || productImagesMap[prod.id] || productImagesMap[prod.title] || '';
+  return prod.imageUrl || prod.image || productImagesMap[prod.id] || productImagesMap[prod.title] || DEFAULT_PRODUCT_IMAGE;
 }
 
 function isProductRequiringInput(prod) {
@@ -1531,6 +1532,12 @@ export default function App() {
         }
 
         if (found) {
+          if (isProductOutOfStock(found)) {
+            setViewMode('store');
+            setActiveProductForPage(null);
+            window.location.hash = '#/';
+            return;
+          }
           setActiveProductForPage(found);
           setViewMode('product-detail');
           return;
