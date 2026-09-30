@@ -3123,6 +3123,7 @@ export default function App() {
               {isSearchDropdownOpen && searchQuery.trim() && (() => {
                 const q = searchQuery.toLowerCase().trim();
                 const matchedProducts = products.filter(p => {
+                  if (isProductOutOfStock(p)) return false;
                   const t = (p.title || p.name || '').toLowerCase();
                   const c = (p.category || '').toLowerCase();
                   return t.includes(q) || c.includes(q);
@@ -3134,7 +3135,6 @@ export default function App() {
                       <div className="max-h-72 overflow-y-auto p-1.5 space-y-1">
                         {matchedProducts.map(p => {
                           const isExchange = p.productType === 'exchange' || (typeof p.exchangeCurrencyName === 'string' && p.exchangeCurrencyName.trim().length > 0);
-                          const outOfStock = isProductOutOfStock(p);
                           return (
                             <div
                               key={p.id}
@@ -3163,11 +3163,6 @@ export default function App() {
                                   <span className="font-bold text-[#004956]">
                                     {isExchange ? 'مبادلة' : formatPrice(p.price, activeCurrency)}
                                   </span>
-                                  {outOfStock && (
-                                    <span className="text-[9px] text-red-500 font-medium bg-red-50 px-1.5 py-0.2 rounded">
-                                      نفذت الكمية
-                                    </span>
-                                  )}
                                 </div>
                               </div>
                               <i className="fa-solid fa-chevron-left text-gray-300 text-[10px] group-hover:text-gray-500 transition"></i>
