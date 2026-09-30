@@ -10921,8 +10921,16 @@ export default function AdminDashboard({
                         <input
                           type="number"
                           min="1"
-                          value={productForm.minQuantity || 1}
-                          onChange={(e) => setProductForm({ ...productForm, minQuantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                          value={productForm.minQuantity ?? 1}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const parsed = parseInt(raw, 10);
+                            setProductForm({ ...productForm, minQuantity: isNaN(parsed) ? '' : parsed });
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            if (!val || val < 1) setProductForm({ ...productForm, minQuantity: 1 });
+                          }}
                           placeholder="1"
                           className="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
                         />
