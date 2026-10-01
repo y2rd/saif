@@ -578,7 +578,7 @@ export default function AdminDashboard({
       safeSetLocalStorage('haider_store_categories', JSON.stringify(categories));
       safeSetLocalStorage('haider_store_categories_updatedAt', String(now));
       
-      // حفظ الإعدادات الأساسية والتصنيفات والكوبونات أولاً
+      // حفظ الإعدادات الأساسية وتصميم المتجر والتصنيفات والكوبونات فوراً بدون لمس المنتجات
       const cfgRes = syncStoreConfigToCloud(storeConfig);
       const catRes = syncCategoriesToCloud(categories);
       const cpnRes = syncCouponsToCloud(coupons);
@@ -594,14 +594,7 @@ export default function AdminDashboard({
         return;
       }
 
-      // مزامنة المنتجات بعد نجاح حفظ الإعدادات
-      try {
-        await syncProductsToCloud(products);
-        showToast('✅ تم حفظ ومزامنة كافة إعدادات وتصميم المتجر سحابياً بنجاح!');
-      } catch (prodErr) {
-        console.warn('تم حفظ إعدادات المتجر ولكن تعذر مزامنة المنتجات:', prodErr);
-        showToast('✅ تم حفظ تصميم وإعدادات المتجر بنجاح سحابياً!', 'success');
-      }
+      showToast('✅ تم حفظ إعدادات وتصميم المتجر بنجاح فوري!');
     } catch (err) {
       console.error('Supabase Update Failed:', err.message, err.details, err.hint);
       showToast(`فشل الحفظ: ${err.message || 'حدث خطأ أثناء حفظ الإعدادات'} ❌`, 'error');
