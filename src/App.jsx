@@ -458,10 +458,10 @@ export default function App() {
           return;
         }
 
-        // تسجيل الدخول بنجاح مع أخذ الرتبة الفعلية من قاعدة البيانات (عميل customer دائماً إلا إذا تم تعيينه مدير مسبقاً من قاعدة البيانات)
+        // تسجيل الدخول بنجاح مع أخذ الرتبة الفعلية من قاعدة البيانات (مدير، مشرف، أو عميل)
         const loggedUser = {
           ...existingUser,
-          role: existingUser.role === 'admin' ? 'admin' : 'customer'
+          role: existingUser.role === 'admin' ? 'admin' : (existingUser.role === 'supervisor' ? 'supervisor' : 'customer')
         };
 
         setCurrentUser(loggedUser);
@@ -575,12 +575,15 @@ export default function App() {
       setAdminAuthError('');
       
       if (currentUser) {
-        // إذا كان المستخدم مسجل دخول بالفعل، تتم ترقية حسابه الحقيقي
-        const updatedAdmin = { ...currentUser, role: 'admin' };
+        // إذا كان المستخدم مسجل دخول بالفعل، تتم ترقية حسابه الحقيقي وتثبيته سحابياً
+        const updatedAdmin = { ...currentUser, role: 'admin', tier: currentUser.tier || 'مدير' };
         setCurrentUser(updatedAdmin);
+        setCustomers(prev => prev.map(c => c.id === updatedAdmin.id || c.identifier === updatedAdmin.identifier ? updatedAdmin : c));
         try {
           safeSetLocalStorage('haider_current_user', JSON.stringify(updatedAdmin));
+          safeSetLocalStorage('haider_store_customers', JSON.stringify(customers.map(c => c.id === updatedAdmin.id || c.identifier === updatedAdmin.identifier ? updatedAdmin : c)));
         } catch (e) {}
+        syncCustomerToCloud(updatedAdmin);
       }
       setViewMode('admin');
     } else {
@@ -4355,8 +4358,39 @@ export default function App() {
                       </div>
 
                       <div className="flex items-center justify-between py-1 border-b border-gray-200/60">
-                        <span className="text-gray-500">رتبة العضوية:</span>
-                        <span className="font-bold text-[#004956]">{currentUser.tier || 'عميل عادي'}</span>
+                        <span className="text-gray-500">رتبة الحساب:</span>
+                        <div className="flex items-center gap-1.5">
+                          {currentUser.role === 'admin' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-2xs flex items-center gap-1">
+                              <i className="fa-solid fa-crown text-[10px]"></i>
+                              <span>مدير عام</span>
+                            </span>
+                          ) : currentUser.role === 'supervisor' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-teal-700 text-white shadow-2xs flex items-center gap-1">
+                              <i className="fa-solid fa-user-shield text-[10px]"></i>
+                              <span>مشرف متجر</span>
+                            </span>
+                          ) : currentUser.tier === 'vip' || currentUser.tier === 'VIP' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1">
+                              <i className="fa-solid fa-gem text-[10px]"></i>
+                              <span>عضوية VIP</span>
+                            </span>
+                          ) : currentUser.tier === 'gold' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
+                              <i className="fa-solid fa-medal text-[10px]"></i>
+                              <span>عضوية ذهبية</span>
+                            </span>
+                          ) : currentUser.tier === 'silver' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-200 text-gray-800 flex items-center gap-1">
+                              <i className="fa-solid fa-medal text-[10px]"></i>
+                              <span>عضوية فضية</span>
+                            </span>
+                          ) : (
+                            <span className="font-bold text-[#004956] text-[11px]">
+                              {currentUser.tier || 'عميل'}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between py-1">
