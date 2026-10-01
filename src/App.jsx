@@ -17,6 +17,7 @@ import {
   syncCategoriesToCloud, 
   syncStoreConfigToCloud,
   syncTopupsToCloud,
+  syncCouponsToCloud,
   sendTelegramNotification,
   getCustomerByIdentifier,
   loginWithCredentials,
@@ -604,6 +605,22 @@ export default function App() {
       safeSetLocalStorage('haider_cart_items', JSON.stringify(cartItems));
     } catch (e) {}
   }, [cartItems]);
+
+  // إدارة الكوبونات في المتجر والسلة
+  const [coupons, setCoupons] = useState(() => {
+    try {
+      const saved = localStorage.getItem('haider_store_coupons');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false); // حماية فورية لمنع تكرار النقر وتدبيل الدفع
   const isCheckingOutRef = useRef(false); // قفل فوري متزامن يمنع أي نقرات متتالية قبل تحديث الـ State
   const deletedOrderIdsRef = useRef(new Set((() => {
@@ -1435,6 +1452,7 @@ export default function App() {
       },
       onCouponsUpdate: (cloudCoupons) => {
         if (Array.isArray(cloudCoupons)) {
+          setCoupons(cloudCoupons);
           try {
             safeSetLocalStorage('haider_store_coupons', JSON.stringify(cloudCoupons));
           } catch (e) {}
@@ -1998,9 +2016,131 @@ export default function App() {
     }, 0);
   };
 
-  const totalCartPriceUsd = calculateValidatedCartTotal(cartItems);
+  const subtotalCartPriceUsd = calculateValidatedCartTotal(cartItems);
+
+  // حساب خصم الكوبون المؤهل بدقة بحسب نطاق التطبيق (كل المنتجات / منتجات محددة / مستثناة) والحد الأدنى
+  const couponDiscountUsd = useMemo(() => {
+    if (!appliedCoupon || subtotalCartPriceUsd <= 0) return 0;
+    
+    // فحص الحد الأدنى للطلب
+    if (appliedCoupon.minOrderAmount && subtotalCartPriceUsd < parseFloat(appliedCoupon.minOrderAmount)) {
+      return 0;
+    }
+
+    const discountPct = parseFloat(appliedCoupon.discountPercent) || 0;
+    if (discountPct <= 0) return 0;
+
+    // حساب مجموع أسعار المنتجات المشمولة في نطاق الكوبون
+    let eligibleAmount = 0;
+    cartItems.forEach(item => {
+      if (!item) return;
+      if (item.productType === 'exchange') return; // لا ينطبق الخصم النقدي على منتجات المبادلة
+      const prodId = String(item.productId || item.id);
+      const selIds = (appliedCoupon.selectedProductIds || []).map(id => String(id));
+
+      let isEligible = true;
+      if (appliedCoupon.targetType === 'specific') {
+        isEligible = selIds.includes(prodId);
+      } else if (appliedCoupon.targetType === 'excluded') {
+        isEligible = !selIds.includes(prodId);
+      }
+
+      if (isEligible) {
+        const itemPrice = parseFloat(item.priceUsd) || 0;
+        const itemQty = parseInt(item.quantity) || 1;
+        eligibleAmount += Math.max(0, itemPrice * itemQty);
+      }
+    });
+
+    const calculatedDiscount = (eligibleAmount * discountPct) / 100;
+    return Math.min(eligibleAmount, Math.max(0, Math.round(calculatedDiscount * 100) / 100));
+  }, [appliedCoupon, subtotalCartPriceUsd, cartItems]);
+
+  const totalCartPriceUsd = Math.max(0, Math.round((subtotalCartPriceUsd - couponDiscountUsd) * 100) / 100);
   const totalCartPriceIqd = Math.round(totalCartPriceUsd * storeConfig.usdToIqdRate);
   const totalCartCount = cartItems.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+
+  // دالة تطبيق الكوبون من السلة
+  const handleApplyCoupon = (e) => {
+    if (e) e.preventDefault();
+    setCouponError('');
+    setCouponSuccess('');
+
+    const cleanCode = (couponInput || '').trim().toUpperCase();
+    if (!cleanCode) {
+      setCouponError('يرجى إدخال رمز الكوبون أولاً');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      setCouponError('السلة فارغة، أضف منتجات لتطبيق الكوبون');
+      return;
+    }
+
+    const foundCoupon = (coupons || []).find(c => (c.code || '').trim().toUpperCase() === cleanCode);
+    if (!foundCoupon) {
+      setCouponError('عذراً، كود الخصم غير موجود أو غير صالح');
+      return;
+    }
+
+    if (foundCoupon.status && foundCoupon.status !== 'نشط') {
+      setCouponError('هذا الكوبون معطل حالياً');
+      return;
+    }
+
+    if (foundCoupon.isActive === false) {
+      setCouponError('هذا الكوبون غير مفعل');
+      return;
+    }
+
+    // فحص تاريخ الانتهاء
+    if (foundCoupon.expiryDate) {
+      const today = new Date().toISOString().split('T')[0];
+      if (foundCoupon.expiryDate < today) {
+        setCouponError(`هذا الكوبون منتهي الصلاحية منذ ${foundCoupon.expiryDate}`);
+        return;
+      }
+    }
+
+    // فحص عدد مرات الاستخدام
+    const usageCount = parseInt(foundCoupon.usageCount) || 0;
+    const maxUsage = parseInt(foundCoupon.maxUsage) || 0;
+    if (maxUsage > 0 && usageCount >= maxUsage) {
+      setCouponError('عذراً، تم استنفاد الحد الأقصى لاستخدام هذا الكوبون');
+      return;
+    }
+
+    // فحص الحد الأدنى للطلب
+    const minOrder = parseFloat(foundCoupon.minOrderAmount) || 0;
+    if (minOrder > 0 && subtotalCartPriceUsd < minOrder) {
+      setCouponError(`الحد الأدنى للطلب للاستفادة من هذا الكوبون هو $${minOrder.toFixed(2)}`);
+      return;
+    }
+
+    // فحص ملاءمة المنتجات في السلة لنطاق الكوبون
+    if (foundCoupon.targetType === 'specific' || foundCoupon.targetType === 'excluded') {
+      const selIds = (foundCoupon.selectedProductIds || []).map(id => String(id));
+      const hasEligible = cartItems.some(item => {
+        if (item.productType === 'exchange') return false;
+        const prodId = String(item.productId || item.id);
+        return foundCoupon.targetType === 'specific' ? selIds.includes(prodId) : !selIds.includes(prodId);
+      });
+      if (!hasEligible) {
+        setCouponError('هذا الكوبون لا يشمل المنتجات الموجودة في سلتك الحالية');
+        return;
+      }
+    }
+
+    setAppliedCoupon(foundCoupon);
+    setCouponSuccess(`تم تفعيل خصم ${foundCoupon.discountPercent}% بنجاح! 🎉`);
+    setCouponInput('');
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+    setCouponSuccess('');
+  };
 
   const copyToClipboard = (text, key) => {
     navigator.clipboard.writeText(text);
@@ -2020,6 +2160,27 @@ export default function App() {
         reader.readAsDataURL(file);
       }
     }
+  };
+
+  // دالة زيادة عدد مرات استخدام الكوبون وحفظه محلياً وسحابياً
+  const incrementCouponUsage = (couponId) => {
+    if (!couponId) return;
+    setCoupons(prev => {
+      const updated = prev.map(c => {
+        if (c.id === couponId || c.code === couponId) {
+          return {
+            ...c,
+            usageCount: (parseInt(c.usageCount) || 0) + 1
+          };
+        }
+        return c;
+      });
+      try {
+        safeSetLocalStorage('haider_store_coupons', JSON.stringify(updated));
+        syncCouponsToCloud(updated);
+      } catch (e) {}
+      return updated;
+    });
   };
 
   const createAndRegisterOrder = ({ methodName, proof = '', txId = '' }) => {
@@ -2044,6 +2205,10 @@ export default function App() {
       customerId: currentUser?.id || null,
       customerIdentifier: currentUser?.identifier || null,
       customerPhone: currentUser?.phone || null,
+      subtotalUsd: subtotalCartPriceUsd,
+      discountUsd: couponDiscountUsd,
+      couponCode: appliedCoupon ? appliedCoupon.code : null,
+      couponDiscountPercent: appliedCoupon ? appliedCoupon.discountPercent : null,
       totalUsd: totalCartPriceUsd,
       totalFormatted: `${primaryTotal}`,
       status: 'قيد المراجعة',
@@ -2053,6 +2218,10 @@ export default function App() {
       date: new Date().toISOString().split('T')[0],
       items: [...cartItems]
     };
+
+    if (appliedCoupon) {
+      incrementCouponUsage(appliedCoupon.id || appliedCoupon.code);
+    }
 
     const updatedOrdersList = [newOrder, ...orders];
     setOrders(updatedOrdersList);
@@ -2140,6 +2309,9 @@ export default function App() {
     if (hasOnlyExchange) {
       message += `🔄 *نوع الطلب: مبادلة مباشرة (بدون مبالغ نقدية)*`;
     } else {
+      if (appliedCoupon && couponDiscountUsd > 0) {
+        message += `🏷️ *كوبون الخصم:* ${appliedCoupon.code} (خصم ${appliedCoupon.discountPercent}% = -$${couponDiscountUsd.toFixed(2)})\n`;
+      }
       message += `💰 *الإجمالي النهائي: ${primaryTotal}*`;
     }
 
@@ -2151,6 +2323,10 @@ export default function App() {
     window.open(`https://wa.me/${storeConfig.whatsapp}?text=${encodeURIComponent(message)}`, '_blank');
 
     setCartItems([]);
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+    setCouponSuccess('');
     setPaymentTxProof('');
     setPaymentTxId('');
     closeCartWithMotion();
@@ -2197,6 +2373,9 @@ export default function App() {
     if (hasOnlyExchange) {
       message += `🔄 نوع الطلب: مبادلة مباشرة (بدون مبالغ نقدية)`;
     } else {
+      if (appliedCoupon && couponDiscountUsd > 0) {
+        message += `🏷️ كوبون الخصم: ${appliedCoupon.code} (خصم ${appliedCoupon.discountPercent}% = -$${couponDiscountUsd.toFixed(2)})\n`;
+      }
       message += `💰 الإجمالي النهائي: ${primaryTotal}`;
     }
 
@@ -2222,6 +2401,10 @@ export default function App() {
     }
 
     setCartItems([]);
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+    setCouponSuccess('');
     setPaymentTxProof('');
     setPaymentTxId('');
     closeCartWithMotion();
@@ -2670,6 +2853,10 @@ export default function App() {
         customerId: updatedUser.id || null,
         customerIdentifier: updatedUser.identifier || null,
         customerPhone: updatedUser.phone || null,
+        subtotalUsd: subtotalCartPriceUsd,
+        discountUsd: couponDiscountUsd,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        couponDiscountPercent: appliedCoupon ? appliedCoupon.discountPercent : null,
         totalUsd: totalCartPriceUsd,
         totalFormatted: `$${totalCartPriceUsd.toFixed(2)}`,
         status: isAllInstantFulfilled ? 'مكتمل' : 'قيد التنفيذ',
@@ -2684,6 +2871,10 @@ export default function App() {
         date: new Date().toISOString().split('T')[0],
         items: [...cartItems]
       };
+
+      if (appliedCoupon) {
+        incrementCouponUsage(appliedCoupon.id || appliedCoupon.code);
+      }
 
       const updatedOrdersList = [newOrder, ...orders];
       setOrders(updatedOrdersList);
@@ -2708,6 +2899,10 @@ export default function App() {
         alert(`✅ تم الدفع بنجاح من رصيد المحفظة!\nرقم الطلب: ${newOrderId}\nالمبلغ المخصوم: $${orderCost.toFixed(2)}\nطلبك الآن "قيد التنفيذ" مباشرة.`);
       }
       setCartItems([]);
+      setAppliedCoupon(null);
+      setCouponInput('');
+      setCouponError('');
+      setCouponSuccess('');
       setPaymentTxProof('');
       setPaymentTxId('');
       closeCartWithMotion();
@@ -2729,6 +2924,10 @@ export default function App() {
     window.open(`https://wa.me/${storeConfig.whatsapp}?text=${encodeURIComponent(`طلب جديد رقم: ${newOrderId} بمبلغ ${primaryTotal}`)}`, '_blank');
 
       setCartItems([]);
+      setAppliedCoupon(null);
+      setCouponInput('');
+      setCouponError('');
+      setCouponSuccess('');
       setPaymentTxProof('');
       setPaymentTxId('');
       closeCartWithMotion();
@@ -5110,6 +5309,96 @@ export default function App() {
                       ))}
                     </div>
 
+                    {/* قسم إدخال كوبون الخصم الترويجي */}
+                    {cartItems.some(it => it.productType !== 'exchange') && (
+                      <div className="pt-2">
+                        <label className="block text-xs text-gray-700 mb-1.5 font-medium flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <i className="fa-solid fa-tag text-[#004956] text-xs"></i>
+                            <span>كود الخصم (كوبون)</span>
+                          </span>
+                          {appliedCoupon && (
+                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
+                              مفعّل: {appliedCoupon.code} ({appliedCoupon.discountPercent}%)
+                            </span>
+                          )}
+                        </label>
+
+                        {!appliedCoupon ? (
+                          <form onSubmit={handleApplyCoupon} className="space-y-1.5">
+                            <div className="flex gap-1.5">
+                              <div className="relative flex-1">
+                                <input
+                                  type="text"
+                                  value={couponInput}
+                                  onChange={(e) => {
+                                    setCouponInput(e.target.value.toUpperCase());
+                                    setCouponError('');
+                                    setCouponSuccess('');
+                                  }}
+                                  placeholder="أدخل رمز الكوبون..."
+                                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 focus:border-[#004956] focus:bg-white rounded-xl text-xs uppercase font-mono font-bold outline-none transition placeholder:normal-case placeholder:font-normal placeholder:text-gray-400"
+                                />
+                                {couponInput && (
+                                  <button
+                                    type="button"
+                                    onClick={() => { setCouponInput(''); setCouponError(''); }}
+                                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                              <button
+                                type="submit"
+                                className="px-4 py-2 bg-[#004956] hover:bg-[#00343D] text-white text-xs font-bold rounded-xl cursor-pointer transition shadow-2xs active:scale-95 shrink-0 flex items-center gap-1.5"
+                              >
+                                <i className="fa-solid fa-check text-[11px]"></i>
+                                <span>تطبيق</span>
+                              </button>
+                            </div>
+                            {couponError && (
+                              <p className="text-[10.5px] text-red-600 bg-red-50 p-2 rounded-lg border border-red-100 flex items-center gap-1.5 animate-fadeIn">
+                                <i className="fa-solid fa-circle-exclamation shrink-0"></i>
+                                <span>{couponError}</span>
+                              </p>
+                            )}
+                          </form>
+                        ) : (
+                          <div className="p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between animate-fadeIn">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs">
+                                <i className="fa-solid fa-percent"></i>
+                              </div>
+                              <div>
+                                <span className="text-xs font-bold text-emerald-950 font-mono tracking-wider block">
+                                  {appliedCoupon.code}
+                                </span>
+                                <span className="text-[10px] text-emerald-700 block">
+                                  خصم {appliedCoupon.discountPercent}% على طلبك (وفرت ${couponDiscountUsd.toFixed(2)})
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleRemoveCoupon}
+                              className="text-red-500 hover:text-red-700 bg-white hover:bg-red-50 border border-red-200 p-1.5 px-2 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1"
+                              title="إلغاء تطبيق الكوبون"
+                            >
+                              <i className="fa-solid fa-trash-can text-[11px]"></i>
+                              <span>إلغاء</span>
+                            </button>
+                          </div>
+                        )}
+                        {couponSuccess && !couponError && (
+                          <p className="text-[10.5px] text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100 mt-1 flex items-center gap-1.5 animate-fadeIn">
+                            <i className="fa-solid fa-circle-check shrink-0"></i>
+                            <span>{couponSuccess}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* خيارات اختيار وسيلة الدفع */}
                     <div className="pt-1">
                       <label className="block text-xs text-gray-600 mb-2 font-medium">اختر وسيلة الدفع:</label>
@@ -5423,15 +5712,34 @@ export default function App() {
 
               {cartItems.length > 0 && (
                 <div className="p-4 border-t border-gray-100 bg-white space-y-2.5">
-                  <div className="flex justify-between items-center text-sm text-gray-800">
-                    <span className="font-normal">المجموع:</span>
-                    <span className="text-base font-medium" style={{ color: storeConfig.primaryColor }}>
-                      {cartItems.every(it => it.productType === 'exchange')
-                        ? 'مبادلة (بدون نقود)'
-                        : paymentMethod === 'zaincash' || paymentMethod === 'iraqimaster'
-                        ? `${totalCartPriceIqd.toLocaleString('en-US')} د.ع`
-                        : `$${totalCartPriceUsd.toFixed(2)}`}
-                    </span>
+                  {/* ملخص الأسعار مع الخصم إن وجد */}
+                  <div className="space-y-1.5 text-xs text-gray-600">
+                    {appliedCoupon && couponDiscountUsd > 0 && (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span>المجموع الفرعي:</span>
+                          <span className="font-mono">${subtotalCartPriceUsd.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-emerald-700 font-medium">
+                          <span className="flex items-center gap-1">
+                            <i className="fa-solid fa-tag text-[10px]"></i>
+                            <span>خصم الكوبون ({appliedCoupon.code} - {appliedCoupon.discountPercent}%):</span>
+                          </span>
+                          <span className="font-mono font-bold">-${couponDiscountUsd.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="flex justify-between items-center text-sm text-gray-800 pt-1 border-t border-gray-100">
+                      <span className="font-bold">المجموع النهائي:</span>
+                      <span className="text-base font-bold" style={{ color: storeConfig.primaryColor }}>
+                        {cartItems.every(it => it.productType === 'exchange')
+                          ? 'مبادلة (بدون نقود)'
+                          : paymentMethod === 'zaincash' || paymentMethod === 'iraqimaster'
+                          ? `${totalCartPriceIqd.toLocaleString('en-US')} د.ع`
+                          : `$${totalCartPriceUsd.toFixed(2)}`}
+                      </span>
+                    </div>
                   </div>
 
                   <button
