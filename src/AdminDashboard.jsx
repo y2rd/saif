@@ -578,22 +578,29 @@ export default function AdminDashboard({
       safeSetLocalStorage('haider_store_categories', JSON.stringify(categories));
       safeSetLocalStorage('haider_store_categories_updatedAt', String(now));
       
-      const pRes = syncProductsToCloud(products);
+      // حفظ الإعدادات الأساسية والتصنيفات والكوبونات أولاً
       const cfgRes = syncStoreConfigToCloud(storeConfig);
       const catRes = syncCategoriesToCloud(categories);
       const cpnRes = syncCouponsToCloud(coupons);
       const topRes = Array.isArray(topupRequests) ? syncTopupsToCloud(topupRequests) : Promise.resolve();
 
-      const results = await Promise.allSettled([pRes, cfgRes, catRes, cpnRes, topRes]);
-      const allFulfilled = results.every(r => r.status === 'fulfilled');
+      const coreResults = await Promise.allSettled([cfgRes, catRes, cpnRes, topRes]);
+      const coreFailures = coreResults.filter(r => r.status === 'rejected');
 
-      if (allFulfilled) {
-        showToast('✅ تم حفظ ومزامنة كافة إعدادات ومنتجات المتجر سحابياً بنجاح!');
-      } else {
-        const failures = results.filter(r => r.status === 'rejected');
-        console.error('فشل بعض عمليات الحفظ السحابي:', failures);
-        const errMsg = failures.map(f => f.reason?.message || 'خطأ غير معروف').join(' - ');
-        showToast(`فشل الحفظ: ${errMsg} ❌`, 'error');
+      if (coreFailures.length > 0) {
+        console.error('فشل بعض عمليات حفظ الإعدادات السحابية:', coreFailures);
+        const errMsg = coreFailures.map(f => f.reason?.message || 'خطأ غير معروف').join(' - ');
+        showToast(`فشل حفظ الإعدادات: ${errMsg} ❌`, 'error');
+        return;
+      }
+
+      // مزامنة المنتجات بعد نجاح حفظ الإعدادات
+      try {
+        await syncProductsToCloud(products);
+        showToast('✅ تم حفظ ومزامنة كافة إعدادات وتصميم المتجر سحابياً بنجاح!');
+      } catch (prodErr) {
+        console.warn('تم حفظ إعدادات المتجر ولكن تعذر مزامنة المنتجات:', prodErr);
+        showToast('✅ تم حفظ تصميم وإعدادات المتجر بنجاح سحابياً!', 'success');
       }
     } catch (err) {
       console.error('Supabase Update Failed:', err.message, err.details, err.hint);

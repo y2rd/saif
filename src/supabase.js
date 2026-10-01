@@ -107,6 +107,7 @@ export async function deleteProductFromCloud(productId) {
 export async function syncProductsToCloud(products) {
   if (!supabase) return { success: false, error: 'Database not initialized' };
   const list = Array.isArray(products) ? products : [];
+  if (list.length === 0) return { success: true };
   try {
     const rows = list.map(p => {
       const cleanData = { ...p };
@@ -132,8 +133,17 @@ export async function syncProductsToCloud(products) {
         updated_at: new Date().toISOString()
       };
     });
-    const { error } = await supabase.from('products').upsert(rows);
-    if (error) throw error;
+
+    // تقسيم الحفظ إلى دفعات (Chunks) من 25 منتجاً لتجنب مشكلة الـ statement timeout في Supabase
+    const CHUNK_SIZE = 25;
+    for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+      const chunk = rows.slice(i, i + CHUNK_SIZE);
+      const { error } = await supabase.from('products').upsert(chunk);
+      if (error) {
+        console.error(`خطأ في حفظ دفعة المنتجات (${i} إلى ${i + chunk.length}):`, error);
+        throw error;
+      }
+    }
     return { success: true };
   } catch (err) {
     console.error("خطأ في حفظ المنتجات سحابياً:", err);
