@@ -1127,7 +1127,7 @@ export default function App() {
     }
   }, []);
 
-  const [isInitialSyncing, setIsInitialSyncing] = useState(true);
+  const [isInitialSyncing, setIsInitialSyncing] = useState(false);
 
   // حفظ فوري في التخزين المحلي (localStorage) عند أي تعديل أو حذف
   useEffect(() => {
@@ -2882,28 +2882,6 @@ export default function App() {
         fontWeight: 400
       }}
     >
-      {/* شاشة تحميل أولية أنيقة وفخمة (Elegant Loader) */}
-      {isInitialSyncing && (
-        <div className="fixed inset-0 z-[999999] bg-gradient-to-br from-[#0b1220] to-[#00242B] flex flex-col items-center justify-center p-6 text-white select-none transition-opacity duration-500">
-          <div className="relative flex items-center justify-center my-6">
-            {/* الدائرة المتوهجة الخارجية */}
-            <div className="absolute w-20 h-20 sm:w-28 sm:h-28 border-4 border-[#5eead4] border-b-transparent border-l-transparent rounded-full animate-spin" style={{ filter: 'drop-shadow(0 0 8px rgba(94,234,212,0.5))' }}></div>
-            <div className="absolute w-20 h-20 sm:w-28 sm:h-28 border-4 border-[#00b5d8] border-t-transparent border-r-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', filter: 'drop-shadow(0 0 8px rgba(0,181,216,0.5))' }}></div>
-            {/* الشعار الداخلي أو النبض */}
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-[#00b5d8] to-[#5eead4] rounded-full animate-pulse flex items-center justify-center shadow-lg">
-              <i className="fa-solid fa-gamepad text-white text-xl sm:text-2xl"></i>
-            </div>
-          </div>
-
-          <h2 className="text-xl sm:text-2xl font-bold tracking-wide text-white mt-6 mb-3 drop-shadow-md">
-            {storeConfig.name || 'متجر دكان هاي داي'}
-          </h2>
-          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#5eead4] bg-white/5 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10">
-            <i className="fa-solid fa-spinner animate-spin"></i>
-            <span>جاري تجهيز المتجر...</span>
-          </div>
-        </div>
-      )}
 
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
