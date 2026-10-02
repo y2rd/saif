@@ -3189,7 +3189,7 @@ export default function App() {
                     onClick={closeCurrencyMenu}
                   />
                   <div 
-                    className={`absolute top-full mt-2 start-0 sm:start-0 w-64 max-h-[80vh] overflow-y-auto bg-white/98 backdrop-blur-xl rounded-2xl border border-gray-200/90 shadow-2xl p-3.5 z-50 text-xs origin-top transition-all duration-200 ease-out transform ${
+                    className={`absolute top-full mt-2 start-0 sm:start-0 w-64 max-h-[80vh] overflow-y-auto bg-white/98 backdrop-blur-xl rounded-2xl border border-gray-200/90 shadow-2xl p-3.5 z-50 text-xs origin-top transition-all duration-200 ease-out transform currency-dropdown-panel ${
                       currencyMenuAnimating 
                         ? 'opacity-100 scale-100 translate-y-0' 
                         : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'

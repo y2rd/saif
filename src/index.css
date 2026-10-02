@@ -867,6 +867,92 @@ body.dark-theme .product__description-content * {
 }
 
 /* ========================================================================= */
+/* تحسينات الوضع الليلي للقائمة المنسدلة للعملة واللغة وكافة النوافذ المنبثقة */
+/* ========================================================================= */
+body.dark-theme .currency-dropdown-panel {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-theme .currency-dropdown-panel .text-gray-900,
+body.dark-theme .currency-dropdown-panel .text-gray-800,
+body.dark-theme .currency-dropdown-panel .text-gray-700 {
+  color: #f1f5f9 !important;
+}
+
+body.dark-theme .currency-dropdown-panel .text-gray-500,
+body.dark-theme .currency-dropdown-panel .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+body.dark-theme .currency-dropdown-panel .border-gray-100,
+body.dark-theme .currency-dropdown-panel .border-gray-200 {
+  border-color: #1f2937 !important;
+}
+
+body.dark-theme .currency-dropdown-panel .bg-gray-100\/80 {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+body.dark-theme .currency-dropdown-panel .hover\:bg-gray-50:hover {
+  background-color: #1e293b !important;
+}
+
+body.dark-theme .currency-dropdown-panel .border-gray-900 {
+  border-color: #38bdf8 !important;
+}
+
+body.dark-theme .currency-dropdown-panel .bg-gray-900 {
+  background-color: #38bdf8 !important;
+}
+
+body.dark-theme .currency-dropdown-panel .border-gray-300 {
+  border-color: #4b5563 !important;
+}
+
+body.dark-theme .currency-dropdown-panel .bg-white {
+  background-color: #0f172a !important;
+}
+
+/* تحسين القوائم المنسدلة العامة والنوافذ العائمة في الوضع الليلي */
+body.dark-theme .shadow-2xl,
+body.dark-theme .shadow-xl,
+body.dark-theme .shadow-lg {
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.7) !important;
+}
+
+body.dark-theme .bg-white\/98,
+body.dark-theme .bg-white\/95,
+body.dark-theme .bg-white\/90 {
+  background-color: #111827 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme .bg-gray-100 {
+  background-color: #1f2937 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-theme .bg-gray-200 {
+  background-color: #374151 !important;
+}
+
+body.dark-theme .hover\:bg-gray-100:hover,
+body.dark-theme .hover\:bg-gray-50:hover {
+  background-color: #1f2937 !important;
+}
+
+body.dark-theme .modal-container,
+body.dark-theme .drawer-container {
+  background-color: #111827 !important;
+  color: #e2e8f0 !important;
+  border-color: #1f2937 !important;
+}
+
+/* ========================================================================= */
 /* إجبار محاذاة أسماء المنتجات والأسعار إلى جهة اليمين تماماً في كافة البطاقات والواجهات */
 /* ========================================================================= */
 .s-product-card-entry h3,
