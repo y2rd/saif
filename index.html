@@ -3,25 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="format-detection" content="telephone=no" />
-    <title>متجر حيدر - بطاقات ومنتجات رقمية ومواد هاي داي</title>
+    <title>متجر دكان هاي داي - بطاقات ومنتجات رقمية ومواد هاي داي</title>
     <meta name="description" content="المتجر الرسمي للألعاب والبطاقات الرقمية ومواد هاي داي بأفضل الأسعار وأسرع تسليم فوري." />
     <meta name="theme-color" content="#004956" />
 
     <!-- Open Graph / WhatsApp / Facebook Preview -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="متجر حيدر - تسليم فوري وضمان أصلي 100%" />
+    <meta property="og:title" content="متجر دكان هاي داي - تسليم فوري وضمان أصلي 100%" />
     <meta property="og:description" content="تسوق الآن أفضل البطاقات الرقمية ومواد المزرعة بأعلى سرعة وأمان مع نظام المحفظة الإلكترونية." />
     <meta property="og:image" content="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&auto=format&fit=crop&q=80" />
     <meta property="og:locale" content="ar_AR" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="متجر حيدر - تسليم فوري وضمان أصلي" />
+    <meta name="twitter:title" content="متجر دكان هاي داي - تسليم فوري وضمان أصلي" />
     <meta name="twitter:description" content="تسوق أفضل البطاقات الرقمية ومواد المزرعة بأعلى سرعة وضمان." />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&auto=format&fit=crop&q=80" />
 
@@ -31,10 +31,39 @@
     <!-- خطوط سلة المعتمدة: DIN Next LT Arabic (خط سلة الافتراضي) و Tajawal و Cairo و Inter للأرقام الإنجليزية -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
     <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/din-next-lt-arabic" />
-    <script type="module" crossorigin src="./assets/index-l1CAXAMl.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-8yOQmFGJ.css">
+    <script type="module" crossorigin src="./assets/index-mdx4GtZv.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-EphncCph.css">
   </head>
-  <body class="font-['Tajawal'] text-gray-900 bg-[#f8fafc] antialiased">
-    <div id="root"></div>
+  <body class="font-['Tajawal'] text-gray-900 bg-[#FCFCFC] antialiased">
+    <div id="root"></div>
+    <script>
+      // حماية عالمية ضد الشاشة البيضاء في حال حدوث أي خطأ قبل تحميل React
+      window.__appLoaded = false;
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (root && (!root.children || root.children.length === 0) && !window.__appLoaded) {
+            root.innerHTML = '<div style="font-family:sans-serif;direction:rtl;text-align:center;padding:40px 20px;max-width:480px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">' +
+              '<div style="font-size:48px;margin-bottom:16px;">🌾</div>' +
+              '<h2 style="font-size:20px;font-weight:bold;color:#004956;margin-bottom:8px;">تعذر تحميل المتجر</h2>' +
+              '<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:20px;">يبدو أن المتصفح يمنع تحميل البيانات أو يحتوي على كاش قديم. يرجى مسح بيانات التصفح المؤقتة أو فتح المتصفح الأساسي للهاتف.</p>' +
+              '<button onclick="try{localStorage.clear();}catch(e){}location.reload();" style="background:#004956;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-weight:bold;font-size:14px;cursor:pointer;">تحديث الصفحة ومسح الكاش</button>' +
+              '</div>';
+          }
+        }, 3000);
+      });
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error("Global Error Caught:", msg, error);
+        var root = document.getElementById('root');
+        if (root && (!root.children || root.children.length === 0)) {
+          root.innerHTML = '<div style="font-family:sans-serif;direction:rtl;text-align:center;padding:40px 20px;max-width:480px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">' +
+            '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
+            '<h2 style="font-size:20px;font-weight:bold;color:#004956;margin-bottom:8px;">تنبيه: يتطلب تحديث الصفحة</h2>' +
+            '<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:20px;">حدث تعارض في ملفات المتصفح المؤقتة. اضغط على الزر أدناه لتحديث المتجر فوراً.</p>' +
+            '<button onclick="try{localStorage.clear();}catch(e){}location.reload();" style="background:#004956;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-weight:bold;font-size:14px;cursor:pointer;">تحديث ومسح الكاش</button>' +
+            '</div>';
+        }
+      };
+    </script>
   </body>
 </html>
