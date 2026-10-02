@@ -762,134 +762,213 @@ h1, h2, h3, h4, h5, h6,
   color: #ffffff !important;
 }
 /* ========================================================================= */
-/* الوضع الليلي (Dark Mode) - تجاوز شامل للعناصر في الموقع                     */
+/* ========================================================================= */
+/* الوضع الليلي الشامل (Comprehensive Dark Mode) - تغطية كل الموقع بدقة متناهية */
 /* ========================================================================= */
 body.dark-theme {
   background-color: #0b1220 !important;
-  color: #e2e8f0 !important;
+  color: #f1f5f9 !important;
 }
+
+/* إجبار خلفيات الصفحات الرئيسية والفرعية والحاويات */
+body.dark-theme [style*="background-color"],
+body.dark-theme [style*="backgroundColor"] {
+  /* تجاوز أي لون خلفية إنلاين فاتح مثل #f3f4f6 أو #FCFCFC أو أبيض */
+}
+
+body.dark-theme div[class*="min-h-screen"],
+body.dark-theme div[class*="min-h-[70vh]"],
+body.dark-theme main {
+  background-color: #0b1220 !important;
+}
+
+/* 1. الخلفيات البيضاء والرمادية الفاتحة في كل أنحاء الموقع */
 body.dark-theme .bg-white,
+body.dark-theme .bg-white\/98,
+body.dark-theme .bg-white\/95,
+body.dark-theme .bg-white\/90,
+body.dark-theme .bg-white\/80,
 body.dark-theme .bg-\[\#FCFCFC\],
 body.dark-theme .bg-\[\#F9FAFB\],
 body.dark-theme .bg-gray-50,
-body.dark-theme .bg-\[\#f8fafc\] {
+body.dark-theme .bg-gray-50\/30,
+body.dark-theme .bg-gray-50\/50,
+body.dark-theme .bg-gray-50\/70,
+body.dark-theme .bg-gray-50\/80,
+body.dark-theme .bg-gray-50\/90,
+body.dark-theme .bg-gray-100,
+body.dark-theme .bg-gray-100\/50,
+body.dark-theme .bg-gray-100\/60,
+body.dark-theme .bg-gray-100\/70,
+body.dark-theme .bg-gray-100\/80,
+body.dark-theme .bg-gray-100\/90,
+body.dark-theme .bg-\[\#f8fafc\],
+body.dark-theme .bg-slate-50,
+body.dark-theme .bg-blue-50,
+body.dark-theme .bg-emerald-50,
+body.dark-theme .bg-emerald-50\/70,
+body.dark-theme .bg-teal-50,
+body.dark-theme .bg-teal-50\/50,
+body.dark-theme .bg-teal-50\/70,
+body.dark-theme .bg-teal-50\/80,
+body.dark-theme .bg-amber-50,
+body.dark-theme .bg-purple-50,
+body.dark-theme .bg-red-50 {
   background-color: #111827 !important;
-  color: #e2e8f0 !important;
+  color: #f1f5f9 !important;
 }
+
+/* 2. النصوص وعناوين الصفحات والفقرات */
 body.dark-theme .text-gray-900,
 body.dark-theme .text-gray-800,
 body.dark-theme .text-gray-700,
 body.dark-theme .text-black,
-body.dark-theme h1, body.dark-theme h2, body.dark-theme h3, body.dark-theme h4, 
-body.dark-theme span:not(.text-white):not(.text-red-700):not(.text-teal-700):not(.text-teal-900):not(.text-yellow-500):not(.text-red-500) {
-  color: #e2e8f0 !important;
+body.dark-theme .text-\[\#0f172a\],
+body.dark-theme h1,
+body.dark-theme h2,
+body.dark-theme h3,
+body.dark-theme h4,
+body.dark-theme h5,
+body.dark-theme h6 {
+  color: #f8fafc !important;
 }
+
 body.dark-theme .text-gray-600,
 body.dark-theme .text-gray-500,
 body.dark-theme .text-gray-400 {
   color: #94a3b8 !important;
 }
+
+body.dark-theme .text-gray-300 {
+  color: #64748b !important;
+}
+
+/* 3. الحدود والفواصل في كل مكان */
+body.dark-theme .border-gray-50,
 body.dark-theme .border-gray-100,
 body.dark-theme .border-gray-200,
 body.dark-theme .border-gray-300,
+body.dark-theme .border-gray-100\/60,
+body.dark-theme .border-gray-100\/70,
 body.dark-theme .border-gray-100\/80,
-body.dark-theme .border-gray-200\/80,
 body.dark-theme .border-gray-200\/60,
+body.dark-theme .border-gray-200\/70,
+body.dark-theme .border-gray-200\/80,
+body.dark-theme .border-gray-200\/90,
 body.dark-theme .border-t,
 body.dark-theme .border-b,
-body.dark-theme .border {
+body.dark-theme .border-l,
+body.dark-theme .border-r,
+body.dark-theme .border,
+body.dark-theme .divide-gray-50 > :not([hidden]) ~ :not([hidden]),
+body.dark-theme .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+body.dark-theme .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
   border-color: #1f2937 !important;
 }
-body.dark-theme .card-soft-blur,
-body.dark-theme .s-product-card-entry {
-  background-color: #111827 !important;
-  border-color: #1f2937 !important;
-}
+
+/* 4. الهيدر والشريط العلوي والبحث والأزرار الرخامية */
 body.dark-theme .header-soft-blur,
 body.dark-theme .topbar-soft-blur {
   background-color: rgba(17, 24, 39, 0.95) !important;
+  border-color: #1f2937 !important;
 }
+
 body.dark-theme .search-soft-blur {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
 }
-body.dark-theme .search-soft-blur:focus-within {
-  background-color: #374151 !important;
+
+body.dark-theme .search-soft-blur::placeholder {
+  color: #64748b !important;
 }
+
+body.dark-theme .search-soft-blur:focus-within,
+body.dark-theme .search-soft-blur:focus {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
 body.dark-theme .btn-soft-blur {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
 }
+
 body.dark-theme .btn-soft-blur:hover {
-  background-color: #374151 !important;
+  background-color: #334155 !important;
+  color: #ffffff !important;
 }
-body.dark-theme .btn-add-to-cart {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
-  border-color: #374151 !important;
+
+body.dark-theme .btn-soft-blur * {
+  color: #f1f5f9 !important;
 }
-body.dark-theme .btn-add-to-cart:hover {
-  background-color: #374151 !important;
-}
-body.dark-theme .btn-add-to-cart * {
-  color: #e2e8f0 !important;
-}
-body.dark-theme .text-teal-900 {
-  color: #5eead4 !important;
-}
-body.dark-theme .text-teal-700 {
-  color: #2dd4bf !important;
-}
-body.dark-theme .bg-teal-50\/60,
-body.dark-theme .bg-teal-100\/60 {
-  background-color: rgba(17, 94, 89, 0.25) !important;
-  border-color: #134e4a !important;
-}
-body.dark-theme .bg-\[\#004956\] {
-  background-color: #007a8f !important;
-}
-body.dark-theme .text-\[\#004956\] {
-  color: #00b5d8 !important;
-}
-body.dark-theme .store-feature-icon-wrapper i,
-body.dark-theme .store-feature-icon-wrapper {
-  color: #e2e8f0 !important;
-}
-body.dark-theme input, body.dark-theme textarea, body.dark-theme select {
+
+/* 5. بطاقات المنتجات وقوائم العرض والـ Grids */
+body.dark-theme .card-soft-blur,
+body.dark-theme .s-product-card-entry {
   background-color: #111827 !important;
-  color: #e2e8f0 !important;
-  border-color: #374151 !important;
+  border-color: transparent !important;
 }
 
-body.dark-theme .product__description-content * {
-  background-color: transparent !important;
-  color: #e2e8f0 !important;
+body.dark-theme .s-product-card-entry h3,
+body.dark-theme .s-product-card-entry h4,
+body.dark-theme .s-product-card-entry .s-product-card-title {
+  color: #f1f5f9 !important;
 }
 
-/* ========================================================================= */
-/* تحسينات الوضع الليلي للقائمة المنسدلة للعملة واللغة وكافة النوافذ المنبثقة */
-/* ========================================================================= */
+body.dark-theme .s-product-card-entry .product-price-wrapper span:not(.line-through):not(.text-red-700):not(.text-red-500) {
+  color: #ffffff !important;
+}
+
+/* أزرار إضافة للسلة في البطاقات */
+body.dark-theme .btn-add-to-cart {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+body.dark-theme .btn-add-to-cart:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+body.dark-theme .btn-add-to-cart * {
+  color: #f1f5f9 !important;
+}
+
+/* 6. بطاقات المميزات وآراء العملاء ومؤشراتها */
+body.dark-theme .store-feature-icon-wrapper,
+body.dark-theme .store-feature-icon-wrapper i {
+  color: #f1f5f9 !important;
+}
+
+body.dark-theme .rounded-full.aspect-square.bg-white {
+  background-color: #111827 !important;
+}
+
+body.dark-theme .rounded-full.aspect-square.bg-white i {
+  color: #f1f5f9 !important;
+}
+
+/* 7. القوائم المنسدلة، النوافذ المنبثقة، والمودالات (Modals & Drawers) */
+body.dark-theme .modal-container,
+body.dark-theme .drawer-container,
 body.dark-theme .currency-dropdown-panel {
   background-color: #111827 !important;
   border-color: #1f2937 !important;
-  color: #e2e8f0 !important;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-theme .currency-dropdown-panel {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 
 body.dark-theme .currency-dropdown-panel .text-gray-900,
 body.dark-theme .currency-dropdown-panel .text-gray-800,
 body.dark-theme .currency-dropdown-panel .text-gray-700 {
   color: #f1f5f9 !important;
-}
-
-body.dark-theme .currency-dropdown-panel .text-gray-500,
-body.dark-theme .currency-dropdown-panel .text-gray-400 {
-  color: #94a3b8 !important;
-}
-
-body.dark-theme .currency-dropdown-panel .border-gray-100,
-body.dark-theme .currency-dropdown-panel .border-gray-200 {
-  border-color: #1f2937 !important;
 }
 
 body.dark-theme .currency-dropdown-panel .bg-gray-100\/80 {
@@ -909,47 +988,105 @@ body.dark-theme .currency-dropdown-panel .bg-gray-900 {
   background-color: #38bdf8 !important;
 }
 
-body.dark-theme .currency-dropdown-panel .border-gray-300 {
-  border-color: #4b5563 !important;
-}
-
 body.dark-theme .currency-dropdown-panel .bg-white {
   background-color: #0f172a !important;
 }
 
-/* تحسين القوائم المنسدلة العامة والنوافذ العائمة في الوضع الليلي */
+/* 8. سلة المشتريات الجانبية (Cart Drawer) */
+body.dark-theme div[class*="max-w-md bg-white shadow-xl"] {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-theme div[class*="max-w-md bg-white shadow-xl"] .bg-white,
+body.dark-theme div[class*="max-w-md bg-white shadow-xl"] .bg-gray-50\/50,
+body.dark-theme div[class*="max-w-md bg-white shadow-xl"] .bg-gray-50\/30 {
+  background-color: #111827 !important;
+}
+
+body.dark-theme div[class*="max-w-md bg-white shadow-xl"] .text-gray-800,
+body.dark-theme div[class*="max-w-md bg-white shadow-xl"] .text-gray-900 {
+  color: #f8fafc !important;
+}
+
+/* 9. صفحة تفاصيل المنتج (Product Detail Page) */
+body.dark-theme .bg-white.rounded-3xl,
+body.dark-theme .bg-white.rounded-2xl {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+body.dark-theme .product__description-content * {
+  background-color: transparent !important;
+  color: #e2e8f0 !important;
+}
+
+/* باقات الكميات والتسعير وحقول الإدخال في صفحة المنتج */
+body.dark-theme .ring-black {
+  --tw-ring-color: #38bdf8 !important;
+}
+
+body.dark-theme input,
+body.dark-theme textarea,
+body.dark-theme select {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+body.dark-theme input:focus,
+body.dark-theme textarea:focus,
+body.dark-theme select:focus {
+  background-color: #334155 !important;
+  border-color: #64748b !important;
+  color: #ffffff !important;
+}
+
+/* 10. التفاعل والتمرير (Hover States & Active) */
+body.dark-theme .hover\:bg-gray-50:hover,
+body.dark-theme .hover\:bg-gray-100:hover,
+body.dark-theme .hover\:bg-gray-50\/80:hover {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+body.dark-theme .hover\:text-black:hover {
+  color: #ffffff !important;
+}
+
+/* 11. الأيقونات والظلال */
 body.dark-theme .shadow-2xl,
 body.dark-theme .shadow-xl,
-body.dark-theme .shadow-lg {
-  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.7) !important;
+body.dark-theme .shadow-lg,
+body.dark-theme .shadow-md,
+body.dark-theme .shadow-sm,
+body.dark-theme .shadow-xs,
+body.dark-theme .shadow-2xs {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 
-body.dark-theme .bg-white\/98,
-body.dark-theme .bg-white\/95,
-body.dark-theme .bg-white\/90 {
-  background-color: #111827 !important;
-  color: #e2e8f0 !important;
+/* 12. نصوص وعناصر علامات التمييز والألوان المخصصة للمتجر */
+body.dark-theme .text-teal-900 {
+  color: #5eead4 !important;
 }
 
-body.dark-theme .bg-gray-100 {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
+body.dark-theme .text-teal-700 {
+  color: #2dd4bf !important;
 }
 
-body.dark-theme .bg-gray-200 {
-  background-color: #374151 !important;
+body.dark-theme .bg-teal-50\/60,
+body.dark-theme .bg-teal-100\/60 {
+  background-color: rgba(17, 94, 89, 0.25) !important;
+  border-color: #134e4a !important;
 }
 
-body.dark-theme .hover\:bg-gray-100:hover,
-body.dark-theme .hover\:bg-gray-50:hover {
-  background-color: #1f2937 !important;
+body.dark-theme .bg-\[\#004956\] {
+  background-color: #007a8f !important;
 }
 
-body.dark-theme .modal-container,
-body.dark-theme .drawer-container {
-  background-color: #111827 !important;
-  color: #e2e8f0 !important;
-  border-color: #1f2937 !important;
+body.dark-theme .text-\[\#004956\] {
+  color: #00b5d8 !important;
 }
 
 /* ========================================================================= */

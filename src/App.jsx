@@ -3101,7 +3101,7 @@ export default function App() {
       className="w-full min-h-screen relative overflow-x-hidden"
       dir="rtl"
       style={{
-        backgroundColor: storeConfig.bgColor || '#f3f4f6',
+        backgroundColor: isDarkMode ? '#0b1220' : (storeConfig.bgColor || '#f3f4f6'),
         fontFamily: `'${storeConfig.fontFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
         fontWeight: 400
       }}
@@ -6694,7 +6694,7 @@ export default function App() {
             key={`category-page-${selectedCat}`} 
             className="min-h-[70vh] pb-16 animate-page-view" 
             dir="rtl"
-            style={{ backgroundColor: storeConfig.bgColor || '#f3f4f6' }}
+            style={{ backgroundColor: isDarkMode ? '#0b1220' : (storeConfig.bgColor || '#f3f4f6') }}
           >
             {/* محتوى صفحة القسم: المنتجات فقط */}
             <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
@@ -6902,7 +6902,7 @@ export default function App() {
             key={`section-page-${activeSectionForPage.id}`} 
             className="min-h-[70vh] pb-16 animate-page-view" 
             dir="rtl"
-            style={{ backgroundColor: storeConfig.bgColor || '#f3f4f6' }}
+            style={{ backgroundColor: isDarkMode ? '#0b1220' : (storeConfig.bgColor || '#f3f4f6') }}
           >
             <main className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 lg:px-8 py-6 font-normal">
               {/* شريط التنقل والترويسة */}
