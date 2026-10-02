@@ -5,10 +5,8 @@ import AdminDashboard from './AdminDashboard';
 import ProductDetailPage from './ProductDetailPage';
 import { App as CapApp } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import bundledInitialProducts from './bundled_products_cache.json';
-import bundledInitialCategories from './bundled_categories_cache.json';
-import productImagesMap from './product_images_map.json';
 import { DEFAULT_PRODUCT_IMAGE } from './defaultProductImage';
+import { getProductImage, loadProductImagesMap, fetchInitialProductsCache, fetchInitialCategoriesCache } from './imageMapManager';
 import { 
   subscribeToStoreData, 
   syncCustomerToCloud, 
@@ -56,13 +54,7 @@ function compressImage(file, maxWidth = 600, quality = 0.75) {
   });
 }
 
-export function getProductImage(prod) {
-  if (!prod) return DEFAULT_PRODUCT_IMAGE;
-  if (typeof prod === 'string') {
-    return productImagesMap[prod] || DEFAULT_PRODUCT_IMAGE;
-  }
-  return prod.imageUrl || prod.image || productImagesMap[prod.id] || productImagesMap[prod.title] || DEFAULT_PRODUCT_IMAGE;
-}
+// getProductImage imported from ./imageMapManager
 
 function isProductRequiringInput(prod) {
   if (!prod || typeof prod !== 'object') return false;
@@ -1047,7 +1039,7 @@ export default function App() {
         }
       }
     } catch {}
-    return Array.isArray(bundledInitialCategories) && bundledInitialCategories.length > 0 ? bundledInitialCategories : [];
+    return [];
   });
 
   const [selectedCat, setSelectedCat] = useState('الكل');
@@ -1060,21 +1052,10 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // دمج المنتجات المحلية مع الكاش المدمج: أضف أي منتج في الكاش غير موجود محلياً
-          if (Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0) {
-            const localIds = new Set(parsed.map(p => String(p.id)));
-            const missingFromLocal = bundledInitialProducts.filter(p => !localIds.has(String(p.id)));
-            initialList = missingFromLocal.length > 0 ? [...parsed, ...missingFromLocal] : parsed;
-          } else {
-            initialList = parsed;
-          }
+          initialList = parsed;
         }
       }
     } catch {}
-    if (!initialList || initialList.length === 0) {
-      initialList = Array.isArray(bundledInitialProducts) && bundledInitialProducts.length > 0 ? bundledInitialProducts : [];
-    }
-    // ترميم الصور فوراً لأي منتج فُقدت صورته محلياً بسبب امتلاء الذاكرة
     return initialList.map(p => {
       const resolvedImg = getProductImage(p);
       return {
@@ -1086,6 +1067,47 @@ export default function App() {
   });
   // ref لتتبع أحدث قيمة للمنتجات بدون إعادة تشغيل الـ effects
   const productsRef = useRef(products);
+
+  // جلب الكاش الساكن وخريطة الصور في الخلفية عند الإقلاع دون تعطيل الباقة الأساسية
+  useEffect(() => {
+    loadProductImagesMap().then(() => {
+      setProducts(prev => prev.map(p => {
+        const resolved = getProductImage(p);
+        return {
+          ...p,
+          imageUrl: resolved || p.imageUrl || p.image || '',
+          image: resolved || p.image || p.imageUrl || ''
+        };
+      }));
+    });
+
+    // إذا لم تكن هناك منتجات محلياً، نجلب الكاش الساكن
+    if (products.length === 0) {
+      fetchInitialProductsCache().then(cachedProds => {
+        if (cachedProds && cachedProds.length > 0) {
+          setProducts(prev => {
+            if (prev.length > 0) return prev;
+            return cachedProds.map(p => {
+              const resolved = getProductImage(p);
+              return {
+                ...p,
+                imageUrl: resolved || p.imageUrl || p.image || '',
+                image: resolved || p.image || p.imageUrl || ''
+              };
+            });
+          });
+        }
+      });
+    }
+
+    if (categories.length === 0) {
+      fetchInitialCategoriesCache().then(cachedCats => {
+        if (cachedCats && cachedCats.length > 0) {
+          setCategories(prev => (prev.length > 0 ? prev : cachedCats));
+        }
+      });
+    }
+  }, []);
 
   // 4. الطلبات
   const [orders, setOrders] = useState(() => {
