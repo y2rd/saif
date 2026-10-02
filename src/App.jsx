@@ -3159,7 +3159,7 @@ export default function App() {
         <div className="w-full lg:w-[80%] mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
           {/* 1. في أقصى اليمين: الأزرار */}
-          <div className="relative shrink-0 flex items-center gap-2">
+          <div className="shrink-0 flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -3169,30 +3169,31 @@ export default function App() {
               <i className={`fa-solid ${isDarkMode ? 'fa-sun text-yellow-500' : 'fa-moon text-gray-700'} text-xs sm:text-sm`}></i>
             </button>
 
-            <button
-              type="button"
-              onClick={toggleCurrencyMenu}
-              className="px-2.5 sm:px-3 py-1 h-7 sm:h-8 rounded-full btn-soft-blur text-black text-[11px] sm:text-xs font-light flex items-center gap-1.5 cursor-pointer"
-              title="تغيير العملة واللغة"
-            >
-              <span className="text-black">{activeLanguage === 'en' ? 'English' : 'العربية'}</span>
-              <span className="text-gray-300 font-extralight">|</span>
-              <span className="text-black">{activeCurrency === 'IQD' ? 'IQD' : 'USD'}</span>
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={toggleCurrencyMenu}
+                className="px-2.5 sm:px-3 py-1 h-7 sm:h-8 rounded-full btn-soft-blur text-black text-[11px] sm:text-xs font-light flex items-center gap-1.5 cursor-pointer"
+                title="تغيير العملة واللغة"
+              >
+                <span className="text-black">{activeLanguage === 'en' ? 'English' : 'العربية'}</span>
+                <span className="text-gray-300 font-extralight">|</span>
+                <span className="text-black">{activeCurrency === 'IQD' ? 'IQD' : 'USD'}</span>
+              </button>
 
-            {/* القائمة المنسدلة لاختيار العملة واللغة بموشن احترافي */}
-            {isCurrencyMenuOpen && (
-              <>
-                <div 
-                  className={`fixed inset-0 z-40 bg-black/5 transition-opacity duration-200 ${currencyMenuAnimating ? 'opacity-100' : 'opacity-0'}`}
-                  onClick={closeCurrencyMenu}
-                />
-                <div 
-                  className={`absolute right-0 mt-2 w-64 bg-white/98 backdrop-blur-xl rounded-2xl border border-gray-200/90 shadow-2xl p-3.5 z-50 text-xs origin-top-right transition-all duration-200 ease-out transform ${
-                    currencyMenuAnimating 
-                      ? 'opacity-100 scale-100 translate-y-0' 
-                      : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
-                  }`}
+              {/* القائمة المنسدلة لاختيار العملة واللغة بموشن احترافي */}
+              {isCurrencyMenuOpen && (
+                <>
+                  <div 
+                    className={`fixed inset-0 z-40 bg-black/5 transition-opacity duration-200 ${currencyMenuAnimating ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={closeCurrencyMenu}
+                  />
+                  <div 
+                    className={`absolute top-full mt-2 start-0 sm:start-0 w-64 max-h-[80vh] overflow-y-auto bg-white/98 backdrop-blur-xl rounded-2xl border border-gray-200/90 shadow-2xl p-3.5 z-50 text-xs origin-top transition-all duration-200 ease-out transform ${
+                      currencyMenuAnimating 
+                        ? 'opacity-100 scale-100 translate-y-0' 
+                        : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                    }`}
                   style={{
                     boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05)'
                   }}
@@ -3295,6 +3296,7 @@ export default function App() {
                 </div>
               </>
             )}
+            </div>
           </div>
 
           {/* 2. ومعه في نفس الصف: حقل البحث يغطي المسافة المتبقية بالكامل */}
