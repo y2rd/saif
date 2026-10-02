@@ -49,4 +49,8 @@ createRoot(document.getElementById('root')).render(
       <App />
     </ErrorBoundary>
   </StrictMode>,
-)
+);
+if (typeof window !== 'undefined') {
+  window.__appLoaded = true;
+}
+

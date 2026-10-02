@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
-    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
-    cssTarget: 'chrome87',
+    target: ['es2018', 'edge79', 'firefox72', 'chrome79', 'safari13'],
+    cssTarget: 'chrome79',
   }
 })

@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { safeSetLocalStorage } from './utils';
+import { safeSetLocalStorage, safeGetLocalStorage, safeRemoveLocalStorage } from './utils';
 import { createPortal } from 'react-dom';
 import AdminDashboard from './AdminDashboard';
 import ProductDetailPage from './ProductDetailPage';
@@ -145,7 +145,7 @@ export default function App() {
 
   // الوضع الليلي
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('haider_store_theme') === 'dark';
+    return safeGetLocalStorage('haider_store_theme') === 'dark';
   });
 
   useEffect(() => {
@@ -1127,19 +1127,19 @@ export default function App() {
   });
 
   // فتح المتجر وعرض المنتجات مباشرة وفوراً مثل المتاجر الكبرى بدون أي شاشة انتظار معطلة
-    // تنظيف التخزين المحلي فوراً عند بدء التطبيق لتفادي أخطاء QuotaExceededError
+  // تنظيف التخزين المحلي فوراً عند بدء التطبيق لتفادي أخطاء QuotaExceededError
   useEffect(() => {
     try {
       // فحص وإزالة المفاتيح الضخمة أو المؤقتة
-      const oldCats = localStorage.getItem('haider_store_categories');
+      const oldCats = safeGetLocalStorage('haider_store_categories');
       if (oldCats && oldCats.length > 500000) {
-        localStorage.removeItem('haider_store_categories');
+        safeRemoveLocalStorage('haider_store_categories');
       }
       const keysToClean = ['custom_store_fonts', 'haider_store_backup', 'temp_image_cache'];
       keysToClean.forEach(k => {
         try {
-          const item = localStorage.getItem(k);
-          if (item && item.length > 300000) localStorage.removeItem(k);
+          const item = safeGetLocalStorage(k);
+          if (item && item.length > 300000) safeRemoveLocalStorage(k);
         } catch {}
       });
     } catch (e) {

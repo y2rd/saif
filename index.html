@@ -34,6 +34,35 @@
   </head>
   <body class="font-['Tajawal'] text-gray-900 bg-[#FCFCFC] antialiased">
     <div id="root"></div>
+    <script>
+      // حماية عالمية ضد الشاشة البيضاء في حال حدوث أي خطأ قبل تحميل React
+      window.__appLoaded = false;
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (root && (!root.children || root.children.length === 0) && !window.__appLoaded) {
+            root.innerHTML = '<div style="font-family:sans-serif;direction:rtl;text-align:center;padding:40px 20px;max-width:480px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">' +
+              '<div style="font-size:48px;margin-bottom:16px;">🌾</div>' +
+              '<h2 style="font-size:20px;font-weight:bold;color:#004956;margin-bottom:8px;">تعذر تحميل المتجر</h2>' +
+              '<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:20px;">يبدو أن المتصفح يمنع تحميل البيانات أو يحتوي على كاش قديم. يرجى مسح بيانات التصفح المؤقتة أو فتح المتصفح الأساسي للهاتف.</p>' +
+              '<button onclick="try{localStorage.clear();}catch(e){}location.reload();" style="background:#004956;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-weight:bold;font-size:14px;cursor:pointer;">تحديث الصفحة ومسح الكاش</button>' +
+              '</div>';
+          }
+        }, 3000);
+      });
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error("Global Error Caught:", msg, error);
+        var root = document.getElementById('root');
+        if (root && (!root.children || root.children.length === 0)) {
+          root.innerHTML = '<div style="font-family:sans-serif;direction:rtl;text-align:center;padding:40px 20px;max-width:480px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">' +
+            '<div style="font-size:48px;margin-bottom:16px;">⚠️</div>' +
+            '<h2 style="font-size:20px;font-weight:bold;color:#004956;margin-bottom:8px;">تنبيه: يتطلب تحديث الصفحة</h2>' +
+            '<p style="font-size:14px;color:#666;line-height:1.6;margin-bottom:20px;">حدث تعارض في ملفات المتصفح المؤقتة. اضغط على الزر أدناه لتحديث المتجر فوراً.</p>' +
+            '<button onclick="try{localStorage.clear();}catch(e){}location.reload();" style="background:#004956;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-weight:bold;font-size:14px;cursor:pointer;">تحديث ومسح الكاش</button>' +
+            '</div>';
+        }
+      };
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
