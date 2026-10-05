@@ -360,7 +360,7 @@ export default function AdminDashboard({
     } catch {}
     return [];
   });
-  const topupRequests = (Array.isArray(propTopupRequests) && propTopupRequests.length > 0) ? propTopupRequests : internalTopups;
+  const topupRequests = Array.isArray(propTopupRequests) ? propTopupRequests : internalTopups;
   const setTopupRequests = propSetTopupRequests || setInternalTopups;
   const [isRefreshingTopups, setIsRefreshingTopups] = useState(false);
 
@@ -368,12 +368,13 @@ export default function AdminDashboard({
   useEffect(() => {
     const unsubscribe = subscribeToTopups((cloudList) => {
       if (Array.isArray(cloudList)) {
-        setInternalTopups(cloudList);
+        const filtered = cloudList.filter(t => !deletedTopupIdsRef?.current?.has(String(t.id)));
+        setInternalTopups(filtered);
         if (propSetTopupRequests) {
-          propSetTopupRequests(cloudList);
+          propSetTopupRequests(filtered);
         }
         try {
-          safeSetLocalStorage('haider_store_topups', JSON.stringify(cloudList));
+          safeSetLocalStorage('haider_store_topups', JSON.stringify(filtered));
         } catch {}
       }
     });
@@ -381,19 +382,20 @@ export default function AdminDashboard({
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe();
     };
-  }, [propSetTopupRequests]);
+  }, [propSetTopupRequests, deletedTopupIdsRef]);
 
   const handleManualRefreshTopups = async () => {
     setIsRefreshingTopups(true);
     try {
       const cloudList = await fetchTopupsFromCloud();
       if (Array.isArray(cloudList)) {
-        setInternalTopups(cloudList);
-        if (setTopupRequests) setTopupRequests(cloudList);
+        const filtered = cloudList.filter(t => !deletedTopupIdsRef?.current?.has(String(t.id)));
+        setInternalTopups(filtered);
+        if (setTopupRequests) setTopupRequests(filtered);
         try {
-          safeSetLocalStorage('haider_store_topups', JSON.stringify(cloudList));
+          safeSetLocalStorage('haider_store_topups', JSON.stringify(filtered));
         } catch {}
-        showToast(`✅ تم التحقق والمزامنة الفورية (${cloudList.length} طلب)`);
+        showToast(`✅ تم التحقق والمزامنة الفورية (${filtered.length} طلب)`);
       } else {
         showToast('تم فحص السحابة، لا توجد طلبات جديدة');
       }
@@ -4959,9 +4961,10 @@ export default function AdminDashboard({
                                 type="button"
                                 onClick={() => handleDeleteTopup(req)}
                                 title="حذف طلب الشحن نهائياً"
-                                className="p-1 px-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer text-xs"
+                                className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs"
                               >
-                                <i className="fa-solid fa-trash-can"></i>
+                                <i className="fa-solid fa-trash-can text-[10px]"></i>
+                                <span>حذف</span>
                               </button>
                             </div>
                           </td>
