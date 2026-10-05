@@ -4961,10 +4961,9 @@ export default function AdminDashboard({
                                 type="button"
                                 onClick={() => handleDeleteTopup(req)}
                                 title="حذف طلب الشحن نهائياً"
-                                className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                                className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition cursor-pointer text-sm"
                               >
-                                <i className="fa-solid fa-trash-can text-[10px]"></i>
-                                <span>حذف</span>
+                                <i className="fa-solid fa-trash-can"></i>
                               </button>
                             </div>
                           </td>
