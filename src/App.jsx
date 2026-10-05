@@ -1972,15 +1972,38 @@ export default function App() {
     setCartItems(cartItems.map(item => {
       if (item.cartItemId === cartItemId) {
         const itemMin = Math.max(1, parseInt(item.minQuantity) || 1);
+        const isExchangeItem = item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim());
         const newQty = item.quantity + delta;
+        // لمنتجات المبادلة، لا نسمح بالنزول عن الحد الأدنى للكمية عبر أزرار النقصان
+        if (isExchangeItem && newQty < itemMin) {
+          return item;
+        }
         if (delta < 0 && newQty < itemMin) {
-          // إذا قلل لأقل من الحد الأدنى يحذف العنصر
+          // إذا قلل لأقل من الحد الأدنى للمنتجات العادية، يُحذف
           return null;
         }
         return newQty > 0 ? { ...item, quantity: newQty } : null;
       }
       return item;
     }).filter(Boolean));
+  };
+
+  const setExactQuantity = (cartItemId, targetQty) => {
+    setCartItems(cartItems.map(item => {
+      if (item.cartItemId === cartItemId) {
+        const itemMin = Math.max(1, parseInt(item.minQuantity) || 1);
+        const isExchangeItem = item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim());
+        const parsed = parseInt(targetQty, 10);
+        if (isNaN(parsed) || parsed < 1) {
+          return isExchangeItem ? { ...item, quantity: itemMin } : { ...item, quantity: 1 };
+        }
+        if (isExchangeItem && parsed < itemMin) {
+          return { ...item, quantity: itemMin };
+        }
+        return { ...item, quantity: parsed };
+      }
+      return item;
+    }));
   };
 
   const removeFromCart = (cartItemId) => {
@@ -5358,10 +5381,87 @@ export default function App() {
                               <div className="text-xs text-black font-bold font-price mt-0.5">{formatPrice(item.priceUsd, activeCurrency)}</div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 border rounded-lg p-0.5">
-                            <button onClick={() => updateQuantity(item.cartItemId, -1)} className="w-5 h-5 flex items-center justify-center text-xs">-</button>
-                            <span className="text-xs">{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.cartItemId, 1)} className="w-5 h-5 flex items-center justify-center text-xs">+</button>
+
+                          {/* أزرار التحكم بالكمية مع إمكانية التحرير المباشر + زر حذف المنتج */}
+                          <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            {/* زر حذف المنتج من السلة */}
+                            <button
+                              type="button"
+                              onClick={() => removeFromCart(item.cartItemId)}
+                              className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition cursor-pointer flex items-center justify-center text-xs"
+                              title="حذف المنتج من السلة"
+                              aria-label="حذف المنتج من السلة"
+                            >
+                              <i className="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+
+                            {/* عداد الكمية مع حقل إدخال لتحرير الكمية يدوياً */}
+                            <div className="flex items-center border border-gray-200 rounded-lg p-0.5 bg-white shadow-2xs">
+                              {/* زر النقصان */}
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(item.cartItemId, -1)}
+                                disabled={
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) &&
+                                  item.quantity <= Math.max(1, parseInt(item.minQuantity) || 1)
+                                }
+                                className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded transition cursor-pointer ${
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) &&
+                                  item.quantity <= Math.max(1, parseInt(item.minQuantity) || 1)
+                                    ? 'text-gray-300 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                                title={
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) &&
+                                  item.quantity <= Math.max(1, parseInt(item.minQuantity) || 1)
+                                    ? `الحد الأدنى للمبادلة هو ${item.minQuantity || 1}`
+                                    : 'إنقاص الكمية'
+                                }
+                              >
+                                -
+                              </button>
+
+                              {/* حقل إدخال الكمية المباشر */}
+                              <input
+                                type="number"
+                                min={
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim()))
+                                    ? Math.max(1, parseInt(item.minQuantity) || 1)
+                                    : 1
+                                }
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === '') {
+                                    setExactQuantity(item.cartItemId, '');
+                                  } else {
+                                    setExactQuantity(item.cartItemId, val);
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const itemMin = Math.max(1, parseInt(item.minQuantity) || 1);
+                                  const isExch = item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim());
+                                  const currentParsed = parseInt(e.target.value, 10);
+                                  if (isNaN(currentParsed) || currentParsed < 1) {
+                                    setExactQuantity(item.cartItemId, isExch ? itemMin : 1);
+                                  } else if (isExch && currentParsed < itemMin) {
+                                    setExactQuantity(item.cartItemId, itemMin);
+                                  }
+                                }}
+                                className="w-9 h-6 text-center text-xs font-bold font-mono text-gray-900 bg-transparent border-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                title="انقر لتعديل الكمية"
+                              />
+
+                              {/* زر الزيادة */}
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(item.cartItemId, 1)}
+                                className="w-6 h-6 flex items-center justify-center text-xs font-bold text-gray-700 hover:bg-gray-100 rounded transition cursor-pointer"
+                                title="زيادة الكمية"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
