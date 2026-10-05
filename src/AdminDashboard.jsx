@@ -288,6 +288,7 @@ export default function AdminDashboard({
     exchangeCurrencyName: '',        // اسم المنتج الذي نسلمه للعميل
     exchangeAmount: '',              // كمية المنتج الذي نسلمه (تتضاعف مع كمية العميل)
     minQuantity: 1,                  // الحد الأدنى للكمية المطلوبة من العميل
+    maxQuantity: '',                 // الحد الأعلى للكمية في المبادلة (اختياري)
     exchangeCustomFields: ['آيدي المزرعة'], // الخانات المخصصة التي يحددها المدير ويكتب العميل فيها
     customFields: [], // الحقول المخصصة العامة: [{id, label, required}] يضيفها المدير بنفسه لأي نوع منتج
     // خيارات وأسعار المنتج الإضافية
@@ -999,6 +1000,7 @@ export default function AdminDashboard({
       exchangeCurrencyName: prod.exchangeCurrencyName || '',
       exchangeAmount: prod.exchangeAmount ?? '',
       minQuantity: prod.minQuantity !== undefined ? prod.minQuantity : 1,
+      maxQuantity: prod.maxQuantity !== undefined && prod.maxQuantity !== null ? prod.maxQuantity : '',
       exchangeCustomFields: Array.isArray(prod.exchangeCustomFields) && prod.exchangeCustomFields.length > 0 
         ? prod.exchangeCustomFields 
         : ['آيدي المزرعة'],
@@ -1062,6 +1064,7 @@ export default function AdminDashboard({
       const isEx = productForm.productType === 'exchange';
       const parsedPrice = isEx ? 0 : (parseFloat(productForm.price) || 0);
       const parsedMinQty = isEx ? Math.max(1, parseInt(productForm.minQuantity) || 1) : 1;
+      const parsedMaxQty = isEx && productForm.maxQuantity ? Math.max(parsedMinQty, parseInt(productForm.maxQuantity) || parsedMinQty) : null;
       const parsedExAmount = isEx ? (parseFloat(productForm.exchangeAmount) || 1) : '';
 
       if (editingProduct) {
@@ -1076,6 +1079,7 @@ export default function AdminDashboard({
           hasQuantityTiers: isEx ? false : productForm.hasQuantityTiers,
           quantityTiers: isEx ? [] : formattedTiers,
           minQuantity: parsedMinQty,
+          maxQuantity: parsedMaxQty,
           exchangeAmount: parsedExAmount
         };
         const newProds = products.map(p => p.id === editingProduct.id ? updatedProduct : p);
@@ -1105,6 +1109,7 @@ export default function AdminDashboard({
           hasQuantityTiers: isEx ? false : productForm.hasQuantityTiers,
           quantityTiers: isEx ? [] : formattedTiers,
           minQuantity: parsedMinQty,
+          maxQuantity: parsedMaxQty,
           exchangeAmount: parsedExAmount,
           imageUrl: productForm.imageUrl || DEFAULT_PRODUCT_IMAGE,
           reviews: []
@@ -1180,10 +1185,11 @@ export default function AdminDashboard({
         'وصف المنتج': (p.descriptionHtml || p.data?.descriptionHtml || '').replace(/<[^>]*>/g, '').trim(),
         'أكواد البطاقات (كل كود في سطر)': keys,
         'شرائح الكميات (min-max:price)': tiers,
-        'الحد الأدنى للطلب': p.data?.minQuantity || '',
-        'اسم المنتج اللي نسلمك': p.data?.exchangeCurrencyName || '',
-        'اسم المنتج المطلوب من العميل': p.data?.exchangeRequiredProductName || '',
-        'الكمية التي نسلمها لكل وحدة': p.data?.exchangeAmount || '',
+        'الحد الأدنى للطلب': p.minQuantity || p.data?.minQuantity || '',
+        'الحد الأعلى للطلب': p.maxQuantity || p.data?.maxQuantity || '',
+        'اسم المنتج اللي نسلمك': p.exchangeCurrencyName || p.data?.exchangeCurrencyName || '',
+        'اسم المنتج المطلوب من العميل': p.exchangeRequiredProductName || p.data?.exchangeRequiredProductName || '',
+        'الكمية التي نسلمها لكل وحدة': p.exchangeAmount || p.data?.exchangeAmount || '',
       };
     });
 
@@ -1547,6 +1553,7 @@ export default function AdminDashboard({
               hasQuantityTiers: rawTiers.length > 0,
               quantityTiers: rawTiers,
               minQuantity: parseInt(get(row, 'الحد الأدنى للطلب') || 1) || 1,
+              maxQuantity: parseInt(get(row, 'الحد الأعلى للطلب') || '') || '',
               exchangeCurrencyName: String(get(row, 'اسم المنتج اللي نسلمك') || '').trim(),
               exchangeRequiredProductName: String(get(row, 'اسم المنتج المطلوب من العميل') || '').trim(),
               exchangeAmount: parseFloat(get(row, 'الكمية التي نسلمها لكل وحدة') || '') || '',
@@ -10984,6 +10991,35 @@ export default function AdminDashboard({
                           className="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
                         />
                         <span className="text-[10px] text-gray-500 mt-0.5 block">أقل كمية يقبل الطلب بها</span>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-800 mb-1">الحد الأعلى للكمية (اختياري)</label>
+                        <input
+                          type="number"
+                          min={productForm.minQuantity || 1}
+                          value={productForm.maxQuantity ?? ''}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === '') {
+                              setProductForm({ ...productForm, maxQuantity: '' });
+                            } else {
+                              const parsed = parseInt(raw, 10);
+                              setProductForm({ ...productForm, maxQuantity: isNaN(parsed) ? '' : parsed });
+                            }
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value !== '') {
+                              const val = parseInt(e.target.value, 10);
+                              const minVal = parseInt(productForm.minQuantity, 10) || 1;
+                              if (val && val < minVal) {
+                                setProductForm({ ...productForm, maxQuantity: minVal });
+                              }
+                            }
+                          }}
+                          placeholder="مثال: 50 (اتركه فارغاً إذا مفتوح)"
+                          className="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs outline-none focus:border-teal-600 font-mono font-bold"
+                        />
+                        <span className="text-[10px] text-gray-500 mt-0.5 block">أقصى كمية يُسمح بها لكل طلب</span>
                       </div>
                     </div>
                   </div>

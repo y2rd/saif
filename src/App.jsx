@@ -1925,7 +1925,11 @@ export default function App() {
     const priceUsd = isExchangeProd ? 0 : (Number.isFinite(parseFloat(rawPrice)) ? Math.max(0, parseFloat(rawPrice)) : 0);
 
     // الكمية المضافة تكون دائماً ما حدده العميل أو 1 كافتراضي في كل الحالات
-    const qtyToAdd = Math.max(1, parseInt(customQuantity) || 1);
+    const itemMinQty = Math.max(1, parseInt(product.minQuantity) || 1);
+    const itemMaxQty = isExchangeProd && product.maxQuantity ? Math.max(itemMinQty, parseInt(product.maxQuantity) || itemMinQty) : null;
+    let qtyToAdd = Math.max(1, parseInt(customQuantity) || 1);
+    if (itemMaxQty && qtyToAdd > itemMaxQty) qtyToAdd = itemMaxQty;
+
     const tierId = tier ? `tier-${tier.minQuantity || 1}` : 'default';
     const noteKey = noteValue ? `-${noteValue.slice(0, 10)}` : '';
     const cartItemId = `${product.id}-${tierId}${noteKey}`;
@@ -1934,7 +1938,9 @@ export default function App() {
 
     if (existingIndex > -1) {
       const updated = [...cartItems];
-      updated[existingIndex].quantity += qtyToAdd;
+      let newTotalQty = updated[existingIndex].quantity + qtyToAdd;
+      if (itemMaxQty && newTotalQty > itemMaxQty) newTotalQty = itemMaxQty;
+      updated[existingIndex].quantity = newTotalQty;
       setCartItems(updated);
     } else {
       setCartItems([
@@ -1952,7 +1958,8 @@ export default function App() {
           exchangeCurrencyName: product.exchangeCurrencyName || null,
           exchangeRequiredProductName: product.exchangeRequiredProductName || null,
           exchangeAmount: product.exchangeAmount || null,
-          minQuantity: Math.max(1, parseInt(product.minQuantity) || 1),
+          minQuantity: itemMinQty,
+          maxQuantity: itemMaxQty || null,
           userNote: noteValue || null
         }
       ]);
@@ -1982,10 +1989,15 @@ export default function App() {
     setCartItems(cartItems.map(item => {
       if (item.cartItemId === cartItemId) {
         const itemMin = Math.max(1, parseInt(item.minQuantity) || 1);
+        const itemMax = item.maxQuantity ? Math.max(itemMin, parseInt(item.maxQuantity) || itemMin) : null;
         const isExchangeItem = item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim());
         const newQty = item.quantity + delta;
         // لمنتجات المبادلة، لا نسمح بالنزول عن الحد الأدنى للكمية عبر أزرار النقصان
         if (isExchangeItem && newQty < itemMin) {
+          return item;
+        }
+        // لا نسمح بتجاوز الحد الأقصى عبر أزرار الزيادة
+        if (isExchangeItem && itemMax && delta > 0 && newQty > itemMax) {
           return item;
         }
         if (delta < 0 && newQty < itemMin) {
@@ -2002,13 +2014,15 @@ export default function App() {
     setCartItems(cartItems.map(item => {
       if (item.cartItemId === cartItemId) {
         const itemMin = Math.max(1, parseInt(item.minQuantity) || 1);
+        const itemMax = item.maxQuantity ? Math.max(itemMin, parseInt(item.maxQuantity) || itemMin) : null;
         const isExchangeItem = item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim());
         const parsed = parseInt(targetQty, 10);
         if (isNaN(parsed) || parsed < 1) {
           return isExchangeItem ? { ...item, quantity: itemMin } : { ...item, quantity: 1 };
         }
-        if (isExchangeItem && parsed < itemMin) {
-          return { ...item, quantity: itemMin };
+        if (isExchangeItem) {
+          if (parsed < itemMin) return { ...item, quantity: itemMin };
+          if (itemMax && parsed > itemMax) return { ...item, quantity: itemMax };
         }
         return { ...item, quantity: parsed };
       }
@@ -5439,6 +5453,11 @@ export default function App() {
                                     ? Math.max(1, parseInt(item.minQuantity) || 1)
                                     : 1
                                 }
+                                max={
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) && item.maxQuantity
+                                    ? Math.max(Math.max(1, parseInt(item.minQuantity) || 1), parseInt(item.maxQuantity) || 1)
+                                    : undefined
+                                }
                                 value={item.quantity}
                                 onChange={(e) => {
                                   const val = e.target.value;
@@ -5450,12 +5469,15 @@ export default function App() {
                                 }}
                                 onBlur={(e) => {
                                   const itemMin = Math.max(1, parseInt(item.minQuantity) || 1);
+                                  const itemMax = item.maxQuantity ? Math.max(itemMin, parseInt(item.maxQuantity) || itemMin) : null;
                                   const isExch = item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim());
                                   const currentParsed = parseInt(e.target.value, 10);
                                   if (isNaN(currentParsed) || currentParsed < 1) {
                                     setExactQuantity(item.cartItemId, isExch ? itemMin : 1);
                                   } else if (isExch && currentParsed < itemMin) {
                                     setExactQuantity(item.cartItemId, itemMin);
+                                  } else if (isExch && itemMax && currentParsed > itemMax) {
+                                    setExactQuantity(item.cartItemId, itemMax);
                                   }
                                 }}
                                 className="w-9 h-6 text-center text-xs font-bold font-mono text-gray-900 bg-transparent border-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -5466,8 +5488,22 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => updateQuantity(item.cartItemId, 1)}
-                                className="w-6 h-6 flex items-center justify-center text-xs font-bold text-gray-700 hover:bg-gray-100 rounded transition cursor-pointer"
-                                title="زيادة الكمية"
+                                disabled={
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) &&
+                                  Boolean(item.maxQuantity && item.quantity >= parseInt(item.maxQuantity))
+                                }
+                                className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded transition cursor-pointer ${
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) &&
+                                  Boolean(item.maxQuantity && item.quantity >= parseInt(item.maxQuantity))
+                                    ? 'text-gray-300 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                                title={
+                                  (item.productType === 'exchange' || Boolean(item.exchangeCurrencyName && String(item.exchangeCurrencyName).trim())) &&
+                                  Boolean(item.maxQuantity && item.quantity >= parseInt(item.maxQuantity))
+                                    ? `الحد الأقصى للمبادلة هو ${item.maxQuantity}`
+                                    : 'زيادة الكمية'
+                                }
                               >
                                 +
                               </button>

@@ -19,6 +19,9 @@ export default function ProductDetailPage({
     : null;
 
   const minQty = Math.max(1, parseInt(product.minQuantity) || 1);
+  const maxQty = (product.productType === 'exchange' || Boolean(product.exchangeCurrencyName && String(product.exchangeCurrencyName).trim())) && product.maxQuantity
+    ? Math.max(minQty, parseInt(product.maxQuantity) || minQty)
+    : null;
   const [selectedTier, setSelectedTier] = useState(defaultTier);
   const [quantity, setQuantity] = useState(minQty); // الكمية تبدأ بالحد الأدنى المحدد للمنتج
   const [isCopied, setIsCopied] = useState(false);
@@ -254,6 +257,7 @@ export default function ProductDetailPage({
                           <input
                             type="number"
                             min={minQty}
+                            max={maxQty || undefined}
                             value={quantity}
                             dir="ltr"
                             onChange={(e) => {
@@ -262,18 +266,26 @@ export default function ProductDetailPage({
                                 setQuantity('');
                               } else {
                                 const parsed = parseInt(val);
-                                setQuantity(isNaN(parsed) ? minQty : Math.max(1, parsed));
+                                let validVal = isNaN(parsed) ? minQty : Math.max(1, parsed);
+                                if (maxQty && validVal > maxQty) validVal = maxQty;
+                                setQuantity(validVal);
                               }
                             }}
                             onBlur={() => {
                               if (!quantity || quantity < minQty) setQuantity(minQty);
+                              else if (maxQty && quantity > maxQty) setQuantity(maxQty);
                             }}
                             className="w-20 h-8 text-center bg-white rounded-lg text-xs sm:text-sm font-bold text-black font-english-num outline-none shadow-2xs transition-all border-0 focus:ring-1 focus:ring-gray-300"
                             placeholder={String(minQty)}
                           />
-                          {minQty > 1 && (parseInt(quantity) || 0) <= minQty && (
-                            <span className="text-[9px] text-amber-600 mt-1.5 font-medium text-center">الحد الأدنى: <span dir="ltr" className="font-english-num font-bold">{(minQty).toLocaleString('en-US')}</span></span>
-                          )}
+                          <div className="flex flex-col items-center gap-0.5 mt-1.5">
+                            {minQty > 1 && (parseInt(quantity) || 0) <= minQty && (
+                              <span className="text-[9px] text-amber-600 font-medium text-center">الحد الأدنى: <span dir="ltr" className="font-english-num font-bold">{(minQty).toLocaleString('en-US')}</span></span>
+                            )}
+                            {maxQty && (
+                              <span className="text-[9px] text-teal-700 font-medium text-center">الحد الأقصى: <span dir="ltr" className="font-english-num font-bold">{(maxQty).toLocaleString('en-US')}</span></span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -455,6 +467,7 @@ export default function ProductDetailPage({
                   <input
                     type="number"
                     min={minQty}
+                    max={maxQty || undefined}
                     value={quantity}
                     dir="ltr"
                     onChange={(e) => {
@@ -463,20 +476,32 @@ export default function ProductDetailPage({
                         setQuantity('');
                       } else {
                         const parsed = parseInt(val);
-                        setQuantity(isNaN(parsed) ? minQty : Math.max(minQty, parsed));
+                        let validVal = isNaN(parsed) ? minQty : Math.max(minQty, parsed);
+                        if (maxQty && validVal > maxQty) validVal = maxQty;
+                        setQuantity(validVal);
                       }
                     }}
                     onBlur={() => {
                       if (!quantity || quantity < minQty) setQuantity(minQty);
+                      else if (maxQty && quantity > maxQty) setQuantity(maxQty);
                     }}
                     className="text-center font-bold text-xs sm:text-sm text-black font-english-num w-20 py-0.5 outline-none bg-transparent border-0"
                     placeholder={String(minQty)}
                   />
                   <button
                     type="button"
-                    onClick={() => setQuantity((parseInt(quantity) || minQty) + 1)}
-                    className="w-8 sm:w-9 h-full flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold cursor-pointer text-sm sm:text-base transition rounded-lg"
-                    title="زيادة الكمية"
+                    onClick={() => {
+                      const currentVal = parseInt(quantity) || minQty;
+                      if (maxQty && currentVal >= maxQty) return;
+                      setQuantity(currentVal + 1);
+                    }}
+                    disabled={Boolean(maxQty && (parseInt(quantity) || minQty) >= maxQty)}
+                    className={`w-8 sm:w-9 h-full flex items-center justify-center font-bold text-sm sm:text-base transition rounded-lg ${
+                      maxQty && (parseInt(quantity) || minQty) >= maxQty
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100 cursor-pointer'
+                    }`}
+                    title={maxQty && (parseInt(quantity) || minQty) >= maxQty ? `الحد الأقصى هو ${maxQty}` : 'زيادة الكمية'}
                   >
                     +
                   </button>
@@ -495,7 +520,8 @@ export default function ProductDetailPage({
                 ) : (
                   <button
                     onClick={() => {
-                       const finalQty = Math.max(minQty, parseInt(quantity) || minQty);
+                       let finalQty = Math.max(minQty, parseInt(quantity) || minQty);
+                       if (maxQty && finalQty > maxQty) finalQty = maxQty;
 
                        // التحقق من الحقول المخصصة الإجبارية
                        const requiredFields = Array.isArray(product.customFields)
