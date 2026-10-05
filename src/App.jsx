@@ -626,6 +626,14 @@ export default function App() {
       return [];
     }
   })())); // تتبع الطلبات المحذوفة محلياً ومزامنتها عبر الريفرش لمنع إعادة ظهورها من Supabase
+  const deletedTopupIdsRef = useRef(new Set((() => {
+    try {
+      const saved = localStorage.getItem('haider_deleted_topup_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  })())); // تتبع طلبات شحن المحفظة المحذوفة لمنع عودتها من السحابة
   const readNotifIdsRef = useRef(new Set((() => {
     try {
       const saved = localStorage.getItem('haider_read_notif_ids');
@@ -1485,21 +1493,23 @@ export default function App() {
       },
       onTopupsUpdate: (cloudTopups) => {
         if (Array.isArray(cloudTopups)) {
+          // استبعاد أي طلبات تم حذفها
+          const filteredCloudTopups = cloudTopups.filter(t => !deletedTopupIdsRef.current.has(String(t.id)));
           let localTopups = [];
           try {
             const saved = localStorage.getItem('haider_store_topups');
-            if (saved) localTopups = JSON.parse(saved) || [];
+            if (saved) localTopups = (JSON.parse(saved) || []).filter(t => !deletedTopupIdsRef.current.has(String(t.id)));
           } catch (e) {}
 
           // إذا السحابة فارغة ولكن المحمول عليه طلبات محلية سابقة، ارفعها للسحابة
-          if (cloudTopups.length === 0 && localTopups.length > 0) {
+          if (filteredCloudTopups.length === 0 && localTopups.length > 0) {
             syncTopupsToCloud(localTopups);
             setTopupRequests(localTopups);
           } else {
             // دمج أي طلب محلي حديث غير موجود في السحابة لضمان عدم ضياع أي طلب
-            const cloudIds = new Set(cloudTopups.map(t => String(t.id)));
+            const cloudIds = new Set(filteredCloudTopups.map(t => String(t.id)));
             const missingFromCloud = localTopups.filter(t => !cloudIds.has(String(t.id)));
-            const merged = [...cloudTopups, ...missingFromCloud];
+            const merged = [...filteredCloudTopups, ...missingFromCloud];
             setTopupRequests(merged);
             try {
               safeSetLocalStorage('haider_store_topups', JSON.stringify(merged));
@@ -5975,6 +5985,7 @@ export default function App() {
               setTopupRequests={setTopupRequests}
               sendNotification={sendNotification}
               deletedOrderIdsRef={deletedOrderIdsRef}
+              deletedTopupIdsRef={deletedTopupIdsRef}
             />
           </div>
         ) : (

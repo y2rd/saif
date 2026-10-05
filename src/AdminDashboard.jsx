@@ -17,6 +17,7 @@ import {
   syncCouponsToCloud,
   deleteCouponFromCloud,
   syncTopupsToCloud,
+  deleteTopupFromCloud,
   fetchTopupsFromCloud,
   subscribeToTopups,
   syncCustomerToCloud,
@@ -81,7 +82,8 @@ export default function AdminDashboard({
   topupRequests: propTopupRequests = [],
   setTopupRequests: propSetTopupRequests,
   sendNotification,
-  deletedOrderIdsRef
+  deletedOrderIdsRef,
+  deletedTopupIdsRef
 }) {
   const formatPrice = propFormatPrice || ((price) => `$${Number(price || 0).toFixed(2)}`);
   // التحقق من صلاحيات المشرفين وتحديد الأقسام المسموح بها بدقة
@@ -2815,6 +2817,41 @@ export default function AdminDashboard({
     showToast('تم رفض طلب الشحن وإشعار العميل بالسبب.');
   };
 
+  // حذف طلب شحن المحفظة نهائياً من السحابة والمحلي
+  const handleDeleteTopup = async (topup) => {
+    if (!window.confirm(`هل أنت متأكد من حذف طلب الشحن رقم #${topup.id} للعميل (${topup.customerName || topup.customerIdentifier || ''})؟`)) {
+      return;
+    }
+
+    const topupIdStr = String(topup.id);
+
+    // تسجيل المعرف كمحذوف لمنع استعادته عبر التزامن السحابي
+    if (deletedTopupIdsRef && deletedTopupIdsRef.current) {
+      deletedTopupIdsRef.current.add(topupIdStr);
+      try {
+        localStorage.setItem('haider_deleted_topup_ids', JSON.stringify(Array.from(deletedTopupIdsRef.current)));
+      } catch (e) {}
+    }
+
+    // تحديث الحالة المحلية
+    const updated = (topupRequests || []).filter(t => String(t.id) !== topupIdStr);
+    if (setTopupRequests) {
+      setTopupRequests(updated);
+    }
+    try {
+      safeSetLocalStorage('haider_store_topups', JSON.stringify(updated));
+    } catch (e) {}
+
+    // حذفه من السحابة
+    try {
+      await deleteTopupFromCloud(topupIdStr);
+    } catch (e) {
+      console.warn('خطأ أثناء حذف طلب الشحن من السحابة:', e);
+    }
+
+    showToast('🗑️ تم حذف طلب الشحن بنجاح.');
+  };
+
   // إرسال إشعار عام للعملاء
   const handleSendBroadcastNotification = (e) => {
     e.preventDefault();
@@ -4897,26 +4934,36 @@ export default function AdminDashboard({
                             </span>
                           </td>
                           <td className="p-2.5 text-center">
-                            {req.status === 'معلق' ? (
-                              <div className="flex items-center justify-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleApproveTopup(req)}
-                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow-xs cursor-pointer transition"
-                                >
-                                  ✓ موافقة وإيداع
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRejectTopup(req)}
-                                  className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-[11px] font-bold cursor-pointer transition"
-                                >
-                                  ✕ رفض
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-[10px] text-gray-400 font-medium">تمت المعالجة</span>
-                            )}
+                            <div className="flex items-center justify-center gap-1.5">
+                              {req.status === 'معلق' ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveTopup(req)}
+                                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow-xs cursor-pointer transition"
+                                  >
+                                    ✓ موافقة وإيداع
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectTopup(req)}
+                                    className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-[11px] font-bold cursor-pointer transition"
+                                  >
+                                    ✕ رفض
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[10px] text-gray-400 font-medium">تمت المعالجة</span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteTopup(req)}
+                                title="حذف طلب الشحن نهائياً"
+                                className="p-1 px-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer text-xs"
+                              >
+                                <i className="fa-solid fa-trash-can"></i>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

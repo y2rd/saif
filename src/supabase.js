@@ -321,6 +321,16 @@ export async function fetchTopupsFromCloud() {
   }
 }
 
+// حذف طلب شحن مباشر من السحابة
+export async function deleteTopupFromCloud(topupId) {
+  if (!supabase) return;
+  try {
+    await supabase.from('topups').delete().eq('id', String(topupId));
+  } catch (err) {
+    console.warn("خطأ في حذف طلب الشحن سحابياً:", err);
+  }
+}
+
 export function subscribeToTopups(onUpdate) {
   if (!supabase || !onUpdate) return () => {};
   try {
